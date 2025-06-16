@@ -447,6 +447,8 @@ $lastUsedColors = null;
                     <div class="input-group"><span class="input-group-addon"><?= _("Orion IP") ?>:</span><input id="new_orionIP" type="text" placeholder="http://x.x.x.x:1026"  class="form-control" ></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Orthomap Json") ?>:</span><textarea id="new_orthomapJson" placeholder="{}"  type="text" class="form-control" ></textarea></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("kb IP") ?>:</span><input id="new_kbIP" type="text" placeholder="http://x.x.x.x:8890"  class="form-control" ></div><br />
+                    <!-- Naldi 06/06/2025 add router -->
+                    <div class="input-group"><span class="input-group-addon"><?= _("Routers") ?>:</span><textarea id="new_ghRouting" placeholder="[]"  type="text" class="form-control" ></textarea></div><br />
                    <!-- <div class="input-group"><span class="input-group-addon"><?= _("User") ?>:</span><input id="new_user" type="text" class="form-control" ></div><br />-->
                 </div>
                 <div class="modal-footer">
@@ -485,6 +487,8 @@ $lastUsedColors = null;
                     <div class="input-group"><span class="input-group-addon"><?= _("Orion IP") ?>:</span><input id="edit_orionIP" type="text" class="form-control" ></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("Orthomap Json") ?>:</span><textarea id="edit_orthomapJson" type="text" class="form-control" ></textarea></div><br />
                     <div class="input-group"><span class="input-group-addon"><?= _("kb IP") ?>:</span><input id="edit_kbIP" type="text" class="form-control" ></div><br />
+                    <!-- Naldi 06/06/2025 add router -->
+                    <div class="input-group"><span class="input-group-addon"><?= _("Routers") ?>:</span><textarea id="edit_ghRouting" placeholder="[]"  type="text" class="form-control" ></textarea></div><br />
                     <!--<div class="input-group"><span class="input-group-addon"><?= _("User") ?>:</span><input id="edit_user" type="text" class="form-control" ></div><br />-->
                     <!-- -->
                 </div>
@@ -865,6 +869,13 @@ $lastUsedColors = null;
             var orionIP = $('#edit_orionIP').val();
             var orthomapJson = $('#edit_orthomapJson').val();
             var kbIP = $('#edit_kbIP').val();
+            //Naldi 06/06/2025 -> add router
+            var ghRouting = $('#edit_ghRouting').val();
+            ghRouting = checkWellformedArrayOfJsons(ghRouting);
+            if(ghRouting === undefined){
+                alert("Router data insert is not wellformed!");
+                return;
+            }
 
             /////////
             name = name.trim();
@@ -894,12 +905,13 @@ $lastUsedColors = null;
                     broker: broker,
                     orionIP: orionIP,
                     orthomapJson: orthomapJson,
-                    kbIP: kbIP
+                    kbIP: kbIP,
+                    ghRouting: ghRouting
                 },
                 type: "POST",
                 async: true,
                 success: function (data) {
-                    if (data === 'ok') {
+                    if (data === 'ok' || data === 'ok\r\n') {
                         window.location.reload();
                     } else {
                         alert('Error during editing organization');
@@ -961,6 +973,13 @@ $lastUsedColors = null;
             var orthomap = $('#new_orthomapJson').val();
             var orion =$('#new_orionIP').val();
             var kbIP = $('#new_kbIP').val();
+            //Naldi 06/06/2025 -> add router
+            var ghRouting = $('#new_ghRouting').val();
+            ghRouting = checkWellformedArrayOfJsons(ghRouting);
+            if(ghRouting === undefined){
+                alert("Router data insert is not wellformed!");
+                return;
+            }
             //////   
             name = name.trim();
             kb = kb.trim();
@@ -985,7 +1004,8 @@ $lastUsedColors = null;
                     broker: broker,
                     orthomap: orthomap,
                     orion: orion,
-                    kbIP: kbIP
+                    kbIP: kbIP,
+                    ghRouting: ghRouting
                 },
                 type: "POST",
                 async: true,
@@ -1094,6 +1114,7 @@ $lastUsedColors = null;
                 $('#edit_orionIP').val(obj[0]['orionIP']);
                 $('#edit_orthomapJson').val(obj[0]['orthomapJson']);
                 $('#edit_kbIP').val(obj[0]['kbIP']);
+                $('#edit_ghRouting').val(obj[0]['ghRouting']);
         //
         var coord = obj[0]['gpsCentreLatLng'];
         var myArr = coord.split(",");
@@ -1283,6 +1304,19 @@ $lastUsedColors = null;
         $(".leaflet-marker-icon").remove();
         $(".leaflet-popup").remove();
     });
+
+    //Naldi 06/06/2025 -> check if router data is a wellformed array of jsons
+    function checkWellformedArrayOfJsons(data){
+        const input = data.trim();
+        try{
+            const parsed = JSON.parse(input);
+            if (Array.isArray(parsed) && parsed.every(item => typeof item === 'object' && item !== null))
+                return input;
+        }catch(error){
+            return undefined;
+        }
+        return undefined;
+    }
 </script>
 
 </body>

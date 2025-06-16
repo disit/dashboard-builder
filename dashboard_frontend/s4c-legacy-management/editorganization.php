@@ -211,6 +211,9 @@ $name = 'Organization';
 
             $kbIP = mysqli_real_escape_string($link, $_REQUEST['kbIP']);
             $kbIP = filter_var($kbIP, FILTER_SANITIZE_STRING);
+
+            $ghRouting = mysqli_real_escape_string($link, $_REQUEST['ghRouting']);
+            //$ghRouting = json_encode($ghRouting);
             ///////////////
             $query = "UPDATE Organizations SET 
                     kbUrl = '" . $kb . "', 
@@ -222,7 +225,8 @@ $name = 'Organization';
                         broker = '" . $broker . "',    
                         orionIP = '" . $orionIP . "',
                         orthomapJson = '" . $orthomapJson . "',
-                        kbIP = '" . $kbIP . "'    
+                        kbIP = '" . $kbIP . "',
+                        ghRouting = '" . $ghRouting . "'    
                 WHERE id = " . $id;
             //echo($query);
             ///////////////////////
@@ -273,11 +277,14 @@ $name = 'Organization';
             
             $kbIP = mysqli_real_escape_string($link, $_REQUEST['kbIP']);
             $kbIP = filter_var($kbIP, FILTER_SANITIZE_STRING);
+
+            $ghRouting = mysqli_real_escape_string($link, $_REQUEST['ghRouting']);
+            //$ghRouting = json_encode($ghRouting);
             
             //
     //INSERT LDAP
-            $query = "INSERT INTO Organizations (organizationName, kbUrl, zoomLevel, drupalUrl, orgUrl, welcomeUrl, gpsCentreLatLng, broker, orthomapJson, orionIP, kbIP)
-                         VALUES ('" . $name . "', '" . $kb . "', '" . $zoom . "', '" . $drupal . "', '" . $org . "', '" . $welc . "','" . $gps . "','".$broker."',".$orthomap.",'".$orion."', '".$kbIP."')";
+            $query = "INSERT INTO Organizations (organizationName, kbUrl, zoomLevel, drupalUrl, orgUrl, welcomeUrl, gpsCentreLatLng, broker, orthomapJson, orionIP, kbIP, ghRouting)
+                         VALUES ('" . $name . "', '" . $kb . "', '" . $zoom . "', '" . $drupal . "', '" . $org . "', '" . $welc . "','" . $gps . "','".$broker."',".$orthomap.",'".$orion."', '".$kbIP."', '".$ghRouting."')";
             $result = mysqli_query($link, $query);
             if ($result) {
                 echo('ok');
@@ -685,6 +692,11 @@ $name = 'Organization';
                         $arr['kbIP'] = '';
                     } else {
                         $arr['kbIP'] = $row['kbIP'];
+                    }
+                    if ($row['ghRouting'] == null) {
+                        $arr['ghRouting'] = '';
+                    } else {
+                        $arr['ghRouting'] = $row['ghRouting'];
                     }
 
                     //
