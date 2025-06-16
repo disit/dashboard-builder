@@ -34,7 +34,30 @@ $model = $model_filemanager;
 $processloader_uri = $processloader_uri_filemanager;
 define("CHUNK_SIZE", 1024 * 1024);
 
-if (isset($_SESSION["refreshToken"]) || isset($_POST["accessToken"])) {
+$iot_directory_model = $iot_directory_api . "/model.php";
+$iot_directory_device = $iot_directory_api . "/device.php";
+$iot_directory_ldap = $iot_directory_api . "/ldap.php";
+
+$message_output["message"] = "";
+$message_output["code"] = "";
+$message_output["status"] = "";
+$message_output["content"] = "";
+
+    //open new connection to mysql server
+$link = mysqli_connect($host, $username, $password);
+
+if (isset($_REQUEST["action"]) && !empty($_REQUEST["action"])) {
+        $action = mysqli_real_escape_string($link, $_REQUEST["action"]);
+        $action = filter_var($action, FILTER_SANITIZE_STRING);
+} else {
+        $message_output["code"] = "404";
+        $message_output["message"] = "Required action parameter";
+        echo json_encode($message_output);
+        mysqli_close($link);
+        exit();
+}
+
+if (isset($_SESSION["refreshToken"]) || isset($_REQUEST["accessToken"])) {
     $oidc = new OpenIDConnectClient(
         $ssoEndpoint,
         $ssoClientId,
@@ -43,8 +66,8 @@ if (isset($_SESSION["refreshToken"]) || isset($_POST["accessToken"])) {
     $oidc->providerConfigParam([
         "token_endpoint" => $ssoTokenEndpoint,
     ]);
-    if (isset($_POST["accessToken"])) {
-        $accessToken = $_POST["accessToken"];
+    if (isset($_REQUEST["accessToken"])) {
+        $accessToken = $_REQUEST["accessToken"];
     }
     else {
         $tkn = $oidc->refreshToken($_SESSION["refreshToken"]);
@@ -52,29 +75,7 @@ if (isset($_SESSION["refreshToken"]) || isset($_POST["accessToken"])) {
         $_SESSION["refreshToken"] = $tkn->refresh_token;
     }
 }
-if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
-    $iot_directory_model = $iot_directory_api . "/model.php";
-    $iot_directory_device = $iot_directory_api . "/device.php";
-    $iot_directory_ldap = $iot_directory_api . "/ldap.php";
-
-    $message_output["message"] = "";
-    $message_output["code"] = "";
-    $message_output["status"] = "";
-    $message_output["content"] = "";
-
-    //open new connection to mysql server
-    $link = mysqli_connect($host, $username, $password);
-
-    if (isset($_REQUEST["action"]) && !empty($_REQUEST["action"])) {
-        $action = mysqli_real_escape_string($link, $_REQUEST["action"]);
-        $action = filter_var($action, FILTER_SANITIZE_STRING);
-    } else {
-        $message_output["code"] = "404";
-        $message_output["message"] = "Required action parameter";
-        echo json_encode($message_output);
-        mysqli_close($link);
-        exit();
-    }
+if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action == 'view_file') {
 
     if ($action == "list_files") {
         $data_array = [
@@ -811,6 +812,34 @@ if (isset($_SESSION["loggedRole"]) || isset($_POST["accessToken"])) {
                 }
             }
             ///
+            //Pubblici
+            if (!isset($_SESSION["loggedRole"])){
+                    $fileid = mysqli_real_escape_string($link, $_REQUEST["fileid"]);
+                    $originalfilename = mysqli_real_escape_string($link, $_REQUEST["filename"]);
+                    $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel";
+                    $ch = curl_init();
+                    curl_setopt($ch, CURLOPT_URL, $url);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                        "Content-Type: application/json",
+                        "Authorization: Bearer " . $accessToken,
+                    ]);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                    $apiCall = curl_exec($ch);
+                    $apiArray = json_decode($apiCall, true);
+                    $data = $apiArray;
+                    foreach ($data['features'] as $feature) {
+                                $values = $feature['properties']['values'];
+                                if (
+                                    (isset($values['newfileid']) && $values['newfileid'] === $fileid) ||
+                                    (isset($values['originalfilename']) && $values['originalfilename'] === $targetOriginalFilename)
+                                ) {
+                                    $device_belongs_to_me = true;
+                                    break;
+                                }
+                            }
+                    //
+            }
             $filepath = $protecteduploads_directory . "/" . $filename;
             if (file_exists($filepath)) {
                 if ($device_belongs_to_me) {
