@@ -107,7 +107,9 @@
 <?php endif; ?>                  
                 </div>
             </div>  
-
+            <div class="col-md-12 centerWithFlex">
+                <input id="searchMenu" type="text" placeholder="Search element" style="color:black; margin-bottom:5%" autocomplete="off">
+            </div>
             <div id="mainMenuScrollableCnt"  class="col-md-12">
                  <?php
 
@@ -381,6 +383,9 @@ EOT;
 }
 }
 ?>
+<style>
+    .menuFilteredOut{display:none !important}
+</style>
 <script type='text/javascript'>
      
               
@@ -537,6 +542,13 @@ EOT;
             $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
             $('#mainMenuScrollableCnt').css("overflow-y", "auto");
         });
+
+        var searchTimeout
+        $("#searchMenu").keyup(() => {
+            clearTimeout(searchTimeout)
+            let text =  $("#searchMenu").val().trim()
+            searchTimeout = setTimeout(() => searchElement(text), 250)
+        })
     });
     
     //
@@ -581,6 +593,24 @@ EOT;
                     }
                 });
             }
+
+        function searchElement(text=""){
+            $(".menuFilteredOut").removeClass("menuFilteredOut")
+            $("#mainMenuScrollableCnt .mainMenuLink[data-submenuvisible=true]").click()
+            if(text.trim() != ""){
+                $("#mainMenuScrollableCnt .mainMenuLink[data-linkurl!=submenu] span").toArray().filter(x => !x.innerText.toLowerCase().includes(text.toLowerCase())).forEach(x => $(x).parents(".mainMenuLink").addClass("menuFilteredOut"))
+                $("#mainMenuScrollableCnt .mainMenuLink[data-linkurl=submenu], #mainMenuScrollableCnt .mainMenuSubItemLink").addClass("menuFilteredOut")
+                var toShowLinks = []
+                $("#mainMenuScrollableCnt .mainMenuSubItemCnt span").toArray().filter(x => x.innerText.toLowerCase().includes(text.toLowerCase())).forEach(x => {
+                    let fatherID = $(x).parents(".mainMenuSubItemLink").removeClass("menuFilteredOut").attr("data-fathermenuid")
+                    let mainMenuLink = $(`#mainMenuScrollableCnt .mainMenuLink#${fatherID}[data-linkurl=submenu]`)[0]
+                    if(mainMenuLink != undefined)
+                        toShowLinks.push(mainMenuLink)
+                })
+                $([... new Set(toShowLinks)]).click().removeClass("menuFilteredOut")
+            }
+            $("div.mainMenuItemCntActive").removeClass("mainMenuItemCntActive")
+        }
             
 </script>    
 

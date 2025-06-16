@@ -73,6 +73,9 @@
             </div>
 <?php endif; ?>         
         </div>
+        <div class="col-xs-12 centerWithFlex">
+            <input id="mobSearchMenu" type="text" placeholder="Search element" style="color:black; font-size:medium; margin-bottom:2.5%" autocomplete="off">
+        </div>
         <hr id="porHr">
         
         <?php
@@ -514,10 +517,20 @@
         ?>
     </div>  
 </div>
-
+<style>
+    .mobMenuFilteredOut{display:none !important}
+</style>
 <script type='text/javascript'>
     $(document).ready(function () 
     {
+
+        var mobSearchTimeout
+        $("#mobSearchMenu").keyup(() => {
+            clearTimeout(mobSearchTimeout)
+            let text =  $("#mobSearchMenu").val().trim()
+            mobSearchTimeout = setTimeout(() => mobSearchElement(text), 250)
+        })
+
         $('#mobMainMenuCnt').css("top", parseInt($('#mobHeaderClaimCnt').height() + $('#headerMenuCnt').height()) + "px");
         
         $( window ).on( "orientationchange", function( event ) {
@@ -909,6 +922,24 @@
                 }
                     }
                 });
+            }
+
+            function mobSearchElement(text=""){
+                $(".mobMenuFilteredOut").removeClass("mobMenuFilteredOut")
+                $("#mobMainMenuPortraitCnt .mainMenuLink[data-submenuvisible=true]").click()
+                if(text.trim() != ""){
+                    $("#mobMainMenuPortraitCnt .mainMenuLink[data-linkurl!=submenu] div").toArray().filter(x => !x.innerText.toLowerCase().includes(text.toLowerCase())).forEach(x => $(x).parents(".mainMenuLink").addClass("mobMenuFilteredOut"))
+                    $("#mobMainMenuPortraitCnt .mainMenuLink[data-linkurl=submenu], #mobMainMenuPortraitCnt .mainMenuSubItemLink").addClass("mobMenuFilteredOut")
+                    var toShowLinks = []
+                    $("#mobMainMenuPortraitCnt .mainMenuSubItemCnt").toArray().filter(x => x.innerText.toLowerCase().includes(text.toLowerCase())).forEach(x => {
+                        let fatherID = $(x).parents(".mainMenuSubItemLink").removeClass("mobMenuFilteredOut").attr("data-fathermenuid")
+                        let mainMenuLink = $(`#mobMainMenuPortraitCnt .mainMenuLink#${fatherID}[data-linkurl=submenu]`)[0]
+                        if(mainMenuLink != undefined)
+                            toShowLinks.push(mainMenuLink)
+                    })
+                    $([... new Set(toShowLinks)]).click().removeClass("mobMenuFilteredOut")
+                }
+                $("div.mainMenuItemCntActive").removeClass("mainMenuItemCntActive")
             }
             
 </script>    
