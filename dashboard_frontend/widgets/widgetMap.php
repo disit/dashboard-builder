@@ -17913,72 +17913,75 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                             let multipleLines = passedData[j].multipleLines;
                                             const paths = result.paths;
                                             let multimodal = passedData[j].multimodal;
+                                            if(paths.length === 0)
+                                                alert("No path can be found");
+                                            else{
+                                                let iterationStart = paths.length-1;
+                                                //if you do not want to draw more lines
+                                                if(multipleLines === undefined || !multipleLines)
+                                                   iterationStart = 0;
 
-                                            let iterationStart = paths.length-1;
-                                            //if you do not want to draw more lines
-                                            if(multipleLines === undefined || !multipleLines)
-                                               iterationStart = 0;
+                                                const drawPolyline = (pts, color) =>{
+                                                    let traie = L.polyline(pts).setStyle({ color: color }).bindPopup(optionalhtmltrajpopup, { offset: [0, 0] });
+                                                    traie.addTo(map.defaultMapRef);
+                                                    traj_trajects.push(traie);
+                                                }
 
-                                            const drawPolyline = (pts, color) =>{
-                                                let traie = L.polyline(pts).setStyle({ color: color }).bindPopup(optionalhtmltrajpopup, { offset: [0, 0] });
-                                                traie.addTo(map.defaultMapRef);
-                                                traj_trajects.push(traie);
-                                            }
-
-                                            for(let i=iterationStart; i>-1; i--){
-                                                //parse wkt
-                                                const path = paths[i];
-                                                const wkt = path.wkt;
-                                                const pts = parseWKT(wkt);
-                                                paths[i]['coordinates'] = pts;
-                                                if(multimodal === undefined){
-                                                    //choose color
-                                                    let color = points[o].color[i];
-                                                    if(color === undefined)
-                                                        color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
-                                                    paths[i]['colors'] = [color];
-                                                    //draw line
-                                                    drawPolyline(pts, color);
-                                                }else{
-                                                    paths[i]['colors'] = [multimodal.lineColors.pedestrian, multimodal.lineColors.bus];
-                                                    //search for pt_trip
-                                                    const ptTripNodes = path.instructions.filter((i)=>i.leg !== undefined);
-                                                    if(ptTripNodes.length>0){
-                                                        //break pts into the subpaths
-                                                        let s = 0;
-                                                        let f = path.coordinates.length-1;
-                                                        for(let ptTripNode of ptTripNodes){
-                                                            let [ptNodeStart, ptNodeFinish] = ptTripNode.interval;
-                                                            //pedestrian
-                                                            if(ptNodeStart !== s)
-                                                                drawPolyline(pts.slice(s, ptNodeStart+1), multimodal.lineColors.pedestrian);
-                                                            //bus
-                                                            drawPolyline(pts.slice(ptNodeStart, ptNodeFinish+1), multimodal.lineColors.bus);
-                                                            //add bus pins
-                                                            for(let idx of ptTripNode.interval){
-                                                                let coords = path.coordinates[idx];
-                                                                let icon = new L.Icon({
-                                                                    iconUrl: multimodal.icon,
-                                                                    iconSize: [35, 35],
-                                                                    iconAnchor: [5, 5],
-                                                                    popupAnchor: [0, -5]
-                                                                });
-                                                                let marker = new L.Marker(new L.LatLng(...coords),  { icon: icon });
-                                                                popupText = "<div>Bus Stop</div>";
-                                                                map.defaultMapRef.addLayer(marker.bindPopup(popupText, { offset: [0, 0] }));
-                                                                traj_markers.push(marker);
-                                                            }
-                                                            //update index
-                                                            s = ptNodeFinish;
-                                                        }
-                                                        //last subpath if needed
-                                                        if(s < f)
-                                                            drawPolyline(pts.slice(s, f+1), multimodal.lineColors.pedestrian);
-                                                    }else{
-                                                        let color = iterationStart === 0 ? multimodal.lineColors.pedestrian : multimodal.lineColors.modal;
+                                                for(let i=iterationStart; i>-1; i--){
+                                                    //parse wkt
+                                                    const path = paths[i];
+                                                    const wkt = path.wkt;
+                                                    const pts = parseWKT(wkt);
+                                                    paths[i]['coordinates'] = pts;
+                                                    if(multimodal === undefined){
+                                                        //choose color
+                                                        let color = points[o].color[i];
+                                                        if(color === undefined)
+                                                            color = '#' + Math.floor(Math.random() * 0xffffff).toString(16).padStart(6, '0');
                                                         paths[i]['colors'] = [color];
                                                         //draw line
                                                         drawPolyline(pts, color);
+                                                    }else{
+                                                        paths[i]['colors'] = [multimodal.lineColors.pedestrian, multimodal.lineColors.bus];
+                                                        //search for pt_trip
+                                                        const ptTripNodes = path.instructions.filter((i)=>i.leg !== undefined);
+                                                        if(ptTripNodes.length>0){
+                                                            //break pts into the subpaths
+                                                            let s = 0;
+                                                            let f = path.coordinates.length-1;
+                                                            for(let ptTripNode of ptTripNodes){
+                                                                let [ptNodeStart, ptNodeFinish] = ptTripNode.interval;
+                                                                //pedestrian
+                                                                if(ptNodeStart !== s)
+                                                                    drawPolyline(pts.slice(s, ptNodeStart+1), multimodal.lineColors.pedestrian);
+                                                                //bus
+                                                                drawPolyline(pts.slice(ptNodeStart, ptNodeFinish+1), multimodal.lineColors.bus);
+                                                                //add bus pins
+                                                                for(let idx of ptTripNode.interval){
+                                                                    let coords = path.coordinates[idx];
+                                                                    let icon = new L.Icon({
+                                                                        iconUrl: multimodal.icon,
+                                                                        iconSize: [35, 35],
+                                                                        iconAnchor: [5, 5],
+                                                                        popupAnchor: [0, -5]
+                                                                    });
+                                                                    let marker = new L.Marker(new L.LatLng(...coords),  { icon: icon });
+                                                                    popupText = "<div>Bus Stop</div>";
+                                                                    map.defaultMapRef.addLayer(marker.bindPopup(popupText, { offset: [0, 0] }));
+                                                                    traj_markers.push(marker);
+                                                                }
+                                                                //update index
+                                                                s = ptNodeFinish;
+                                                            }
+                                                            //last subpath if needed
+                                                            if(s < f)
+                                                                drawPolyline(pts.slice(s, f+1), multimodal.lineColors.pedestrian);
+                                                        }else{
+                                                            let color = iterationStart === 0 ? multimodal.lineColors.pedestrian : multimodal.lineColors.modal;
+                                                            paths[i]['colors'] = [color];
+                                                            //draw line
+                                                            drawPolyline(pts, color);
+                                                        }
                                                     }
                                                 }
                                             }
@@ -18196,14 +18199,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     scenarioData.features = [];
     $(document).on('addScenario', function (event) {
         if (event.target === map.mapName) {
-            //Naldi 08/05/2025 -> 
-            //if we are in whatif-router dashboard and a scenario/studio is loaded 
-            //do not let create a new one
-            if(disabledTriggers.includes(event.type)){
-                alert("It's possible that a studio is loaded. If it is the case, please trigger removeScenario, clear the scenario/studio loaded and trigger addScenario again!");
-                return
-            }
-            //if we are in whatif-router dashboard and no scenario/studio is loaded disable addPinByPopup
+            //Naldi 08/05/2025 -> if we are in whatif-router dashboard disable addPinByPopup
             $.event.trigger({
                 type: 'toggleTriggers',
                 target: map.mapName,
