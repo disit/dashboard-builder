@@ -174,7 +174,35 @@ if (!isset($_SESSION)) {
 #editUserDelOrgsRowMod {
   display: none;
 }
-
+/*ACL */
+#editACLModalInnerDiv1 .acl-item {
+  display: flex;
+  align-items: center;
+  padding: 0.3em 0;
+  border-bottom: 1px solid #eee;
+}
+#editACLModalInnerDiv1 .acl-item input[type=checkbox] {
+  margin: 0 0.5em 0 0;
+  flex: none;
+}
+#editACLModalInnerDiv1 .acl-item label {
+  flex: 1;
+}
+#editACLModalInnerDiv1 .acl-item em {
+  color: #777;
+  font-style: normal;
+  margin-left: 0.5em;
+  font-size: 0.9em;
+}
+.editACL{
+height: 20px;
+background-color: rgb(41, 99, 208);
+border: none;
+color: white;
+font-family: 'Montserrat';
+font-weight: bold;
+text-transform: uppercase;
+}
 
         </style>
     </head>
@@ -627,6 +655,29 @@ if (!isset($_SESSION)) {
             </div>
         </div>
     </div>
+    <!-- Modale di modifica ACL utente-->
+    <div class="modal fade" id="editACLModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modalHeader centerWithFlex">
+                Update ACL
+            </div>
+            <div id="delWidgetTypeModalBody" class="modal-body modalBody">
+                <div class="row">
+                    <div class="col-xs-12 modalCell">
+                        <div id="editACLModalInnerDiv1" class="modalDelMsg col-xs-12 style="display:block;" ">
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="editACLCancelBtn" class="btn cancelBtn" data-dismiss="modal">Cancel</button>
+                <button type="button" id="editACLConfirmBtn" class="btn confirmBtn internalLink">Confirm</button>
+            </div>
+        </div>
+    </div>
+    </div>
 
 
 </body>
@@ -637,6 +688,7 @@ if (!isset($_SESSION)) {
         var cachedOrgs = null;
         var cachedGroups = null;
         var get_list = null;
+        var cachedADs = null;
 
 
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
@@ -967,10 +1019,19 @@ if (!isset($_SESSION)) {
                                 halign: "center",
                                 formatter: function TableActionsEdit(value, row, index) {
                                     //return "<button type='button' class='editDashBtn editUser' data-toggle='modal' data-target='#editNewUserModal' >edit</button>";
-                                    return "<button type='button' class='editDashBtn editUser' data-toggle='modal'>edit</button>";
+                                    return "<button type='button' class='editDashBtn editUser' data-toggle='modal' >edit</button>";
                                     //
                                 }
                             }, {
+                                title: "",
+                                align: "center",
+                                valign: "middle",
+                                sortable: false,
+                                halign: "center",
+                                formatter: function TableActionsACL(value, row, index) {
+                                    return `<button type='button' class='ACLDashBtn editACL' data-username="${row.username}">ACL</button>`;
+                                }
+                            },{
                                 title: "",
                                 align: "center",
                                 valign: "middle",
@@ -1430,6 +1491,97 @@ if (!isset($_SESSION)) {
                     $("#deleteUserModalInnerDiv1").html('User &nbsp; <b>' + username + '</b> &nbsp; deletion failed, please try again');
                     $("#deleteUserModalInnerDiv2").html('<i class="fa fa-frown-o" style="font-size:42px"></i>');
                 }
+            });
+        });
+        /*ACL functions*/ 
+        $(document).on('click', '.ACLDashBtn', function(){
+            const username = $(this).data('username');
+            $('#editACLModal .modalHeader')
+                .text(`Update ACL for ${username}`);
+            const defsDeferred = cachedADs
+                ? $.Deferred().resolve(cachedADs).promise()
+                : $.ajax({
+                    url:  'editACL.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: { action: 'get_list_AD' }
+                }).then(defs => {
+                    cachedADs = defs;
+                    return defs;
+                });
+            defsDeferred
+                .then(defs => {
+                return $.ajax({
+                    url:  'editACL.php',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: {
+                    action:   'get_user_ACL',
+                    username: username
+                    }
+                }).then(userAcl => {
+                    if (!Array.isArray(userAcl)) {
+                    return $.Deferred().reject('Unexpected ACL payload').promise();
+                    }
+                    const hasSet = new Set(userAcl.map(r => r.defID));
+                    const $container = $('#editACLModalInnerDiv1').empty();
+                    const originalDefs = userAcl.map(r => Number(r.defID));
+                    $('#editACLModal').data('originalDefs', originalDefs);
+                    defs.forEach(def => {
+                        //if empty/null
+                        const orgText  = def.org     ? def.org     : 'None';
+                        const menuText = (def.menuID != null && def.menuID !== '') 
+                                        ? def.menuID 
+                                        : 'None';
+                        const checked  = hasSet.has(def.ID) ? 'checked' : '';
+
+                        $container.append(`
+                        <div class="acl-item">
+                            <label>
+                            <input 
+                                type="checkbox" 
+                                class="ACLCheckbox" 
+                                value="${def.ID}" 
+                                ${checked}
+                            >
+                            <strong>${def.authname}</strong>
+                            <em>(Org: ${orgText}, MenuID: ${menuText})</em>
+                            </label>
+                        </div>
+                        `);
+                    });
+                    $('#editACLModal').modal('show');
+                });
+                })
+                .fail(err => {
+                console.error("ACL popup error:", err);
+                alert("Could not load ACL — check console.");
+                });
+            });
+        $('#editACLConfirmBtn').click(function(){
+            const username = $('#editACLModal .modalHeader')
+                                .text().replace('Update ACL for ', '');
+            const newDefs = $('.ACLCheckbox:checked')
+                                    .map((i,cb) => cb.value)
+                                    .get();
+            const originalDefs  = $('#editACLModal').data('originalDefs') || [];
+            $.ajax({
+                url: 'editACL.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                action:   'update_ACL',
+                username: username,
+                original_defs : originalDefs,
+                new_defs : newDefs,
+                }
+            }).done(function(res){
+                if (res.error) {
+                    alert("Error: " + res.error);
+                    } else {
+                    console.log("Added:", res.added, "Removed:", res.removed);
+                    }
+                $('#editACLModal').modal('hide');
             });
         });
     });

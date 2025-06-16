@@ -1,4 +1,6 @@
 {
   "sessions": "CREATE TABLE IF NOT EXISTS `Dashboard`.`sessions` (`id` varchar(32) NOT NULL, `access` int(10) unsigned DEFAULT NULL, `data` text, PRIMARY KEY (id));",
-  "TrustedUserGroups": "CREATE TABLE IF NOT EXISTS `Dashboard`.`TrustedUserGroups` (`id` INT NOT NULL,`username` VARCHAR(45) NULL, PRIMARY KEY (`id`));"
+  "TrustedUserGroups": "CREATE TABLE IF NOT EXISTS `Dashboard`.`TrustedUserGroups` (`id` INT NOT NULL,`username` VARCHAR(45) NULL, PRIMARY KEY (`id`));",
+  "ACL" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACL` (ID INT NOT NULL AUTO_INCREMENT,defID INT NOT NULL,user VARCHAR(500) NOT NULL,PRIMARY KEY (ID),FOREIGN KEY (defID) REFERENCES AccessDefinitions(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
+  "AccessDefinitions" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`AccessDefinitions` (ID INT NOT NULL AUTO_INCREMENT,authname VARCHAR(500) NOT NULL,org TEXT NULL,menuID INT NULL,PRIMARY KEY (ID));"
 }
