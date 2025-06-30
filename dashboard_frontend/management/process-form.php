@@ -2456,6 +2456,9 @@
                 exit();
             }
         }
+
+        if(isset($_REQUEST['editNewWizard'])) $editNewWizard = mysqli_real_escape_string($link, $_REQUEST['editNewWizard']);
+        else $editNewWizard = false;
         
         $widgetIdM = $_REQUEST['widgetIdM'];
         if (checkVarType($widgetIdM, "integer") === false) {
@@ -4465,7 +4468,7 @@
                     
                     mysqli_close($link);
                     
-                    header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard2 . "&dashboardAuthorName=" . urlencode($dashboardAuthor) . "&dashboardEditorName=" . urlencode($lastEditor) . "&dashboardTitle=" . urlencode($dashboardName2));
+                    header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard2 . "&dashboardAuthorName=" . urlencode($dashboardAuthor) . "&dashboardEditorName=" . urlencode($lastEditor) . "&dashboardTitle=" . urlencode($dashboardName2)."&editNewWizard=".urlencode($editNewWizard));
                     
                     //1) Se non registrato e viene richiesto di abilitarlo da GUI --> lo registriamo (con registrazione dei tipi di evento, come in add);
                     if($notificatorRegistered == 'no')

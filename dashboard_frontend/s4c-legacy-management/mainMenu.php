@@ -107,7 +107,7 @@
 <?php endif; ?>                  
                 </div>
             </div>  
-            <div class="col-md-12 centerWithFlex">
+            <div id="searchMenuDiv" class="col-md-12 centerWithFlex">
                 <input id="searchMenu" type="text" placeholder="Search element" style="color:black; margin-bottom:5%" autocomplete="off">
             </div>
             <div id="mainMenuScrollableCnt"  class="col-md-12">
@@ -394,7 +394,10 @@ EOT;
     $(document).ready(function () 
     {
         console.log('Entrato in Main Menu');
-        var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
+        // Vecchio calcolo altezza
+        // var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - $('#searchMenuDiv').outerHeight() - 30);
+        // Calcolo dinamico
+        var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - 30 - $("#mainMenuCnt").children().not("#mainMenuScrollableCnt").toArray().reduce((tot, x) => tot + $(x).outerHeight(), 0));
         $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
         $('#mainMenuScrollableCnt').css("overflow-y", "auto");
         
@@ -520,9 +523,9 @@ EOT;
                 window.open($(this).attr("href"), $(this).attr("target"));
             }
             
-            var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
-            $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
-            $('#mainMenuScrollableCnt').css("overflow-y", "auto");
+            // var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
+            // $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
+            // $('#mainMenuScrollableCnt').css("overflow-y", "auto");
         });
         
         $('#mainMenuCnt .mainMenuSubItemLink').click(function(event){
@@ -538,7 +541,9 @@ EOT;
         });
         
         $(window).resize(function(){
-            var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
+            // var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
+            // Calcolo dinamico
+            var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - 30 - $("#mainMenuCnt").children().not("#mainMenuScrollableCnt").toArray().reduce((tot, x) => tot + $(x).outerHeight(), 0));
             $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
             $('#mainMenuScrollableCnt').css("overflow-y", "auto");
         });

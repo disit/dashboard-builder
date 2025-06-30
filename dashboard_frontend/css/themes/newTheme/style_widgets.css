@@ -4551,3 +4551,7 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
     background: var(--dash-bg-color) !important;
     margin-bottom: 1px !important;
 }
+
+.timepicker-picker{
+    color: black
+}

@@ -724,10 +724,11 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         $filetype = mysqli_real_escape_string($link, $_POST["filetype"]);
         $filetype = filter_var($filetype, FILTER_SANITIZE_STRING);
         $filename = $fileid . "." . $filetype;
-        $filesubdirectory = $protecteduploads_directory . "/" . $fileid;
+        //$filesubdirectory = $protecteduploads_directory . "/" . $fileid;
+        $filesubdirectory = $protecteduploads_directory;
         $filepath = $filesubdirectory . "/" . $filename;
         unlink($filepath);
-        rmdir($filesubdirectory);
+        //rmdir($filesubdirectory);
         $data_array = [
             "action" => "delete",
             "id" => $id,
@@ -857,17 +858,17 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     exit();
                 }
                 else {
-                    $mesagge_output["code"] = "403";
+                    $message_output["code"] = "403";
                     $message_output["message"] = "Access Denied: the requested file does not belong to the user.";
                 }
             } else {
-                $mesagge_output["code"] = "404";
+                $message_output["code"] = "404";
                 $message_output["message"] = "The file you were looking for does not exist.";
             }
             echo json_encode($message_output);
             ////
         }else{
-            $mesagge_output["code"] = "404";
+            $message_output["code"] = "404";
             $message_output["message"] = "Missing required parameters";
             echo json_encode($message_output);
         }

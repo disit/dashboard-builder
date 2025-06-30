@@ -290,6 +290,9 @@
         //var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
         //$('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
         //$('#mainMenuScrollableCnt').css("overflow-y", "auto");
+        // Calcolo dinamico
+        var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - 30 - $("#mainMenuCnt").children().not("#mainMenuScrollableCnt").toArray().reduce((tot, x) => tot + $(x).outerHeight(), 0));
+        $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
         
         $('#mainMenuCnt a.mainMenuLink').attr('data-submenuVisible', 'false');
         $('#mainMenuCnt a.mainMenuSubItemLink').hide();
@@ -425,11 +428,12 @@
             window.open($(this).attr("href"), $(this).attr("target"));
         });
         
-        //$(window).resize(function(){
-            //var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - $('#headerClaimCnt').outerHeight() - $('#mainMenuCnt .mainMenuUsrCnt').outerHeight() - 30);
-            //$('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
-            //$('#mainMenuScrollableCnt').css("overflow-y", "auto");
-        //});
+        $(window).resize(function(){
+            // Calcolo dinamico
+            var mainMenuScrollableCntHeight = parseInt($('#mainMenuCnt').outerHeight() - 30 - $("#mainMenuCnt").children().not("#mainMenuScrollableCnt").toArray().reduce((tot, x) => tot + $(x).outerHeight(), 0));
+            $('#mainMenuScrollableCnt').css("height", parseInt(mainMenuScrollableCntHeight + 0) + "px");
+            $('#mainMenuScrollableCnt').css("overflow-y", "auto");
+        });
 
         var searchTimeout
         $("#searchMenu").keyup(() => {

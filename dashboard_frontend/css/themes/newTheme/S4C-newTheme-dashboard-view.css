@@ -310,3 +310,13 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
     background: var(--header-color)!important;
     color: white;
 }
+
+.footerNavColumn > ul > li > a{
+  color: var(--text-color) !important;
+  font-weight: 400 !important;
+}
+
+.footerNavColumn > ul > li > a:focus, .footerNavColumn > ul > li > a:hover {
+    background-color: transparent !important;
+    text-decoration: underline;
+}
