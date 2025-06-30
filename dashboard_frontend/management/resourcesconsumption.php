@@ -117,7 +117,7 @@ if ($canSeeAdmin) {
             if ($dec) {
                 $allUsers[] = $dec;
             }
-        }
+      }
         mysqli_stmt_close($stmtU);
         mysqli_close($link2);
     }
@@ -255,7 +255,8 @@ if ($canSeeAdmin) {
       </h4>
       <form id="adminForm" method="post"
             action="resourcesconsumptionFetch.php"
-            class="card p-4 shadow-sm">
+            class="card p-4 shadow-sm"
+            autocomplete="off">
         <input type="hidden" name="route" id="routeInput" value="">
 
         <!-- User vs Org -->
@@ -286,7 +287,7 @@ if ($canSeeAdmin) {
         <div class="mb-3" id="userSelection">
           <label for="usernameInput" class="form-label">Username</label>
           <input list="users" id="usernameInput" class="form-control"
-                 placeholder="Start typing or enter username">
+                 placeholder="Start typing or enter username" autocomplete="off">
           <datalist id="users">
             <?php foreach ($allUsers as $u): ?>
               <option value="<?= htmlspecialchars($u, ENT_QUOTES) ?>">
@@ -298,7 +299,7 @@ if ($canSeeAdmin) {
         <div class="mb-3" id="orgSelection" style="display:none">
           <label for="orgInput" class="form-label">Organization</label>
           <input list="orgs" id="orgInput" class="form-control"
-                 placeholder="Select or enter org">
+                 placeholder="Select or enter org" autocomplete="off">
           <datalist id="orgs">
             <?php if ($role === 'RootAdmin'): ?>
               <?php foreach ($organizations_list as $o): ?>
@@ -385,7 +386,7 @@ if ($canSeeAdmin) {
 
         function toggleFields(){
           // user / org / all
-          if (byAll.checked) {
+          if (byAll && byAll.checked) {
           userSel.style.display = 'none';
           orgSel.style.display  = 'none';
 
@@ -434,8 +435,11 @@ if ($canSeeAdmin) {
           endDate.disabled    = !byRange.checked;
         }
 
-        [byUser,byOrg,byAll,byDay,byMonth,byRange].forEach(el=>
-          el.addEventListener('change', toggleFields)
+        const userOrgRadios = [byUser, byOrg, byAll].filter(el => el);
+        const periodRadios  = [byDay, byMonth, byRange];
+
+        userOrgRadios.concat(periodRadios).forEach(el => 
+        el.addEventListener('change', toggleFields)
         );
 
         form.addEventListener('submit', ()=>{
@@ -475,11 +479,10 @@ if ($canSeeAdmin) {
           }
           routeIn.value = route;
         });
-
         // initial toggle
         toggleFields();
       })();
-      </script>
+    </script>
     <?php endif; ?>
 
   </div>
