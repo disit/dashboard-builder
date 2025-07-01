@@ -23709,24 +23709,25 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }, 1500);
                 }
 
+                //Naldi -> 30/06/2025 disable select for multi-resolution
                 //precision
-                if (precision != 'poi' && precision != 'ace' && precision != 'municipality' && precision != 'province' && precision != 'region') {
-                    var options = '';
-                    for (let i = 0; i < shapeTypes.length; i++) {
-                        if (shapeTypes[i] !== precision) {
-                            options += '<option value=' + shapeTypes[i] + '>' + shapeTypes[i] + '</option>';
-                        }
-                    }
-                    map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
-                        '<label for="Precision">Precision:&nbsp;</label><select name="precision" id="precision" ' + disabledAnimation() + '>' +
-                        '<option value=' + precision + '>' + precision +
-                        options +
-                        '</select></div>';
-                } else {
+                //if (precision != 'poi' && precision != 'ace' && precision != 'municipality' && precision != 'province' && precision != 'region') {
+                    //var options = '';
+                    //for (let i = 0; i < shapeTypes.length; i++) {
+                        //if (shapeTypes[i] !== precision) {
+                            //options += '<option value=' + shapeTypes[i] + '>' + shapeTypes[i] + '</option>';
+                        //}
+                    //}
+                    //map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
+                        //'<label for="Precision">Precision:&nbsp;</label><select name="precision" id="precision" ' + disabledAnimation() + '>' +
+                        //'<option value=' + precision + '>' + precision +
+                        //options +
+                        //'</select></div>';
+                //} else {
                     map.legendOdDiv.innerHTML += '<div id="odPrecisionControl">' +
                         '<label for="Precision">Precision:&nbsp;</label><span name="precision" id="precision" ' + disabledAnimation() + '>' +
                         precision + '</span></div>';
-                }
+                //}
 
                 //flow
                 if (inflow === "True") {
