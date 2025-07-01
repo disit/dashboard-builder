@@ -2753,12 +2753,18 @@
                 
                 $("#button_close_popup").click(function()
                 {
-                    location.reload();
+                    // location.reload();
+                    $("#modal-add-widget-body").modal('hide')
+
                 });
                 
                 $("#closeModifyWidgetBtn").click(function()
                 {
-                    location.reload();
+                    //location.reload();
+                    $("#modal-modify-widget").modal('hide')
+                    $("#specificParamsMRight").empty()
+                    $("#deviceTableEditorSM").empty()
+                    $(".wellCustom2right").css("width", "")
                 });
                 
                 function updateLastUsedColors(newColor)
@@ -18072,6 +18078,7 @@
                     //$(document).on('click', '.icon-cfg-widget', function () 
                     $(document).on('click', '.widgetCtxMenu .advancedOptionsRow', function () 
 					{
+                        gisTargetCenterMapDivRefM = null
                         //var name_widget_m = $(this).parents('li').attr('id');
 						var name_widget_m = $(this).parents('div.widgetCtxMenu').attr('data-widgetName');
                         //var widgetId = $(this).parents('li').attr('data-widgetId');
@@ -32480,6 +32487,19 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
+
+                                        // Font size DateObservced
+                                        newLabel = $('<label for="sizeDateObserved" class="col-md-2 control-label"><?php echo _("Date observed font size"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newInput = $('<input type="text" class="form-control" id="sizeDateObserved" name="sizeDateObserved">');
+                                        sizeDateObserved = styleParameters.sizeDateObserved || data['fontSize']/2
+                                        newInput.val(sizeDateObserved);
+                                        newInnerDiv.append(newInput);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newInput.show();
 
                                         $("#specificParamsM").append(newFormRow);
                                         newLabel.show();

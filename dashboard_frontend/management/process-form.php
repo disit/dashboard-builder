@@ -4307,6 +4307,7 @@
 
                 if ($type_widget_m == "widgetSingleContent") {
                     $styleParametersArray['showDateObserved'] = mysqli_real_escape_string($link, sanitizePostString('showDateObserved'));
+                    $styleParametersArray['sizeDateObserved'] = mysqli_real_escape_string($link, sanitizePostString('sizeDateObserved'));
                 }
             }
             $styleParametersM = json_encode($styleParametersArray);

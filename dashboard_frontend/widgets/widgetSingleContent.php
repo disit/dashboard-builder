@@ -346,7 +346,10 @@
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").html(date_time);
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").show();
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").css("overflow-y", "hidden");
-                                dateHeight = 10
+                                sizeDateObserved = styleParameters.sizeDateObserved || fontSize/2
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").css('font-size', sizeDateObserved + 'px')
+                                dateHeight = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").outerHeight()*100/$("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").height()
+                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").css('height', dateHeight+"%")
 
                             }else{
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date").hide()
@@ -380,9 +383,9 @@
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").show();
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").show();
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", 60-(dateHeight/2)+"%");
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value").css("height", 2*(100-dateHeight)/3+"%");
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").html(value);
-                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("height", 40-(dateHeight/2)+"%");
+                                     $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm").css("height", (100-dateHeight)/3+"%");
                                      $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_udm span").html(udm);
                                   }
                                   else
@@ -419,7 +422,6 @@
                             if(fontSize < parseInt($('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span').css('font-size').replace('px', '')))
                             {
                                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_value span").css('font-size', fontSize + 'px');
-                                $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_date span").css('font-size', fontSize/2)
                             }
                             else
                             {
@@ -783,8 +785,11 @@
                             dataType: 'json',
                             success: function (data) {
                                 metricData = data;
+                                
                                 if (metricData.data != null && metricData.data.length > 0) {
                                     needWebSocket = metricData.data[0].needWebSocket;
+                                    if(metricData.data[0].commit.author.computationDate && metricData.data[0].commit.author.computationDate != "")
+                                        metricData.data[0].commit.author.date_time = metricData.data[0].commit.author.computationDate
                                 }
                                 $("#" + widgetName + "_loading").css("display", "none");
                                 $("#" + widgetName + "_content").css("display", "block");
