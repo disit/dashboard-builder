@@ -516,8 +516,15 @@ class OpenSearchS4C
                     [
                         'bool' => [
                             'filter' => [
-                                'term' => [
-                                    'oldEntry' => 'NONE'
+                                [ 'exists' => [ 'field' => 'oldEntry' ] ],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [ 'term' => [ 'oldEntry' => 'NONE' ] ],
+                                            [ 'term' => [ 'oldEntry' => '' ] ],
+                                        ],
+                                        'minimum_should_match' => 1
+                                    ]
                                 ]
                             ]
                         ]
