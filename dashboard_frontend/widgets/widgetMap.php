@@ -214,6 +214,11 @@ if (!isset($_SESSION)) {
 <!--
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.10.0/proj4.js" integrity="sha512-e3rsOu6v8lmVnZylXpOq3DO/UxrCgoEMqosQxGygrgHlves9HTwQzVQ/dLO+nwSbOSAecjRD7Y/c4onmiBVo6w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
  -->
+<!-- BOLOGNA -->
+<!--Side by Side -->
+<link rel="stylesheet" href="../js/leaflet-side-by-side-gh-pages/layout.css" />
+<link rel="stylesheet" href="../js/leaflet-side-by-side-gh-pages/range.css" />
+<script type="text/javascript" src="../js/leaflet-side-by-side-gh-pages/leaflet-side-by-side.js"></script>
 
 <script type='text/javascript'>
 const popupResizeObserver = new ResizeObserver(function(mutations) {
@@ -1823,6 +1828,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
           records_per_page = 1;
           wmsLayer = null;
           wmsLayerFullscreen = null;*/
+
+        //BOLOGNA//
+        var sideVisionMod = false;
+        var leftSide = null;
+        var rightSide = null;
+        var sideBySideControl = null;
 
         var current_page = 0;
         var current_page_traffic = 0;
@@ -17681,6 +17692,92 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     //####################################################################################################################
     //####################################################################################################################
 
+    //BOLOGNA
+    $(document).on('addSideVision', function (event) {
+        console.log('Add SideVision');
+        var elem = $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptions");
+            if (elem.length && elem.is(':visible')) {      
+        ///////////////////  
+                var id = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptionsRight";
+                $("#" + id).show();
+                $("#universal-top-right").css('top','10%');
+                sideVisionMod = true;
+                // Crea i due layer ma NON aggiungerli subito alla mappa
+                var layerLeft = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+                var layerRight = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+                let tileLayer0 = null;
+                if (sideBySideControl) {
+                    map.defaultMapRef.removeControl(sideBySideControl);
+                }
+                    map.defaultMapRef.eachLayer(function(layer) {
+                        if (layer instanceof L.TileLayer && !tileLayer0) {
+                            tileLayer0 = layer;
+                        }
+                    });
+                layerLeft = tileLayer0;
+                sideLeft = layerLeft;
+                sideRight = layerRight;
+                // Crea il controllo sideBySide e lo aggiunge alla mappa
+                sideBySideControl = L.control.sideBySide(sideLeft, sideRight);
+                sideBySideControl.addTo(map.defaultMapRef);
+                layerRight.addTo(map.defaultMapRef);
+
+                    if(map.defaultMapRef._controlContainer.querySelector('.leaflet-control-scale') == null){
+                        L.control.scale({
+                        imperial: false,
+                        metric: true, 
+                        position: 'bottomright' 
+                        }).addTo(map.defaultMapRef);
+                    }
+                /////////////
+                if (eventGenerator) {
+                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadingIcon").hide();
+                                eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").show();
+
+                                setTimeout(function () {
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("i.gisLoadErrorIcon").hide();
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").attr("data-onMap", "false");
+                                    eventGenerator.parents("div.gisMapPtrContainer").find("a.gisPinLink").show();
+                                }, 1500);
+                }
+
+            }
+    });
+
+    //BOLOGNA
+    $(document).on('removeSideVision', function (event){
+        var id = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptionsRight";
+                $("#" + id).hide();
+                $("#universal-top-right").css('top','0%');
+                sideVisionMod = false;
+            if (sideBySideControl) {
+                        map.defaultMapRef.removeControl(sideBySideControl);
+                        
+                        if (sideRight && map.defaultMapRef.hasLayer(sideRight)) {
+                            map.defaultMapRef.removeLayer(sideRight);
+                        }
+                        if (sideLeft && !map.defaultMapRef.hasLayer(sideLeft)) {
+                            sideLeft.addTo(map.defaultMapRef);
+                        }
+                    }
+                /***/
+                // Done!
+                loadingDiv.empty();
+                loadingDiv.append(loadOkText);
+                parHeight = loadOkText.height();
+                parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
+                loadOkText.css("margin-top", parMarginTop + "px");
+                setTimeout(function () {
+                        loadingDiv.css("opacity", 0);
+                        setTimeout(function () {
+                                loadingDiv.nextAll("#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv").each(function (i) {
+                                    $(this).css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - (($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length - 1) * loadingDiv.height())) + "px");
+                            });
+                        loadingDiv.remove();
+                    }, 350);
+                }, 1000);
+        })
+
     //Collini
     function delay(milliseconds) {
         return new Promise(resolve => {
@@ -24053,7 +24150,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             longitude_sw: bbox['_southWest']['lng'],
                             type: type,
                             organization: organization,
-                            contextbroker: contextbroker //Naldi 10/06/2025 -> add new param
+                            contextbroker: contextbroker,
+                            od_id:odID //Naldi 10/06/2025 -> add new param
                         },
                         success: function (response) {
                             // remove old layer
@@ -24878,7 +24976,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         longitude: longitude,
                         type: type, // TODO controlla retrocompatibilità
                         organization: organization,
-                        contextbroker: contextbroker  //Naldi 10/06/2025 -> add new param
+                        contextbroker: contextbroker,
+                        od_id: odID //Naldi 10/06/2025 -> add new param
                     },
                     success: function (response) {
                         // remove old layer
@@ -30482,13 +30581,25 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         //    let $item = $('#mapOptions').find('.appendable').first();
                         $item.find('a').append(menu.label);
 
+                        //BOLOGNA
+                        let dropdownMenuFieldRight = $('#dropdownMenuTemplateRight').html(); 
+                        console.log('menu.header', menu.header);
+                        $('#' + menu.header + 'HeaderRight').after(dropdownMenuFieldRight);
+                        let $item2 = $('#' + mapOptionsDivName+'Right').find('.appendable').first();
+                        $item2.find('a').append(menu.label);
+                        //
+
+
                         // icon
                         if (menu.external) {
                             $item.find('.appendable-icon').addClass('fa-map-pin');
+                            $item2.find('.appendable-icon').addClass('fa-map-pin pin-right');
                         } else {
                             $item.find('.appendable-icon').addClass('fa-check');
+                            $item2.find('.appendable-icon').addClass('fa-check check-right');
                         }
                         $item.find('.appendable-icon').attr('id', menu.id);
+                        $item2.find('.appendable-icon').attr('id', menu.id+'Right');
 
                         // listener
                         $item.find('a').click(function (evt) {
@@ -30532,7 +30643,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (!removeLayer) {
                                 switch (menu.service) {
                                     case "tileLayer":
-                                        addTileLayer(evt, menu);
+                                        //addTileLayer(evt, menu);
+                                        //BOLOGNA
+                                        if (sideVisionMod == true){
+                                                    //
+                                                    if (sideBySideControl) {
+                                                        map.defaultMapRef.removeControl(sideBySideControl);
+                                                    }
+                                                    if (sideRight && map.defaultMapRef.hasLayer(sideRight)) {
+                                                        map.defaultMapRef.removeLayer(sideRight);
+                                                    }
+                                                    var layerLeft = L.tileLayer(menu.linkUrl);
+                                                    var layerRight =  L.tileLayer(sideRight._url);
+                                                    sideLeft = layerLeft;
+                                                    sideRight = layerRight;
+                                                    sideBySideControl = L.control.sideBySide(sideLeft, sideRight);
+                                                    sideBySideControl.addTo(map.defaultMapRef);
+                                                    layerLeft.addTo(map.defaultMapRef);
+                                                    layerRight.addTo(map.defaultMapRef);
+                                                    //
+                                        }else{
+                                            addTileLayer(evt, menu);
+                                        }
                                         break;
                                     case "WMS":
                                         addLayerWMS(evt, menu);
@@ -30559,6 +30691,83 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             // avoid dropdown close on click
                             evt.stopPropagation();
                         });
+                         //BOLOGNA
+                            $item2.find('a').click(function (evt) {
+                            let removeLayer = false;
+                            if (menu.header !== "checkablesRight") {
+                                var layers = [];
+                                
+                                map.defaultMapRef.eachLayer(function (layer) {
+                                    if (layer instanceof L.TileLayer) {
+                                        layers.push(layer);
+                                        var layerRight = layer;
+                                        //sideRight = layer;
+                                        if (layer.options.attribution != null && layer.options.attribution != undefined) {
+                                            if (layer.options.attribution.includes("&copy;")) {
+                                                map.defaultMapRef.removeLayer(layer);
+                                            }else{
+                                                sideRight = layer;
+                                            }
+                                        } else if (layer.options.pane != null && layer.options.pane != undefined) {
+                                            if (layer.options.layers != null && layer.options.layers != undefined) {
+                                                if (layer.options.layers.includes("Snap4CIty:")) {
+                                                    map.defaultMapRef.removeLayer(layer);
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                                //console.log('layers', layers);
+                                removeTileIcons();
+                            } else {
+                                if (!$(evt.target).find('.appendable-icon').hasClass('hidden')) {
+                                    removeLayer = true;
+                                }
+                            }
+                            if (!removeLayer) {
+                                switch (menu.service) {
+                                    case "tileLayer":
+                                        if (sideVisionMod == true){
+                                                  if (sideBySideControl) {
+                                                        map.defaultMapRef.removeControl(sideBySideControl);
+                                                    }
+                                                    if (sideRight && map.defaultMapRef.hasLayer(sideRight)) {
+                                                        map.defaultMapRef.removeLayer(sideRight);
+                                                    }
+                                                    var layerLeft = L.tileLayer(sideLeft._url);
+                                                    var layerRight = L.tileLayer(menu.linkUrl);
+                                                    sideLeft = layerLeft;
+                                                    sideRight = layerRight;
+                                                    sideBySideControl = L.control.sideBySide(sideLeft, sideRight);
+                                                    sideBySideControl.addTo(map.defaultMapRef);
+                                                    layerLeft.addTo(map.defaultMapRef);
+                                                    layerRight.addTo(map.defaultMapRef);
+                                        }else{
+                                            addTileLayer(evt, menu);
+                                        }
+                                        break;
+                                    case "WMS":
+                                        addLayerWMS(evt, menu);
+                                        break;
+                                    case "KML":
+                                        addLayerKML(evt, menu);
+                                        break;
+                                    case "GeoJSON":
+                                        addLayerGeoJSON(evt, menu);
+                                        break;
+                                    case "SVG":
+                                        addLayerSVG(evt, menu);
+                                        break;
+                                    default:
+                                        console.log("No service selected.");
+                                }
+                                $(evt.target).find('.appendable-icon').removeClass('hidden');
+                            } else {
+                                removeLayerById(menu.id, evt);
+                            }
+                            evt.stopPropagation();
+                        });
+                        ////////////////////////
                     });
                 }
 
@@ -31115,6 +31324,34 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         background-color: rgba(0, 0, 0, 0.2);
         text-decoration: underline;
     }
+
+    /* BOLOGNA */
+    .mapOptionsRight {
+        position:
+        absolute;
+        top:
+        36px;
+        right:
+        70px;
+        z-index:
+        1055;
+    }
+
+    .leaflet-sbs-divider{
+        z-index: 5;
+    }
+
+    .leaflet-sbs-handle {
+    width: 18px;
+    height: 18px;
+    border: 2px solid #666;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.3);
+    cursor: ew-resize;
+    z-index: 1055;
+}
+
 </style>
 <!-- FINE OD POPUP STYLE -->
 
@@ -31195,7 +31432,34 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     </template>
                 </div>
 
-
+                <!-- BOLOGNA -->                
+                <!-- Orthomap SideVision-->
+                 <div class="dropdown mapOptionsRight"
+                    id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapOptionsRight" hidden>
+                    <button class="btn btn-primary dropdown-toggle" type="button" id="dropdownMenu2"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        <i class="fa fa-spinner fa-spin hidden" id="loadingMenuRight"></i> Maps
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu map-menu" id="dropdown-menu-id-right" aria-labelledby="dropdownMenu2">
+                        <li class="dropdown-header hidden">2D / 3D</li>
+                        <li><a class="dropdown-item hidden" href="#" id="2DButtonRight">2D Map</a></li>
+                        <li><a class="dropdown-item hidden" href="#" id="3DButtonRight">3D Map</a></li>
+                        <li role="separator" class="divider hidden"></li>
+                        <!--   <li class="dropdown-header" id="layersHeader">World OrthMaps</li>   -->
+                        <li class="dropdown-header" id="layersHeaderRight">External Providers Open Orthomaps</li>
+                        <li role="separator" class="divider"></li>
+                        <!--   <li class="dropdown-header" id="checkablesHeader">Checkable Layers/Maps</li>    -->
+                        <li class="dropdown-header" id="checkablesHeaderRight">WMS & GeoJSON Orthomaps</li>
+                    </ul>
+                    <template id="dropdownMenuTemplateRight">
+                        <li class="appendable">
+                            <a class="dropdown-item" href="#">
+                                <i class="fa appendable-icon hidden"></i>
+                            </a>
+                        </li>
+                    </template>
+                </div>
                 <!--    <div id="3DMapContainer" style="height: 500px">
                     <div id="3DMap" style="height: 500px"></div>
                 </div>	--> <!-- FINE Layers & 3D CORTI -->

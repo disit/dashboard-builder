@@ -1211,6 +1211,47 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             }
                         }
 
+                        //side dual vision - Daniele
+                        if (($(this).attr("data-query").includes("sideVision")) && (widgetTargetList.length > 0)) {
+                            if ($(this).attr("data-onMap") === "false") {
+                                $(this).attr("data-onMap", "true");
+                                $(this).find("i.gisPinIcon").html("near_me");
+                                $(this).find("i.gisPinIcon").css("color", "white");
+                                $(this).find("i.gisPinIcon").css("text-shadow", "black 2px 2px 4px");
+
+                                var coordsAndType = $(this).attr("data-query");
+
+                                $.event.trigger({
+                                    type: "addSideVision",
+                                    target: widgetTargetList[0],
+                                    //passedData: coordsAndType
+                                });
+                            }
+                            else {
+                                $(this).attr("data-onMap", "false");
+                                if ($(this).attr("data-symbolMode") === 'auto') {
+                                    if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
+                                        $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src", $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("data-iconblack"))
+                                    } else {
+                                        $(this).find("i.gisPinIcon").html("navigation");
+                                        $(this).find("i.gisPinIcon").css("color", "black");
+                                        $(this).find("i.gisPinIcon").css("text-shadow", "none");
+                                    }
+                                }
+                                else {
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
+                                    $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
+                                }
+
+                                $.event.trigger({
+                                    type: "removeSideVision",
+                                    target: widgetTargetList[0]
+                                });
+                                console.log('Remove Side Vision');
+                            }
+                        }
+
+
                         //Heatmap - Daniele
                         if (($(this).attr("data-query").includes("heatmap.php") || $(this).attr("data-query").includes(geoServerUrl + "geoserver") || $(this).attr("data-query").includes("<?= $serviceMapUrlForTrendApi ?>" + "trafficflow") || $(this).attr("data-query").includes("<?= $kbUrlSuperServiceMap ?>" + "trafficflow")) && (widgetTargetList.length > 0)) {
 
