@@ -335,10 +335,57 @@ if($rsIP) {
         $sparqlOffset = 0;
         echo("\n--------- Ingestion IOT for kbIP: " . $kbHostIp . "\n");
 
+        $queryIotSensorTotal = "
+            SELECT (COUNT(*) AS ?total) {
+              ?s a sosa:Sensor.
+              ?s schema:name ?n.
+              ?s km4c:hasAttribute ?a.
+              ?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker.
+              ?broker <http://schema.org/name> ?brokerName.
+              ?a km4c:data_type ?dt.
+              OPTIONAL { ?a km4c:value_name ?avn. }
+              OPTIONAL { ?a km4c:value_type ?avt. }
+              OPTIONAL { ?a km4c:value_unit ?u. }
+              OPTIONAL { ?s km4c:organization ?org. }
+              OPTIONAL { ?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat. }
+              OPTIONAL { ?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon. }
+              OPTIONAL { ?s km4c:model ?model. }
+              OPTIONAL { ?s km4c:isMobile ?mobile. }
+              OPTIONAL { ?s <http://www.w3.org/ns/ssn/implements> ?imp. }
+            }";
+
+
+        $queryIotSensorCount = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorTotal) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+
+        $queryIotSensorCountRresults = file_get_contents($queryIotSensorCount);
+        if ($queryIotSensorCountRresults === false) {
+            echo ("ERRORE SPARQL QUERY. Exit Script.\n");
+            $sparqlErrorFlag = true;
+            exit();
+        }
+
+        $resCountArray = json_decode($queryIotSensorCountRresults, true);
+        // Permette di configurare ogni quanto loggare
+        $logStepPercent = 10;
+
+        // Calcolo totale e soglie per logging avanzamento
+        $totalToIngest = 0;
+        if (isset($resCountArray['results']['bindings'][0]['total']['value'])) {
+            $totalToIngest = (int)$resCountArray['results']['bindings'][0]['total']['value'];
+        }
+        $progressThresholds = [];
+        if ($logStepPercent > 0 && $totalToIngest > 0) {
+            for ($i = $logStepPercent; $i <= 100; $i += $logStepPercent) {
+                $progressThresholds[] = ceil($totalToIngest * $i / 100);
+            }
+        }
+        $nextProgressIndex = 0;
+
+
         while ($sparqlErrorFlag === false) {
             $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter);
             $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-                "?s a sosa:Sensor option (inference \"urn:ontology\"). " .
+                "?s a sosa:Sensor. " .
                 "?s schema:name ?n. " .
                 "?s km4c:hasAttribute ?a. " .
                 "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
@@ -354,9 +401,10 @@ if($rsIP) {
                 "OPTIONAL {?s km4c:isMobile ?mobile.} " .
                 "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
                 "?s a ?sType. " .
-                "?sType rdfs:subClassOf* ?sCategory. " .
+                "?sType rdfs:subClassOf+ ?sCategory. " .
                 "?sCategory rdfs:subClassOf km4c:Service. " .
                 "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)} " .
+		        // "FILTER(CONTAINS(STR(?n), 'semaphore_'))} " ;
                 "OFFSET " . $sparqlOffset .
                 " LIMIT " . $sparqlLimit;
 
@@ -393,6 +441,11 @@ if($rsIP) {
 
                 $count++;
                 $totCount++;
+                if ($totalToIngest > 0 && $logStepPercent > 0 && $nextProgressIndex < count($progressThresholds) && $totCount >= $progressThresholds[$nextProgressIndex]) {
+                    $percent = ($nextProgressIndex + 1) * $logStepPercent;
+                    echo("\n*** Ingestion progress: $percent% (" . $totCount . " of " . $totalToIngest . ")\n\n");
+                    $nextProgressIndex++;
+                }
                 $owner = null;
                 $cryptedOwner = null;
                 $decryptedOwner = null;

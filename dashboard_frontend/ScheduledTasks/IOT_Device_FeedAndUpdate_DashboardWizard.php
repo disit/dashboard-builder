@@ -332,7 +332,7 @@ if($rsIP) {
         while ($sparqlErrorFlag === false) {
             $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter);
             $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-                "?s a sosa:Sensor option (inference \"urn:ontology\"). " .
+                "?s a sosa:Sensor. " .
                 "?s schema:name ?n. " .
                 "?s km4c:hasAttribute ?a. " .
                 "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
@@ -348,7 +348,7 @@ if($rsIP) {
                 "OPTIONAL {?s km4c:isMobile ?mobile.} " .
                 "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
                 "?s a ?sType. " .
-                "?sType rdfs:subClassOf* ?sCategory. " .
+                "?sType rdfs:subClassOf+ ?sCategory. " .
                 "?sCategory rdfs:subClassOf km4c:Service. " .
                 "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)} " .
                 "OFFSET " . $sparqlOffset .

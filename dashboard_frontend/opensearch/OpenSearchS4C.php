@@ -355,9 +355,6 @@ class OpenSearchS4C
             }
         }
 
-        
-
-
         // or search per column
         if(isset($_REQUEST['or_search_per_column']) && !empty($_REQUEST['or_search_per_column'])){
             $should = [];
@@ -433,31 +430,13 @@ class OpenSearchS4C
                     ]
                 ]]];
             }
-
-
-            
-            
-
-            
         }
 
-
-        
         if($globalSqlFilter2 !== null && is_array($globalSqlFilter2)){
                 
             foreach($globalSqlFilter2 as $gsf){
 
-                //v/ar_dump($gsf);
-                //exit(1);
-                //if($gsf['field'] != self::columns[$column_key]){
-                //    continue;
-                //}
-
-                
-                
-
                 if(count($gsf['selectedVals']) > 0){
-
                     $should = [];
                     foreach($gsf['selectedVals'] as $sp){
                         if(!empty($sp)){
@@ -466,17 +445,11 @@ class OpenSearchS4C
                                 ]
                             ];
                         }
-
                     }
-
                     $addition_query[] = ['bool'=>['should'=>$should]];
                 }
-
-
             }
         }
-
-
 
         if($north_east_point_lat !== null && $north_east_point_long !== null &&
         $south_west_point_lat !== null && $south_west_point_long !== null){
@@ -497,7 +470,6 @@ class OpenSearchS4C
                 ]
             ]];
         }
-        
 
         if(intval($_REQUEST["synMode"])) {
 
@@ -568,17 +540,36 @@ class OpenSearchS4C
                 $query['bool']['must'][] = $aq;
             }
         }else{
-            $query['bool'] = [
+          /*  $query['bool'] = [
                 'must' => 
                     $addition_query
-                
+            ];*/
+            $query['bool'] = [
+                'must' => [
+                    [
+                        'bool' => [
+                            'filter' => [
+                                [ 'exists' => [ 'field' => 'oldEntry' ] ],
+                                [
+                                    'bool' => [
+                                        'should' => [
+                                            [ 'term' => [ 'oldEntry' => 'NONE' ] ],
+                                            [ 'term' => [ 'oldEntry' => '' ] ],
+                                        ],
+                                        'minimum_should_match' => 1
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
             ];
+
+            foreach($addition_query as $aq){
+                $query['bool']['must'][] = $aq;
+            }
         }
 
-
-
-  
- 
         if($aggColumnName !== null){
             //$sort = [];
             //$query = [];
@@ -647,7 +638,6 @@ class OpenSearchS4C
         return $this->search(self::default_index_name,$query, $length, $from, $sort, $aggs);
     }
 
-
     // Create an index with non-default settings.
     public function createIndex($index_name)
     {
@@ -702,37 +692,27 @@ class OpenSearchS4C
     }
 
     // Get client info
-    public function info()
-    {
+    public function info() {
         // Print OpenSearch version information on console.
         var_dump($this->client->info());
     }
 
-    public function getIndexDocsSize($index_name){
+    public function getIndexDocsSize($index_name) {
         return $this->client->count(['index'=>$index_name])['count'] ?? 0;
     }
 
     // Create a document 
-    public function createDocument($index_name, $id, $body)
-    {
-
-
+    public function createDocument($index_name, $id, $body) {
         // Create a document passing the id
         return $this->client->create([
             'id' => $id,
             'index' => $index_name,
             'body' => $body
         ]);
-
-        
-
-
-
     }
 
     // Update document given the document
-    public function updateDocument($index_name, $id, $doc)
-    {
+    public function updateDocument($index_name, $id, $doc) {
         return $this->client->update([
             'id' => $id,
             'index' => $index_name,
@@ -744,8 +724,7 @@ class OpenSearchS4C
     }
 
     // Delete a single document
-    public function deleteByID($index_name, $id)
-    {
+    public function deleteByID($index_name, $id) {
         $this->client->delete([
             'id' => $id,
             'index' => $index_name,
@@ -753,36 +732,35 @@ class OpenSearchS4C
     }
 
     // Search by custom query
-    public function search($index_name, $query, $size = null, $from = null, $sort = null, $aggs = null)
-    {
+    public function search($index_name, $query, $size = null, $from = null, $sort = null, $aggs = null) {
         $param = ['index' => $index_name];
         
 
-        if(!empty($query)){
+        if (!empty($query)){
             $param['body'] = [
                 'query' => $query
             ];
         }
 
-        if($aggs !== null){
+        if ($aggs !== null){
             $param['body']['aggs'] = $aggs;
         }
 
-        if($sort !== null){
+        if ($sort !== null){
             $param['body']['sort'] = $sort;
         }
 
-        if($size !== null){
+        if ($size !== null){
             $param['body']['size'] = (int)$size;
         }
 
-        if($from !== null){
+        if ($from !== null){
             $param['body']['from'] = (int)$from;
         }
 
         $param['body']['track_total_hits'] = true;
 
-        if($this->debug){
+        if ($this->debug){
             ini_set('display_errors', 1);
             ini_set('display_startup_errors', 1);
             error_reporting(E_ALL);
@@ -798,50 +776,49 @@ class OpenSearchS4C
     }
 
     // Delete index
-    public function deleteByIndex($index_name)
-    {
+    public function deleteByIndex($index_name) {
         $this->client->indices()->delete([
             'index' => $index_name
         ]);
     }
 
-    public function updateByQuery($params){
+    public function updateByQuery($params) {
         return $this->client->updateByQuery($params);
     }
 
-    public function initDashboardWizard(){
+    public function initDashboardWizard() {
         return $this->createIndex('dashboardwizard');
     }
 
-    private function createGeoPoint($lan, $lon){
-        if($lan === "" || $lon === ""){
+    private function createGeoPoint($lan, $lon) {
+        if ($lan === "" || $lon === ""){
             return [0,0];
-        }else{
+        } else {
             //!!! OpenSearch convention long, lat
             return [(float)$lon, (float)$lan];
         }
     }
 
-    private function returnNullIfEmpty($x){
+    private function returnNullIfEmpty($x) {
 
-        if($x === ""){
+        if ($x === ""){
             return null;
-        }else{
+        } else {
             return $x;
         }
 
     }
 
-    private function returnNoneIfEmpty($x){
-        if($x == false){
+    private function returnNoneIfEmpty($x) {
+        if ($x == false){
             return "NONE";
-        }else{
+        } else {
             return $x;
         }
     }
 
     // Create the document in the index, if duplication exists just update it
-    public function createUpdateDocumentDashboardWizard(
+    public function createUpdateDocumentDashboardWizard (
         $nature,
         $high_level_type,
         $sub_nature,
@@ -883,7 +860,6 @@ class OpenSearchS4C
     ){
 
         $doc = [
-                 
                  'nature'            => self::returnNullIfEmpty($nature)       ,'high_level_type' => self::returnNullIfEmpty($high_level_type),
                  'sub_nature'        => self::returnNullIfEmpty($sub_nature)   ,'low_level_type'  => self::returnNullIfEmpty($low_level_type),
                  'instance_uri'      => self::returnNullIfEmpty($instance_uri) ,'get_instances'   => self::returnNullIfEmpty($get_instances),
@@ -902,10 +878,7 @@ class OpenSearchS4C
                  'widgets'           => self::returnNullIfEmpty($widgets)          ,  'microAppExtServIcon' => self::returnNoneIfEmpty($microAppExtServIcon),
                  'oldEntry'          => self::returnNullIfEmpty('')                ,  'location' => self::createGeoPoint($latitude, $longitude),
                  'device_name'       => self::returnNullIfEmpty($device_name)      ,  'model_name' => self::returnNullIfEmpty($model_name)
-                
                 ];
-
-            
 
         if($id === false){
             //return id of the doc if exists, else it return false
@@ -928,80 +901,75 @@ class OpenSearchS4C
 
     // Chheck duplicate document of dashboardwizard based on (high_level_type, sub_nature, low_level_type, unique_name_id,
     // instance_uri, get_instances and other custom column)
-    public function checkDuplicateDocument($high_level_type,
-     $sub_nature, $instance_uri, $get_instances, $low_level_type, $unique_name_id, 
-      $index_name, 
-     $broker_name = '',$parameters = '',
-     $called_directly = true, $extra_param = null, $merge = true){
+    public function checkDuplicateDocument($high_level_type, $sub_nature, $instance_uri, $get_instances,
+                                           $low_level_type, $unique_name_id, $index_name, $broker_name = '',
+                                           $parameters = '', $called_directly = true, $extra_param = null,
+                                           $merge = true) {
+        $must = [];
 
-        $must = [
-
-        ];
-
-        if($high_level_type !== '' || !$called_directly){
+        if ($high_level_type !== '' || !$called_directly){
             array_push($must,[
                 'term' => ['high_level_type' => self::returnNoneIfEmpty($high_level_type)]
             ]);
         }
 
-        if($sub_nature !== '' || !$called_directly){
+        if ($sub_nature !== '' || !$called_directly){
             array_push($must,[
                 'term' => ['sub_nature' => self::returnNoneIfEmpty($sub_nature)]
             ]);
         }
 
-        if($instance_uri !== '' || !$called_directly){
+        if ($instance_uri !== '' || !$called_directly){
             array_push($must, [
                 'term' => ['instance_uri' => self::returnNoneIfEmpty($instance_uri)]
             ]);
         }
 
-        if($get_instances !== '' || !$called_directly){
+        if ($get_instances !== '' || !$called_directly){
             array_push($must,             [
                 'term' => ['get_instances' => self::returnNoneIfEmpty($get_instances)]
             ]);
         }
 
-        if($unique_name_id !== '' || !$called_directly){
+        if ($unique_name_id !== '' || !$called_directly){
             array_push($must,            [
                 'term' => ['unique_name_id' => self::returnNoneIfEmpty($unique_name_id)]
             ]);
         }
 
-        if($low_level_type !== '' || !$called_directly){
+        if ($low_level_type !== '' || !$called_directly){
             array_push($must,[
                 'term' => ['low_level_type' => self::returnNoneIfEmpty($low_level_type)]
             ]);
         }
 
-        if($broker_name !== '' && $called_directly){
+        if ($broker_name !== '' && $called_directly){
             array_push($must,[
                 'term' => ['broker_name' => self::returnNoneIfEmpty($broker_name)]
             ]);
         }
 
-        if($parameters !== '' && $called_directly){
+        if ($parameters !== '' && $called_directly){
             array_push($must,[
                 'term' => ['parameters' => self::returnNoneIfEmpty($parameters)]
             ]);
         }
 
-        if($extra_param !== null){
-            if(is_array($extra_param) && $merge){
+        if ($extra_param !== null){
+            if (is_array($extra_param) && $merge){
                 $must = array_merge($must, $extra_param);
-            }else{
+            } else {
                 array_push($must, $extra_param);
             }
 
         }
 
-        if($this->debug){
+        if ($this->debug){
             var_dump($must);
 
             echo '<br><br>Error in JSON Format:<br>';
             echo json_encode($must);
         }
-
 
         $params = [
             'index' => $index_name,
@@ -1016,23 +984,23 @@ class OpenSearchS4C
 
         $val_returned = $this->client->search($params);
 
-        if($this->debug){
+        if ($this->debug){
             var_dump($val_returned);
         }
 
         //Check if the server opensearch has returned any data
-        if(isset($val_returned['hits']['hits']) && count($val_returned['hits']['hits']) > 0){
+        if (isset($val_returned['hits']['hits']) && count($val_returned['hits']['hits']) > 0){
 
             return $val_returned['hits']['hits'][0]['_id'];
-        }else{
+        } else {
             return false;
         }
     }
 
     public function isNotEmptyResult($x){
-        if(isset($x['hits']['hits'][0]) && is_array($x['hits']['hits'])){
+        if (isset($x['hits']['hits'][0]) && is_array($x['hits']['hits'])){
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -1042,11 +1010,8 @@ class OpenSearchS4C
             'bool'=> [
                 "must"=>[
                     ["term"=>["get_instances"=>$get_instances]]
-
                 ]
-                
             ]
-        
         ];
 
         return $this->search(self::default_index_name,$query);
@@ -1063,114 +1028,32 @@ class OpenSearchS4C
                 "must_not" => [
                     ["term"=>["low_level_type"=>"NONE"]]
                 ]
-                
             ]
-        
         ];
 
         return $this->search(self::default_index_name,$query);
     }
 
-    public function getDevices(){
-        $query = [
-            'bool'=> [
-                "should"=>[
-                    ["term"=>["high_level_type"=>"Sensor"]],
-                    ["term"=>["high_level_type"=>"IoT Device"]],
-                    ["term"=>["high_level_type"=>"IoT Device Variable"]],
-                    ["term"=>["high_level_type"=>"Mobile Device"]],
-                    ["term"=>["high_level_type"=>"Mobile Device Variable"]],
-                    ["term"=>["high_level_type"=>"Data Table Device"]],
-                    ["term"=>["high_level_type"=>"Data Table Variable"]],
-                    ["term"=>["high_level_type"=>"Sensor-Actuator"]],
-                    ["bool"=>[
-                      "must"=> [
-                        ["term"=>["high_level_type"=>"Sensor"]],
-                        ["term"=>["sub_nature"=>"First Aid Data"]]
-                      ]  
-                    ]]
+    public function getDevices($pattern){
 
-                ]
-                
+        $bool = [
+            'must' => [
+                ['term' => ['unit' => 'sensor_map']],
+                // ... other must here ...
             ]
-        
         ];
 
-        /*$query = [
-            'query' => [
-                'bool' => [
-                    'must' => [
-                        ['term' => ['oldEntry' => 'null']],
-                        [
-                            'bool' => [
-                                'should' => [
-                                    ['term' => ['high_level_type' => 'Sensor']],
-                                    ['term' => ['high_level_type' => 'IoT Device']],
-                                    ['term' => ['high_level_type' => 'IoT Device Variable']],
-                                    ['term' => ['high_level_type' => 'Mobile Device']],
-                                    ['term' => ['high_level_type' => 'Mobile Device Variable']],
-                                    ['term' => ['high_level_type' => 'Data Table Device']],
-                                    ['term' => ['high_level_type' => 'Data Table Variable']],
-                                    ['term' => ['high_level_type' => 'Sensor-Actuator']],
-                                    [
-                                        'bool' => [
-                                            'must' => [
-                                                ['term' => ['high_level_type' => 'Special Widget']],
-                                                ['term' => ['sub_nature' => 'First Aid Data']]
-                                            ]
-                                        ]
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ],
-            'aggs' => [
-                'group_by_unique_name_id' => [
-                    'terms' => [
-                        'field' => 'unique_name_id',
-                        'order' => [
-                            '_key' => 'desc'
-                        ]
-                    ]
-                ]
-            ]
-        ];*/
-
-        //return $this->search(self::default_index_name,$query);
-
-    /*    $params = [
-            'index' => 'dashboardwizard',
-            'size' => 1000,
-            'scroll' => '30s', // durata dello scroll
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'should' => [
-                            ['term' => ['high_level_type' => 'Sensor']],
-                            ['term' => ['high_level_type' => 'IoT Device']],
-                            ['term' => ['high_level_type' => 'Mobile Device']],
-                            ['term' => ['high_level_type' => 'Data Table Device']],
-                            ['term' => ['high_level_type' => 'Sensor-Actuator']]
-                        ]
-                    ]
-                ]
-            ]
-        ];  */
+        if (!empty($pattern)) {
+            $bool['filter'] = ['regexp' => ['device_name' => $pattern]];
+        }
 
         $params = [
             'index' => 'dashboardwizard',
             'size' => 1000,
-            'scroll' => '30s', // durata dello scroll
+            'scroll' => '30s',
             'body' => [
                 'query' => [
-                    'bool' => [
-                        'should' => [
-                            ['term' => ['unit' => 'sensor_map']],
-                            //['term' => ['high_level_type' => 'Sensor-Actuator']]
-                        ]
-                    ]
+                    'bool' => $bool
                 ],
                 'sort' => [
                     ['_id' => ['order' => 'desc']]
@@ -1188,11 +1071,11 @@ class OpenSearchS4C
                 $allDocuments[] = $source; // Aggiungi il documento all'array
             }
 
-            // Quando hai finito di elaborare i documenti della risposta corrente, chiedi i successivi
+            // ask for next documents
             $scroll_id = $response['_scroll_id'];
             $response = $this->client->scroll([
-                'scroll_id' => $scroll_id,  //...passa il vecchio scroll_id
-                'scroll' => '30s'           //...e la stessa durata dello scroll
+                'scroll_id' => $scroll_id,  //...pass old scroll_id
+                'scroll' => '30s'
             ]);
         }
 
@@ -1579,6 +1462,11 @@ class OpenSearchS4C
             ]);
         }
 
+        $logFile = fopen(__DIR__ . "/duplicated_documents.log", "w");
+        if (!$logFile) {
+            throw new \Exception("Impossibile aprire il file di log per i duplicati!");
+        }
+
         foreach ($documents as $hash => $ids) {
             // Skip the first document (it's the original)
             array_shift($ids);
@@ -1597,9 +1485,16 @@ class OpenSearchS4C
                     $this->client->delete($params);
                     echo("Deleted duplicate: " . $id . "\n");
                 }
+                fwrite($logFile, "Found duplicate: " . $id . "\n");
+                fwrite($logFile, "device_name: " . ($doc['_source']['device_name'] ?? '') . "\n");
+                fwrite($logFile, "unique_name_id: " . ($doc['_source']['unique_name_id'] ?? '') . "\n");
+                fwrite($logFile, "value_name: " . ($doc['_source']['value_name'] ?? '') . "\n");
+                fwrite($logFile, "value_type: " . ($doc['_source']['value_type'] ?? '') . "\n");
+                fwrite($logFile, "low_level_type: " . ($doc['_source']['low_level_type'] ?? '') . "\n");
+                fwrite($logFile, "-----------------------------\n");
             }
         }
-
+        fclose($logFile);
     }
 
     public function getMyKPI(){

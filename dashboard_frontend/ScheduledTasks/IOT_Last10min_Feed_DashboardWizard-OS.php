@@ -327,12 +327,33 @@ if($rsOrg) {
         $end_query_time_ok = str_replace("T", "%20", $end_query_script_time_string[0]);
         //$end_query_time_ok = '2022-04-05%2015:39:57';
 
-        // Last 10 Minutes
+    /*    // Last 10 Minutes
         $start_queryTime = $end_queryTime->sub(new DateInterval('PT10M'));
         $start_query_script_time = $start_queryTime->format('c');
         $start_query_script_time_string = explode("+", $start_query_script_time);
         $start_query_time_ok = str_replace("T", "%20", $start_query_script_time_string[0]);
-        //$start_query_time_ok = '2022-04-01%2015:39:57';
+        //$start_query_time_ok = '2022-04-01%2015:39:57';*/
+
+        $start_time_file = __DIR__ . '/start_time.txt';
+        if (file_exists($start_time_file)) {
+            $start_time_content = file_get_contents($start_time_file);
+            // esempio riga: start_query_time:"2025-06-23 00:00:00.000000"
+            if (preg_match('/^start_query_time:"([^"]+)"/', $start_time_content, $matches)) {
+                $start_query_time_from_file = $matches[1]; // es: "2025-06-23 00:00:00.000000"
+            } else {
+                // Default, se il file è malformato
+                $start_query_time_from_file = date('Y-m-d H:i:s.u');
+            }
+        } else {
+            // Default, se il file non esiste
+            $start_query_time_from_file = date('Y-m-d H:i:s.u');
+        }
+
+        // Trasformiamo in DateTime e formattiamo come serve:
+        $start_queryTime = DateTime::createFromFormat('Y-m-d H:i:s.u', $start_query_time_from_file, new DateTimeZone('Europe/Rome'));
+        $start_query_script_time = $start_queryTime->format('c');
+        $start_query_script_time_string = explode("+", $start_query_script_time);
+        $start_query_time_ok = str_replace("T", "%20", $start_query_script_time_string[0]);
 
         $curl = curl_init();
         $url= 'https://iotdirectory.snap4city.org/api/device.php?action=get_all_device&nodered=true&token=' . $accessToken .
@@ -378,7 +399,7 @@ echo $url."\n\n".$response."\n\n";
             }
 
             $queryIotSensorDecoded = "select distinct ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-                "<" . $responseArr->data[$key2]->uri . "> a sosa:Sensor option (inference \"urn:ontology\"). " .
+                "<" . $responseArr->data[$key2]->uri . "> a sosa:Sensor. " .
                 "<" . $responseArr->data[$key2]->uri . "> schema:name ?n. " .
                 "<" . $responseArr->data[$key2]->uri . "> km4c:hasAttribute ?a. " .
                 "<" . $responseArr->data[$key2]->uri . "> <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
@@ -394,7 +415,7 @@ echo $url."\n\n".$response."\n\n";
                 "OPTIONAL {<" . $responseArr->data[$key2]->uri . "> km4c:isMobile ?mobile.} " .
                 "OPTIONAL {<" . $responseArr->data[$key2]->uri . "> <http://www.w3.org/ns/ssn/implements> ?imp.} " .
                 "<" . $responseArr->data[$key2]->uri . "> a ?sType. " .
-                "?sType rdfs:subClassOf* ?sCategory. " .
+                "?sType rdfs:subClassOf+ ?sCategory. " .
                 "?sCategory rdfs:subClassOf km4c:Service. " .
                 "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 
@@ -422,7 +443,10 @@ echo $url."\n\n".$response."\n\n";
                 $s = $responseArr->data[$key2]->uri;   // $s --> serviceUri
                 $n = $resArray['results']['bindings'][$key]['n']['value'];   // $n --> service name
                 $a = $resArray['results']['bindings'][$key]['a']['value'];   // $a --> attribute
-                echo($totCount . " (" . $count . ") - IOT DEVICE: " . $s . ", MEASURE: " . $a . "\n");
+                // echo($totCount . " (" . $count . ") - IOT DEVICE: " . $s . ", MEASURE: " . $a . "\n");
+                $now = new DateTime();
+                $timestamp = $now->format("Y-m-d H:i:s.v"); // es: 2025-07-03 22:48:12.123
+                echo("[" . $timestamp . "] " . $totCount . " (" . $count . ") - IOT DEVICE: " . $s . ", MEASURE: " . $a . "\n");
                 $value_name = $resArray['results']['bindings'][$key]['avn']['value'];
                 $value_type = $resArray['results']['bindings'][$key]['avt']['value'];
                 $value_type = explode("value_type/", $value_type)[1];
@@ -874,7 +898,7 @@ if ($count > 0) {
         if ($row = mysqli_fetch_assoc($rs)) {
             $maxWizardId = $row['id'];
             $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string)(intval($maxWizardId) + 1);
-            $rs2 = mysqli_query($link, $queryUpdateMaxId);
+            // $rs2 = mysqli_query($link, $queryUpdateMaxId);
         }
     }
 }
@@ -883,4 +907,11 @@ $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
+
+// Update new start time (for next execution) with the current date time
+$new_start_time = $end_queryTime->format('Y-m-d H:i:s.u');
+// Write new start time in txt file
+echo("Write new start time (for next execution) with the current date time: ".$new_start_time . "\n\n");
+file_put_contents($start_time_file, 'start_query_time:"' . $new_start_time . '"');
+
 echo("End IOT_Last10min_Feed_DashboardWizard SCRIPT at: ".$end_time_ok);

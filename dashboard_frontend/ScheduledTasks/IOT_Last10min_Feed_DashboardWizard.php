@@ -331,6 +331,8 @@ if($rsOrg) {
         //$start_query_time_ok = '2022-04-01%2015:39:57';
 
         $curl = curl_init();
+        $url= 'https://iotdirectory.snap4city.org/api/device.php?action=get_all_device&nodered=true&token=' . $accessToken .
+                '&start_time=' . $start_query_time_ok . '&end_time=' . $end_query_time_ok;
 
         curl_setopt_array($curl, array(
             CURLOPT_URL => 'https://iotdirectory.snap4city.org/api/device.php?action=get_all_device&nodered=true&token=' . $accessToken .
@@ -352,6 +354,9 @@ if($rsOrg) {
         $response = curl_exec($curl);
         $responseArr = json_decode($response);
 
+echo $url."\n".$response."\n\n";
+
+
         curl_close($curl);
 
         $count = 0;
@@ -369,7 +374,7 @@ if($rsOrg) {
             }
 
             $queryIotSensorDecoded = "select distinct ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-                "<" . $responseArr->data[$key2]->uri . "> a sosa:Sensor option (inference \"urn:ontology\"). " .
+                "<" . $responseArr->data[$key2]->uri . "> a sosa:Sensor. " .
                 "<" . $responseArr->data[$key2]->uri . "> schema:name ?n. " .
                 "<" . $responseArr->data[$key2]->uri . "> km4c:hasAttribute ?a. " .
                 "<" . $responseArr->data[$key2]->uri . "> <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
@@ -385,7 +390,7 @@ if($rsOrg) {
                 "OPTIONAL {<" . $responseArr->data[$key2]->uri . "> km4c:isMobile ?mobile.} " .
                 "OPTIONAL {<" . $responseArr->data[$key2]->uri . "> <http://www.w3.org/ns/ssn/implements> ?imp.} " .
                 "<" . $responseArr->data[$key2]->uri . "> a ?sType. " .
-                "?sType rdfs:subClassOf* ?sCategory. " .
+                "?sType rdfs:subClassOf+ ?sCategory. " .
                 "?sCategory rdfs:subClassOf km4c:Service. " .
                 "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)}";
 
