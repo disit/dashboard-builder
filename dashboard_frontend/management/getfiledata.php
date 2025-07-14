@@ -43,18 +43,18 @@ $message_output["code"] = "";
 $message_output["status"] = "";
 $message_output["content"] = "";
 
-    //open new connection to mysql server
+//open new connection to mysql server
 $link = mysqli_connect($host, $username, $password);
 
 if (isset($_REQUEST["action"]) && !empty($_REQUEST["action"])) {
-        $action = mysqli_real_escape_string($link, $_REQUEST["action"]);
-        $action = filter_var($action, FILTER_SANITIZE_STRING);
+    $action = mysqli_real_escape_string($link, $_REQUEST["action"]);
+    $action = filter_var($action, FILTER_SANITIZE_STRING);
 } else {
-        $message_output["code"] = "404";
-        $message_output["message"] = "Required action parameter";
-        echo json_encode($message_output);
-        mysqli_close($link);
-        exit();
+    $message_output["code"] = "404";
+    $message_output["message"] = "Required action parameter";
+    echo json_encode($message_output);
+    mysqli_close($link);
+    exit();
 }
 
 if (isset($_SESSION["refreshToken"]) || isset($_REQUEST["accessToken"])) {
@@ -68,8 +68,7 @@ if (isset($_SESSION["refreshToken"]) || isset($_REQUEST["accessToken"])) {
     ]);
     if (isset($_REQUEST["accessToken"])) {
         $accessToken = $_REQUEST["accessToken"];
-    }
-    else {
+    } else {
         $tkn = $oidc->refreshToken($_SESSION["refreshToken"]);
         $accessToken = $tkn->access_token;
         $_SESSION["refreshToken"] = $tkn->refresh_token;
@@ -85,7 +84,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             "nodered" => "access",
         ];
         $ch = curl_init();
-        $debug= '';
+        $debug = '';
         $url = sprintf(
             "%s?%s",
             $iot_directory_device,
@@ -99,20 +98,20 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $apiCall = curl_exec($ch);
         if ($apiCall) {
-                    $apiArray = json_decode($apiCall, true);
-                if(!apiArray) {
-                        $message_output["code"] = "404";
-                            $message_output["message"] = "failed get_all_device";
-                            $message_output["extra"] = $apiCall;
+            $apiArray = json_decode($apiCall, true);
+            if (!$apiArray) {
+                $message_output["code"] = "404";
+                $message_output["message"] = "failed get_all_device";
+                $message_output["extra"] = $apiCall;
                 echo json_encode($message_output);
                 exit();
-                }
+            }
             $data = $apiArray["data"];
             $devices_list = [];
             $length = count($data);
             for ($i = 0; $i < $length; $i++) {
                 $current_device = $data[$i];
-                if (strcasecmp($current_device["devicetype"], "File")==0) {
+                if (strcasecmp($current_device["devicetype"], "File") == 0) {
                     $deviceid = $current_device["id"];
                     $value_array = [
                         "action" => "get_device_data",
@@ -135,8 +134,8 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                         "Authorization: Bearer " . $accessToken,
                     ]);
                     curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
-                            $deviceCall01 = curl_exec($ch1);
-                    if ($deviceCall01){
+                    $deviceCall01 = curl_exec($ch1);
+                    if ($deviceCall01) {
                         $response0 = json_decode($deviceCall01, true);
                         $var_length = count($response0["attributes"]);
                         $dateObserved = "";
@@ -194,10 +193,10 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                         "organization" => $current_device["organization"],
                         "contextbroker" => $current_device["contextBroker"],
                     ];
-                                array_push($devices_list, $file);
+                    array_push($devices_list, $file);
                 }
             }
-                    $message_output["code"] = "200";
+            $message_output["code"] = "200";
             $message_output["status"] = "OK";
             $message_output["message"] = "get devices successfully";
             $message_output["data"] = $devices_list;
@@ -211,41 +210,63 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             echo json_encode($message_output);
         }
     } elseif ($action == "get_my_files") {
+        $dataArrayForGetModel = [
+            "action" => "get_model",
+            "name" => $model,
+            "token" => $accessToken,
+            "nodered" => "access",
+        ];
+        $ch_model = curl_init();
+        $url_model = sprintf(
+            "%s?%s",
+            $iot_directory_model,
+            http_build_query($dataArrayForGetModel)
+        );
+        curl_setopt($ch_model, CURLOPT_URL, $url_model);
+        curl_setopt($ch_model, CURLOPT_HTTPHEADER, [
+            "Content-Type: application/json",
+            "Authorization: Bearer " . $accessToken,
+        ]);
+        $info = curl_getinfo($ch_model);
+        curl_setopt($ch_model, CURLOPT_RETURNTRANSFER, 1);
+        $modelCall = curl_exec($ch_model);
+        $device_model = json_decode($modelCall);
+        $devicetype = $device_model->content->devicetype;
         //
         $showed_elements = (int)$_GET['showed_elements'];
         $page = (int)$_GET['page'];
         //
-        $order_column = $_GET['order_column'];  
+        $order_column = $_GET['order_column'];
         $order_dir = $_GET['order_dir'];
         $search_value = $_GET['search_value'];
         //
-        $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel";
-       //$url = $superServiceMapUrlPrefix."api/v1/?model=fileModel";
-        if($order_column != ""){
-            $url = $url.'&sortOnValue='.$order_column.':'.$order_dir;
-            if($order_column == 'dateObserved'){
-                    $url = $url.':date';
+        $url = $superServiceMapUrlPrefix . "api/v1/iot-search/?model=fileModel";
+        //$url = $superServiceMapUrlPrefix."api/v1/?model=fileModel";
+        if ($order_column != "") {
+            $url = $url . '&sortOnValue=' . $order_column . ':' . $order_dir;
+            if ($order_column == 'dateObserved') {
+                $url = $url . ':date';
             }
         }
-       /* if($search_value !==""){
+        /* if($search_value !==""){
                 $url = $url.'&text='.$search_value;
         }*/
-        $url = $url.'&text='.$search_value;
+        $url = $url . '&text=' . $search_value;
 
-        if(isset($_GET['showed_elements'])){
-            $url = $url.'&maxResults='.$showed_elements;
+        if (isset($_GET['showed_elements'])) {
+            $url = $url . '&maxResults=' . $showed_elements;
         }
         //
         //$message_output["url"] = $url;
         $init = 0;
-        if ($page > 1){
-            $init = ($showed_elements*$page)-($showed_elements);
+        if ($page > 1) {
+            $init = ($showed_elements * $page) - ($showed_elements);
         }
-        if ($length > $showed_elements){
-            $length = $showed_elements*$page; 
+        if ($length > $showed_elements) {
+            $length = $showed_elements * $page;
         }
 
-        $url = $url.'&fromResult='.$init;
+        $url = $url . '&fromResult=' . $init;
 
         $message_output["url"] = $url;
 
@@ -286,10 +307,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         //$length =$apiArray['fullCount'];
         $message_output["fullCount"] = $apiArray['fullCount'];
         //
-        $debug = $length.'-'; 
+        $debug = $length . '-';
         //
-        $num_data = count($apiArray['features']); 
-        //
+        $num_data = count($apiArray['features']);
         for ($i = 0; $i < $num_data; $i++) {
             $current_device = $data[$i]['properties'];
 
@@ -302,7 +322,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $deviceid = $current_device["deviceName"];
             ////Dati_di_iot_search///
             //
-            $subnature = $current_device["subnature"]; 
+            $subnature = $current_device["subnature"];
             $organization = $current_device["organization"];
             $filesize =  $current_device["values"]["filesize"];
             $language = $current_device["values"]["language"];
@@ -311,11 +331,11 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $newfileid =  $current_device["values"]["newfileid"];
             $originalfilename = $current_device["values"]["originalfilename"];
             /////////////
-            if($current_device["values"]["filetype"] ==null){
+            if ($current_device["values"]["filetype"] == null) {
                 $fileInfo = pathinfo($originalfilename);
                 $filetype = $fileInfo['extension'];
-            }else{
-                $filetype=$current_device["values"]["filetype"];
+            } else {
+                $filetype = $current_device["values"]["filetype"];
             }
             //
             /*if($_SESSION['loggedUsername']=='utente_test'){
@@ -326,102 +346,171 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $count = count($parts);
             $iot_contextbroker =  $parts[$count - 3];
             //
-            $value_array_device = [
-                "action" => "get_device",
-                "id" => $deviceid,
-                "contextbroker" => $iot_contextbroker,
-                "type" => "File",
-                "version" => "v1",
-                "nodered" => "access",
-            ];
-            $ch_device = curl_init();
-            $url_dev01 = sprintf(
-                "%s?%s",
-                $iot_directory_device,
-                http_build_query($value_array_device)
-            );
-            curl_setopt($ch_device, CURLOPT_URL, $url_dev01);
-            curl_setopt($ch_device, CURLOPT_HTTPHEADER, [
-                "Content-Type: application/json",
-                "Authorization: Bearer " . $accessToken,
-            ]);
-            curl_setopt($ch_device, CURLOPT_RETURNTRANSFER, 1);
-            $deviceData01 = curl_exec($ch_device);
-            $responseData0 = json_decode($deviceData01, true);
-           $responseData0_content = $responseData0['content'];
-           
-           $visibility = $responseData0_content["visibility"];
-           $contextBroker = $iot_contextbroker;
-            //
+            $visual_method = "NEW";
+            if ($visual_method == "OLD") {
+                $value_array_device = [
+                    "action" => "get_device",
+                    "id" => $deviceid,
+                    "contextbroker" => $iot_contextbroker,
+                    "type" => "File",
+                    "version" => "v1",
+                    "nodered" => "access",
+                ];
+                $ch_device = curl_init();
+                $url_dev01 = sprintf(
+                    "%s?%s",
+                    $iot_directory_device,
+                    http_build_query($value_array_device)
+                );
+                curl_setopt($ch_device, CURLOPT_URL, $url_dev01);
+                curl_setopt($ch_device, CURLOPT_HTTPHEADER, [
+                    "Content-Type: application/json",
+                    "Authorization: Bearer " . $accessToken,
+                ]);
+                curl_setopt($ch_device, CURLOPT_RETURNTRANSFER, 1);
+                $deviceData01 = curl_exec($ch_device);
+                $responseData0 = json_decode($deviceData01, true);
+                $responseData0_content = $responseData0['content'];
+
+                $visibility = $responseData0_content["visibility"];
+                $contextBroker = $iot_contextbroker;
+                //
                 //
                 //Aggiungere qui il controllo
                 $username_device = $_SESSION['loggedUsername'];
                 $logged_role = $_SESSION['loggedRole'];
-                $deviceidRequest = $organization.':'.$contextBroker.':'.$deviceid;
+                $deviceidRequest = $organization . ':' . $contextBroker . ':' . $deviceid;
                 $result_owner;
                 $retrived_user == '';
                 //$result1 = [];
-               // echo('current_visibility: '. $visibility);
-               try {
+                // echo('current_visibility: '. $visibility);
+                try {
                     // Supponiamo che ci sia un errore nella logica qui
                     getOwnerShipDevice($accessToken, $result_owner, $deviceidRequest);
-                    $result1 = json_encode($result_owner); 
+                    $result1 = json_encode($result_owner);
                     //echo json_encode($result1);
                     $currentkeys = json_encode($result_owner['keys']);
                     $currentLog = json_encode($result_owner['username']);
-                   // array_push($result1,$currentLog);
-                    if($result_owner['keys']){
+                    // array_push($result1,$currentLog);
+                    if ($result_owner['keys']) {
                         $find = $result_owner['keys'][$deviceidRequest]['owner'];
                         //echo json_encode($find);
                         $retrived_user = str_replace('"', '', $find);
                     }
-                    
+
 
                     //echo('retrived_user: '.$retrived_user);
                     //echo('username_device: '.$username_device); 
-                    if(($username_device == $retrived_user)&&($retrived_user !== '')){
-                        $visibility = 'MyOwn'.ucfirst($visibility);
-                    }else{
-                        if($visibility == 'private'){
-                            if ($logged_role !== 'RootAdmin'){
+                    if (($username_device == $retrived_user) && ($retrived_user !== '')) {
+                        $visibility = 'MyOwn' . ucfirst($visibility);
+                    } else {
+                        if ($visibility == 'private') {
+                            if ($logged_role !== 'RootAdmin') {
                                 $visibility = 'delegated';
                             }
                         }
                     }
-                    
+
                     //$result_owner = $currentkeys;
                 } catch (Exception $e) {
                     // Gestione dell'errore
-                  //  echo 'Errore: ' . $e->getMessage(); // Mostra il messaggio dell'errore
+                    //  echo 'Errore: ' . $e->getMessage(); // Mostra il messaggio dell'errore
                 }
-                $retrived_user = ''; 
-                if($visibility == ''){
+                $retrived_user = '';
+                if ($visibility == '') {
                     $visibility = 'Deleted';
                 }
-                if (($newfileid == null)||($newfileid == '')){
-                    $deviceid = $current_device['deviceName'];
-                    $originalfilename = $current_device['deviceName'];
-                }
-                //
-                $file = [
-                    "deviceid" => $deviceid,
-                    "filename" => $originalfilename,
-                    "description" => $description,
-                    "subnature" => $subnature,
-                    "language" => $language,
-                    "filesize" => $filesize,
-                    "latitude" => $latitude,
-                    "longitude" => $longitude,
-                    "newfileid" => $newfileid,
-                    "date" => $dateObserved,
-                    "filetype" => $filetype,
-                    "visibility" => $visibility,
-                    "organization" => $organization,
-                    "contextbroker" => $contextBroker,
-                    "ownership_api" => $GLOBALS["ownershipApiBaseUrl"] . "/v1/list/?elementId=$deviceidRequest&type=IOTID&accessToken=" . $accessToken
+            } else {
+                $value_array_datamanager = [
+                    "elementType" => "IOTID",
+                    "sourceRequest" => "getfiledataphp"
                 ];
-                    array_push($devices_list, $file);            
-           // }
+                $deviceidRequest = $organization . ':' . $iot_contextbroker . ':' . $deviceid;
+                $url = $datamanager_url . "/v3/apps/" . $deviceidRequest . "/access/check";
+                $ch_datamanager = curl_init();
+                $url_dm = sprintf(
+                    "%s?%s",
+                    $url,
+                    http_build_query($value_array_datamanager)
+                );
+                curl_setopt($ch_datamanager, CURLOPT_URL, $url_dm);
+                curl_setopt($ch_datamanager, CURLOPT_HTTPHEADER, [
+                    "Content-Type: application/json",
+                    "Authorization: Bearer " . $accessToken,
+                ]);
+                curl_setopt($ch_datamanager, CURLOPT_RETURNTRANSFER, true);
+                $response = curl_exec($ch_datamanager);
+                $httpCode = curl_getinfo($ch_datamanager, CURLINFO_HTTP_CODE);
+                $resp = json_decode($response, true);
+
+                if ($httpCode === 200) {
+                    if ($resp["result"] == true) {
+                        $visibility = strtolower($resp["message"]);
+                        if ($visibility == 'owner')
+                            $visibility = "private";
+                        elseif ($visibility == 'rootadmin')
+                            $visibility = "private";
+                        try {
+                            $logged_user = $_SESSION['loggedUsername'];
+                            $logged_role = $_SESSION['loggedRole'];
+                            $result_owner;
+                            $retrived_user == '';
+                            getOwnerShipDevice($accessToken, $result_owner, $deviceidRequest);
+                            if ($result_owner['keys']) {
+                                $find = $result_owner['keys'][$deviceidRequest]['owner'];
+                                $retrived_user = str_replace('"', '', $find);
+                            }
+                            if (($logged_user == $retrived_user) && ($retrived_user !== '')) {
+                                $visibility = 'MyOwn' . ucfirst($visibility);
+                            }
+                            
+                        } catch (Exception $e) {
+                            $message_output["status"] = "ko";
+                            $message_output["code"] = $httpCode;
+                            $mesagge_output["message"] = $url_dm . " - " . $e;
+                            echo json_encode($message_output);
+                        }
+                        $retrived_user = '';
+                        if ($visibility == '') {
+                            $visibility = 'Deleted';
+                        }
+                    } else {
+                        $visibility = 'Deleted';
+                    }
+                } else {
+                    $message_output["status"] = "ko";
+                    $message_output["code"] = $httpCode;
+                    $mesagge_output["message"] = $url_dm . " - " . $resp["error"];
+                    echo json_encode($message_output);
+                    exit();
+                }
+            }
+
+            if (($newfileid == null) || ($newfileid == '')) {
+                $deviceid = $current_device['deviceName'];
+                $originalfilename = $current_device['deviceName'];
+            }
+            //
+            $file = [
+                "deviceid" => $deviceid,
+                "filename" => $originalfilename,
+                "description" => $description,
+                "subnature" => $subnature,
+                "language" => $language,
+                "filesize" => $filesize,
+                "latitude" => $latitude,
+                "longitude" => $longitude,
+                "newfileid" => $newfileid,
+                "date" => $dateObserved,
+                "filetype" => $filetype,
+                "visibility" => $visibility,
+                "organization" => $organization,
+                "contextbroker" => $iot_contextbroker,
+                "devicetype" => $devicetype,
+                "ownership_api" => $GLOBALS["ownershipApiBaseUrl"] . "/v1/list/?elementId=$deviceidRequest&type=IOTID&accessToken=" . $accessToken
+            ];
+            array_push($devices_list, $file);
+            // }
             $element_in_array = count($devices_list);
             if ($element_in_array == 0) {
                 $message_output["code"] = "404";
@@ -442,6 +531,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $mesagge_output["message"] = $apiCall;
             echo json_encode($message_output);
         }
+        curl_close($ch_datamanager);
         curl_close($ch);
         curl_close($ch_device);
     } elseif ($action == "upload_file") {
@@ -451,7 +541,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         $longitude = filter_var($longitude, FILTER_SANITIZE_STRING);
         $description = mysqli_real_escape_string($link, $_POST["description"]);
         $description = filter_var($description, FILTER_SANITIZE_STRING);
-        $description = str_replace(" ", "_", $description);
+        //$description = str_replace(" ", "_", $description);
         $language = mysqli_real_escape_string($link, $_POST["language"]);
         $language = filter_var($language, FILTER_SANITIZE_STRING);
         $subnature = mysqli_real_escape_string($link, $_POST["subnature"]);
@@ -514,9 +604,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                 curl_setopt($ch_model, CURLOPT_RETURNTRANSFER, 1);
                 $modelCall = curl_exec($ch_model);
                 $device_model = json_decode($modelCall);
-                $message_output['extra']=$device_model;
+                $message_output['extra'] = $device_model;
                 $content_model = $device_model->content;
-                if (!$content_model){
+                if (!$content_model) {
                     $message_output["code"] = "404";
                     $message_output["message"] = "Error: model not found";
                     $message_output["url"] = $url_model;
@@ -524,10 +614,10 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     exit();
                 }
                 //////////////////////////
-                if(isset($_POST['iotbroker'])&&($_POST['iotbroker'] !="")){
+                if (isset($_POST['iotbroker']) && ($_POST['iotbroker'] != "")) {
                     $iot_contextbroker = $_POST['iotbroker'];
-                }else{
-                $iot_contextbroker = $content_model->contextbroker;
+                } else {
+                    $iot_contextbroker = $content_model->contextbroker;
                 }
                 //
                 $iot_attributes = $content_model->attributes;
@@ -574,13 +664,13 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                 $deviceCall = curl_exec($curl);
                 $response = json_decode($deviceCall, true);
                 //
-               /* if ($http_code >= 200 && $http_code < 300) {
+                /* if ($http_code >= 200 && $http_code < 300) {
                     echo "Operazione riuscita! Codice HTTP: " . $http_code;
                     print_r($response); // Mostra la risposta del server
                 } else {
                     echo "Errore nell'operazione! Codice HTTP: " . $http_code;
                     print_r($response);
-                }  */ 
+                }  */
                 //curl_close($curl);
                 //
                 if ($deviceCall === false) {
@@ -591,7 +681,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     curl_close($curl);
                     exit();
                 }
-                
+
 
                 if ($response) {
                     $message_output["code"] = "200";
@@ -761,15 +851,15 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
     } elseif ($action == "view_file") {
         $device_belongs_to_me = false;
         $filename = '';
-        if (isset($_REQUEST["fileid"])||isset($_REQUEST["filename"])){
-            if(isset($_REQUEST["fileid"]) && $_REQUEST["fileid"] !=""){
+        if (isset($_REQUEST["fileid"]) || isset($_REQUEST["filename"])) {
+            if (isset($_REQUEST["fileid"]) && $_REQUEST["fileid"] != "") {
                 $fileid = mysqli_real_escape_string($link, $_REQUEST["fileid"]);
                 $fileid = filter_var($fileid, FILTER_SANITIZE_STRING);
                 $filetype = mysqli_real_escape_string($link, $_REQUEST["filetype"]);
                 $filetype = filter_var($filetype, FILTER_SANITIZE_STRING);
                 $filename = $fileid . "." . $filetype;
-                
-                $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel&valueFilters=newfileid:".$fileid;
+
+                $url = $superServiceMapUrlPrefix . "api/v1/iot-search/?model=fileModel&valueFilters=newfileid:" . $fileid;
 
                 $ch = curl_init();
                 curl_setopt($ch, CURLOPT_URL, $url);
@@ -781,14 +871,14 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                 $apiCall = curl_exec($ch);
                 $apiArray = json_decode($apiCall, true);
-                $length =$apiArray['fullCount'];
-                if ($length =$apiArray['fullCount'] > 0){
-                $device_belongs_to_me = true;
+                $length = $apiArray['fullCount'];
+                if ($length = $apiArray['fullCount'] > 0) {
+                    $device_belongs_to_me = true;
                 }
-            }else{
-                if(isset($_REQUEST["filename"]) && $_REQUEST["filename"] !=""){
+            } else {
+                if (isset($_REQUEST["filename"]) && $_REQUEST["filename"] != "") {
                     $originalfilename = mysqli_real_escape_string($link, $_REQUEST["filename"]);
-                    $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel&valueFilters=originalfilename:".$originalfilename;
+                    $url = $superServiceMapUrlPrefix . "api/v1/iot-search/?model=fileModel&valueFilters=originalfilename:" . $originalfilename;
 
                     $ch = curl_init();
                     curl_setopt($ch, CURLOPT_URL, $url);
@@ -800,13 +890,13 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
                     $apiCall = curl_exec($ch);
                     $apiArray = json_decode($apiCall, true);
-                    $length =$apiArray['fullCount'];
-                    if ($length =$apiArray['fullCount'] > 0){
+                    $length = $apiArray['fullCount'];
+                    if ($length = $apiArray['fullCount'] > 0) {
                         $device_belongs_to_me = true;
                         //
                         $last_file = $apiArray['features'][0]['properties'];
                         $fileid = $last_file['values']['newfileid'];
-                        $filetype = $last_file['values']['filetype']; 
+                        $filetype = $last_file['values']['filetype'];
                         $filename = $fileid . "." . $filetype;
                         //
                     }
@@ -814,32 +904,32 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             }
             ///
             //Pubblici
-            if (!isset($_SESSION["loggedRole"])){
-                    $fileid = mysqli_real_escape_string($link, $_REQUEST["fileid"]);
-                    $originalfilename = mysqli_real_escape_string($link, $_REQUEST["filename"]);
-                    $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel";
-                    $ch = curl_init();
-                    curl_setopt($ch, CURLOPT_URL, $url);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-                        "Content-Type: application/json",
-                        "Authorization: Bearer " . $accessToken,
-                    ]);
-                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-                    $apiCall = curl_exec($ch);
-                    $apiArray = json_decode($apiCall, true);
-                    $data = $apiArray;
-                    foreach ($data['features'] as $feature) {
-                                $values = $feature['properties']['values'];
-                                if (
-                                    (isset($values['newfileid']) && $values['newfileid'] === $fileid) ||
-                                    (isset($values['originalfilename']) && $values['originalfilename'] === $targetOriginalFilename)
-                                ) {
-                                    $device_belongs_to_me = true;
-                                    break;
-                                }
-                            }
-                    //
+            if (!isset($_SESSION["loggedRole"])) {
+                $fileid = mysqli_real_escape_string($link, $_REQUEST["fileid"]);
+                $originalfilename = mysqli_real_escape_string($link, $_REQUEST["filename"]);
+                $url = $superServiceMapUrlPrefix . "api/v1/iot-search/?model=fileModel";
+                $ch = curl_init();
+                curl_setopt($ch, CURLOPT_URL, $url);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                    "Content-Type: application/json",
+                    "Authorization: Bearer " . $accessToken,
+                ]);
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+                $apiCall = curl_exec($ch);
+                $apiArray = json_decode($apiCall, true);
+                $data = $apiArray;
+                foreach ($data['features'] as $feature) {
+                    $values = $feature['properties']['values'];
+                    if (
+                        (isset($values['newfileid']) && $values['newfileid'] === $fileid) ||
+                        (isset($values['originalfilename']) && $values['originalfilename'] === $targetOriginalFilename)
+                    ) {
+                        $device_belongs_to_me = true;
+                        break;
+                    }
+                }
+                //
             }
             $filepath = $protecteduploads_directory . "/" . $filename;
             if (file_exists($filepath)) {
@@ -847,7 +937,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
                     $mimetype = finfo_file($finfo, $filepath);
                     header("Content-Description: File Transfer");
-                    header("Content-Type: ".mime_content_type($filename));
+                    header("Content-Type: " . mime_content_type($filename));
                     header("Content-Disposition: inline; filename=" . basename($filepath));
                     header("Content-Transfer-Encoding: binary");
                     header("Expires: 0");
@@ -856,8 +946,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     header("Content-Length: " . filesize($filepath));
                     readfile($filepath);
                     exit();
-                }
-                else {
+                } else {
                     $message_output["code"] = "403";
                     $message_output["message"] = "Access Denied: the requested file does not belong to the user.";
                 }
@@ -867,7 +956,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             }
             echo json_encode($message_output);
             ////
-        }else{
+        } else {
             $message_output["code"] = "404";
             $message_output["message"] = "Missing required parameters";
             echo json_encode($message_output);
@@ -883,7 +972,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         $longitude = filter_var($longitude, FILTER_SANITIZE_STRING);
         $description = mysqli_real_escape_string($link, $_POST["description"]);
         $description = filter_var($description, FILTER_SANITIZE_STRING);
-        $description = str_replace(" ", "_", $description);
+        //$description = str_replace(" ", "_", $description);
         $filename = mysqli_real_escape_string($link, $_POST["filename"]);
         $filename = filter_var($filename, FILTER_SANITIZE_STRING);
         $language = mysqli_real_escape_string($link, $_POST["language"]);
@@ -930,7 +1019,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         curl_close($ch_model);
         //
         //SEARCH IOT AND ORG
-        $url = $superServiceMapUrlPrefix."api/v1/iot-search/?model=fileModel&valueFilters=newfileid:".$newfileid;
+        $url = $superServiceMapUrlPrefix . "api/v1/iot-search/?model=fileModel&valueFilters=newfileid:" . $newfileid;
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); // Per ottenere la risposta come stringa
@@ -1037,8 +1126,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $message_output["message"] = "Error during editing device by API";
         }
         echo json_encode($message_output);
-    }
-    elseif ($action == "get_extensions") {
+    } elseif ($action == "get_extensions") {
         mysqli_select_db($link, $dbname);
         $query_extensions = "SELECT extension FROM fileextensions";
         ($result_extensions = mysqli_query($link, $query_extensions)) or
@@ -1051,8 +1139,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
     } elseif ($action == "get_languages") {
         $array_languages = json_decode($filemanager_languages);
         echo json_encode($array_languages);
-    }
-    elseif ($action == "get_subnature") {
+    } elseif ($action == "get_subnature") {
         $url_api = $processloader_uri . "/?type=subnature";
         $options = [
             "http" => [
@@ -1339,7 +1426,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         echo json_encode($message_output);
     } elseif ($action == "get_group_for_ou") {
         $ou = mysqli_real_escape_string($link, $_POST["ou"]);
-        $ou = filter_var($k2, FILTER_SANITIZE_STRING);
+        $ou = filter_var($ou, FILTER_SANITIZE_STRING);
         $dataArray = [
             "action" => "get_group_for_ou",
             "ou" => $ou,
@@ -1403,12 +1490,12 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         }
         echo json_encode($message_output);
     }
-}else{
+} else {
     $message_output["code"] = "401";
     $message_output["message"] = "Not Authorized User";
     echo json_encode($message_output);
     mysqli_close($link);
-    exit(); 
+    exit();
 }
 function human_filesize($bytes, $dec = 2)
 {
@@ -1425,17 +1512,18 @@ function human_filesize($bytes, $dec = 2)
     );
 }
 
-function getOwnerShipDevice($token, &$result, $elementId = null) {
+function getOwnerShipDevice($token, &$result, $elementId = null)
+{
     $listCondDevice = "";
     $local_result = "";
     $mykeys = array();
-   
+
     try {
         if ($elementId)
-             $url = $GLOBALS["ownershipApiBaseUrl"] . "/v1/list/?elementId=$elementId&type=IOTID&accessToken=" . $token;
+            $url = $GLOBALS["ownershipApiBaseUrl"] . "/v1/list/?elementId=$elementId&type=IOTID&accessToken=" . $token;
         else
             $url = $GLOBALS["ownershipApiBaseUrl"] . "/v1/list/?type=IOTID&accessToken=" . $token;
-        
+
         $local_result = file_get_contents($url);
         $result["log"] .= $local_result;
         if (strpos($http_response_header[0], '200') == true || strpos($http_response_header[0], '204') == true) {
@@ -1462,12 +1550,14 @@ function getOwnerShipDevice($token, &$result, $elementId = null) {
                     if (isset($lists[$i]->elementDetails->edgegateway_uri))
                         $gtwuri = $lists[$i]->elementDetails->edgegateway_uri;
 
-                    $mykeys[$lists[$i]->elementId] = array("k1" => $lists[$i]->elementDetails->k1,
+                    $mykeys[$lists[$i]->elementId] = array(
+                        "k1" => $lists[$i]->elementDetails->k1,
                         "k2" => $lists[$i]->elementDetails->k2,
                         "cb" => $lists[$i]->elementDetails->contextbroker,
                         "owner" => $lists[$i]->username,
                         "edgegateway_type" => $gtwtype,
-                        "edgegateway_uri" => $gtwuri);
+                        "edgegateway_uri" => $gtwuri
+                    );
                     $result["username"] = $lists[$i]->username;
                 }
             }

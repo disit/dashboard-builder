@@ -3303,7 +3303,7 @@ input[type="text"]:disabled
     color: white;
 }
 
-#newDelegationLbl, #currentDelegationsLbl, #newDelegationLbl, #currentGroupDelegationsLbl
+#newDelegationLbl, #currentDelegationsLbl, #newDelegationLbl, #currentGroupDelegationsLbl, #newDelegationLblGroup, #currentDelegationsLblGroup
 {
     padding-left: 0px !important;
     padding-right: 0px !important;
@@ -3311,23 +3311,23 @@ input[type="text"]:disabled
     color: white;
 }
 
-#currentDelegationsLbl, #currentGroupDelegationsLbl
+#currentDelegationsLbl, #currentGroupDelegationsLbl, #currentDelegationsLblGroup
 {
     margin-top: 25px;
 }
 
-#newDelegationCnt, #newGroupDelegationCnt
+#newDelegationCnt, #newGroupDelegationCnt, #newDelegationCntGroup
 {
     padding-left: 0px !important;
     padding-right: 0px !important;
 }
 
-#newDelegation, #newGroupDelegation
+#newDelegation, #newGroupDelegation, #newDelegationGroup
 {
     width: 100%;
 }
 
-#delegationsTableCnt, #groupDelegationsTableCnt
+#delegationsTableCnt, #groupDelegationsTableCnt, #delegationsTableCntGroup
 {
     max-height: 200px;
     overflow-y: auto;
@@ -3340,18 +3340,18 @@ input[type="text"]:disabled
     width: 100%;
 }
 
-#delegationsTable thead, #groupDelegationsTable thead
+#delegationsTable thead, #groupDelegationsTable, #delegationsTableGroup thead
 {
     background-color: #576c75 !important;
     color: white;
 }
 
-#delegationsTable td, #delegationsTable th, #groupDelegationsTable td, #groupDelegationsTable th
+#delegationsTable td, #delegationsTable th, #groupDelegationsTable td, #groupDelegationsTable, #delegationsTableGroup td, #delegationsTableGroup th
 {
     text-align: center !important;
 }
 
-.removeDelegationBtn
+.removeDelegationBtn, .removeDelegationBtnGroup
 {
     color: red;
     font-size: 18px;
@@ -3362,23 +3362,23 @@ input[type="text"]:disabled
     color: #576c75;
 }
 
-tr.delegationTableRow:nth-child(odd), tr.groupDelegationTableRow:nth-child(odd)
+tr.delegationTableRow:nth-child(odd), tr.groupDelegationTableRow:nth-child(odd), tr.delegationTableRowGroup:nth-child(odd)
 {
     background-color: #f9f9f9;
 }
 
-tr.delegationTableRow:nth-child(even), tr.groupDelegationTableRow:nth-child(even)
+tr.delegationTableRow:nth-child(even), tr.groupDelegationTableRow:nth-child(even), tr.delegationTableRowGroup:nth-child(even)
 {
     background-color: #ffffff;
 }
 
-.removeDelegationBtn:hover
+.removeDelegationBtn:hover, .removeDelegationBtnGroup:hover
 {
     cursor: pointer;
     color: #f3cf58;
 }
 
-#newDelegatedMsg, .delegationsModalMsg, #newGroupDelegatedMsg
+#newDelegatedMsg, .delegationsModalMsg, #newGroupDelegatedMsg, #newDelegatedMsgGroup
 {
     color: #f3cf58;
     font-style: italic;
