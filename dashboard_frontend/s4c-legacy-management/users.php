@@ -238,6 +238,15 @@ text-transform: uppercase;
                             <div class="row mainContentRow">
                                 <div class="col-xs-12 mainContentRowDesc">List</div>
                                 <div class="col-xs-12 mainContentCellCnt">
+                                      <!-- ROLE FILTER BUTTONS -->
+                                    <div id="roleFilterButtons" class="btn-group" role="group" style="margin-bottom:10px;">
+                                        <button type="button" class="btn btn-default role-filter" data-role="">All</button>
+                                        <button type="button" class="btn btn-default role-filter" data-role="Observer">Observer</button>
+                                        <button type="button" class="btn btn-default role-filter" data-role="Manager">Manager</button>
+                                        <button type="button" class="btn btn-default role-filter active" data-role="AreaManager">Area Manager</button>
+                                        <button type="button" class="btn btn-default role-filter" data-role="ToolAdmin">Tool Admin</button>
+                                        <button type="button" class="btn btn-default role-filter" data-role="RootAdmin">Root Admin</button>
+                                    </div>
                                     <table id="usersTable" class="table"></table>
                                 </div>
                             </div>
@@ -657,17 +666,64 @@ text-transform: uppercase;
     </div>
     <!-- Modale di modifica ACL utente-->
     <div class="modal fade" id="editACLModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog" role="document">
+    <div class="modal-dialog modal-lg" style="width:1200px;" role="document">
         <div class="modal-content">
-            <div class="modalHeader centerWithFlex">
-                Update ACL
-            </div>
+        <div class="modalHeader centerWithFlex">
+            Update ACL for - <span id="aclUsername"></span>
+
+        </div>
+        <div class="btn-group btn-group-lg ml-auto" role="group" id="aclModeToggle">
+                <button type="button" class="btn btn-primary active btn-lg" id="btnModeACL">
+                By ACL
+                </button>
+                <button type="button" class="btn btn-outline-primary btn-lg" id="btnModeProfile">
+                By Profile
+                </button>
+        </div>
             <div id="delWidgetTypeModalBody" class="modal-body modalBody">
                 <div class="row">
-                    <div class="col-xs-12 modalCell">
-                        <div id="editACLModalInnerDiv1" class="modalDelMsg col-xs-12 style="display:block;" ">
-
+                    <div id="aclContainer">
+                        <div class="col-xs-12 modalCell">
+                            <table id="aclTable"
+                            class="table table-hover"
+                            data-search="true"
+                            data-pagination="true"
+                            data-page-size="5"
+                            data-click-to-select="true">
+                                <thead>
+                                    <tr>
+                                    <th data-field="state"   data-checkbox="true"></th>
+                                    <th data-field="ID"      data-visible="false">ID</th>
+                                    <th data-field="authname" data-sortable="true">Name</th>
+                                    <th data-field="org"      data-sortable="true">Org</th>
+                                    <th data-field="menuID"   data-sortable="true">Menu ID</th>
+                                    <th data-field="dashboardID" data-sortable="true">Dashboard ID</th>
+                                    <th data-field="collectionID" data-sortable="true">Collection ID</th>
+                                    <th data-field="maxbyday"    data-sortable="true">Max/Day</th>
+                                    <th data-field="maxbymonth"  data-sortable="true">Max/Month</th>
+                                    <th data-field="maxtotal"    data-sortable="true">Max Total</th>
+                                    </tr>
+                                </thead>
+                        </table>
                         </div>
+                    </div>
+                    <!-- BY PROFILE view -->
+                    <div id="aclProfileContainer" style="display:none;">
+                        <table id="profileAssignTable"
+                            class="table table-hover"
+                            data-search="true"
+                            data-pagination="true"
+                            data-page-size="5"
+                            data-click-to-select="true">
+                        <thead>
+                            <tr>
+                            <th data-field="state"   data-checkbox="true"></th>
+                            <th data-field="ID"      data-visible="false">ID</th>
+                            <th data-field="profilename" data-sortable="true">Profile Name</th>
+                            <th data-field="authIDs"     data-visible="false">ACL IDs</th>
+                            </tr>
+                        </thead>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -689,6 +745,7 @@ text-transform: uppercase;
         var cachedGroups = null;
         var get_list = null;
         var cachedADs = null;
+        let cachedProfiles  = null;
 
 
         var sessionEndTime = "<?php echo $_SESSION['sessionEndTime']; ?>";
@@ -937,242 +994,262 @@ text-transform: uppercase;
             }, 500);
         }
 
-        function buildMainTable(destroyOld)
-        {
-            if (destroyOld)
-            {
+        function buildMainTable(destroyOld) {
+            if (destroyOld) {
                 $('#usersTable').bootstrapTable('destroy');
                 tableFirstLoad = true;
             }
-
-            var accountVisibile = true;
-            var statusVisible = true;
-            var firstNameVisibile = true;
-            var lastNameVisibile = true;
-            var orgVisibile = true;
-            var emailVisibile = true;
-            var regDateVisibile = true;
-
-            if ($(window).width() < 992)
-            {
-                accountVisibile = false;
-                statusVisible = false;
+            var accountVisibile    = true,
+                statusVisible      = true,
+                firstNameVisibile  = true,
+                lastNameVisibile   = true,
+                orgVisibile        = true,
+                emailVisibile      = true,
+                regDateVisibile    = true;
+            if ($(window).width() < 992) {
+                accountVisibile   = false;
+                statusVisible     = false;
                 firstNameVisibile = false;
-                lastNameVisibile = false;
-                orgVisibile = false;
-                emailVisibile = false;
-                regDateVisibile = false;
+                lastNameVisibile  = false;
+                orgVisibile       = false;
+                emailVisibile     = false;
+                regDateVisibile   = false;
             }
+            //Initialize the table in server-side mode
+            let currentRoleFilter = 'AreaManager';
+            $('#usersTable').bootstrapTable({
+                url: 'dashboardUserControllers.php',
+                method: 'get',
+                queryParams: function(params) {
+                    return {
+                        action: 'get_list',
+                        limit:  params.limit,
+                        offset: params.offset,
+                        search: params.search,
+                        sort:   params.sort,
+                        order:  params.order,
+                        role: currentRoleFilter
+                    };
+                },
+                sidePagination: 'server',
+                pagination:      true,
+                search:          true,
+                sortable:        true,
+                pageSize:        10,
+                locale:          'en-US',
+                searchAlign:     'left',
+                uniqueId:        'IdUser',
+                striped:         false,
+                searchTimeOut:   60,
+                classes:         'table table-hover table-no-bordered',
 
+                // Adapt your PHP response { total, rows }
+                responseHandler: function(res) {
+                    return {
+                        total: res.total,
+                        rows:  res.rows
+                    };
+                },
+                // Update the total-users badge
+                onLoadSuccess: function(data) {
+                    $('#dashboardTotNumberCnt div.pageSingleDataCnt').text(data.total);
+                },
+                // Inject the “+” button once
+                onPostBody: function() {
+                    if (tableFirstLoad) {
+                        tableFirstLoad = false;
+                        var addUserDiv = $('<div class="pull-right">' +
+                            '<i id="addUserBtn" class="fa fa-plus-square"' +
+                            ' style="font-size:36px; color:#ffcc00"></i>' +
+                        '</div>');
+                        $('div.fixed-table-toolbar').append(addUserDiv);
+                        addUserDiv.css('margin-top','10px')
+                                .find('i.fa-plus-square')
+                                .off('hover')
+                                .hover(
+                                    () => addUserDiv.find('i').css({color:'#e37777',cursor:'pointer'}),
+                                    () => addUserDiv.find('i').css({color:'#ffcc00',cursor:'normal'})
+                                );
+                        $('#addUserBtn').off('click').click(showAddUserModal);
 
-            $.ajax({
-                url: "dashboardUserControllers.php",
-                data: {action: "get_list"},
-                type: "GET",
-                async: true,
-                dataType: 'json',
-                success: function (mydata) {
-                    var lun_json = mydata.length;
-                    get_list = mydata;
-                    $('#usersTable').bootstrapTable({
-                        data: mydata,
-                        search: true,
-                        pagination: true,
-                        sortable: true,
-                        pageSize: 10,
-                        locale: 'en-US',
-                        searchAlign: 'left',
-                        uniqueId: "IdUser",
-                        striped: false,
-                        searchTimeOut: 60,
-                        classes: "table table-hover table-no-bordered",
-                        columns: [{
-                                //
-                                field: 'username',
-                                title: 'Username',
-                                align: "center",
-                                sortable: true,
-                                halign: "center"
-                            }, {
-                                field: "admin",
-                                title: 'Role',
-                                align: "center",
-                                sortable: true,
-                                halign: "center"
-                            }, {
-                                field: "organization",
-                                title: 'Organization',
-                                align: "center",
-                                sortable: true,
-                                halign: "center"
-                            }, {
-                                field: "mail",
-                                title: 'Email',
-                                align: "center",
-                                sortable: true,
-                                halign: "center"
-                            }, {
-                                title: "",
-                                align: "center",
-                                valign: "middle",
-                                sortable: false,
-                                halign: "center",
-                                formatter: function TableActionsEdit(value, row, index) {
-                                    //return "<button type='button' class='editDashBtn editUser' data-toggle='modal' data-target='#editNewUserModal' >edit</button>";
-                                    return "<button type='button' class='editDashBtn editUser' data-toggle='modal' >edit</button>";
-                                    //
-                                }
-                            }, {
-                                title: "",
-                                align: "center",
-                                valign: "middle",
-                                sortable: false,
-                                halign: "center",
-                                formatter: function TableActionsACL(value, row, index) {
-                                    return `<button type='button' class='ACLDashBtn editACL' data-username="${row.username}">ACL</button>`;
-                                }
-                            },{
-                                title: "",
-                                align: "center",
-                                valign: "middle",
-                                sortable: false,
-                                halign: "center",
-                                formatter: function TableActionsDel(value, row, index) {
-                                    return "<button type='button' class='delDashBtn delete_user'>del</button>";
-                                }
-                            }],
-                        onPostBody: function () {
-                            if (tableFirstLoad) {
-                                //Caso di primo caricamento della tabella
-                                tableFirstLoad = false;
-                                var addUserDiv = $('<div class="pull-right"><i id="addUserBtn" class="fa fa-plus-square" style="font-size:36px; color: #ffcc00"></i></div>');
-
-                                $('div.fixed-table-toolbar').append(addUserDiv);
-                                addUserDiv.css("margin-top", "10px");
-                                addUserDiv.find('i.fa-plus-square').off('hover');
-                                addUserDiv.find('i.fa-plus-square').hover(function () {
-                                    $(this).css('color', '#e37777');
-                                    $(this).css('cursor', 'pointer');
-                                },
-                                        function () {
-                                            $(this).css('color', '#ffcc00');
-                                            $(this).css('cursor', 'normal');
-                                        });
-                                $("#addUserBtn").off("click");
-                                $("#addUserBtn").click(showAddUserModal);
-                                $('#usersTable thead').css("background", "rgba(0, 162, 211, 1)");
-                                $('#usersTable thead').css("color", "white");
-                                $('#usersTable thead').css("font-size", "1em");
-                                $('#dashboardTotNumberCnt div.pageSingleDataCnt').text(lun_json);
-                                //$('#dashboardTotActiveCnt div.pageSingleDataCnt').text(lun_json);
-                            }
-                        }
+                        $('#usersTable thead').css({
+                        background: 'rgba(0, 162, 211, 1)',
+                        color:      'white',
+                        'font-size':'1em'
+                        });
+                    }
+                },
+                columns: [
+                {
+                    field: 'username',
+                    title: 'Username',
+                    align: 'center',
+                    sortable: true,
+                    halign: 'center'
+                },
+                {
+                    field: 'admin',
+                    title: 'Role',
+                    align: 'center',
+                    sortable: true,
+                    halign: 'center'
+                },
+                {
+                    field: 'organization',
+                    title: 'Organization',
+                    align: 'center',
+                    sortable: true,
+                    halign: 'center'
+                },
+                {
+                    field: 'mail',
+                    title: 'Email',
+                    align: 'center',
+                    sortable: true,
+                    halign: 'center'
+                },
+                {
+                    title: '',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: false,
+                    halign: 'center',
+                    formatter: () =>
+                    "<button type='button' class='editDashBtn editUser'>edit</button>"
+                },
+                {
+                    title: '',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: false,
+                    halign: 'center',
+                    formatter: (_v, row) =>
+                    `<button type='button' class='ACLDashBtn editACL' data-username="${row.username}">ACL</button>`
+                },
+                {
+                    title: '',
+                    align: 'center',
+                    valign: 'middle',
+                    sortable: false,
+                    halign: 'center',
+                    formatter: () =>
+                    "<button type='button' class='delDashBtn delete_user'>del</button>"
+                }
+                ]
+            });
+            //role filtering
+            $('#roleFilterButtons').on('click', '.role-filter', function(){
+            // mark active button
+            $('.role-filter').removeClass('active');
+            $(this).addClass('active');
+            // pick up the role (empty string = “All”)
+            currentRoleFilter = $(this).data('role');
+            // refresh the table (silent so it doesn’t reset pagination)
+            $('#usersTable').bootstrapTable('refresh', {silent: true});
+            });
+            //user modal trigger & caching
+            $('#addUserBtn').off('click').click(function () {
+                $('#addUserGroupsRow').show();
+                if (!cachedOrgs) {
+                    $.getJSON('dashboardUserControllers.php', { action: 'list_org' })
+                    .done(jdata => {
+                    cachedOrgs = jdata;
+                    populateOrgsTable(cachedOrgs);
+                    populateDelOrgsTable(cachedOrgs);
                     });
-
-                    //new user
-                    $('#addUserBtn').click(function () {
-                        $('#addUserGroupsRow').show();
-                        if (!cachedOrgs) {
-                            $.ajax({
-                            url: "dashboardUserControllers.php",
-                            data: { action: "list_org" },
-                            type: "GET",
-                            dataType: "json",
-                            success: function (jdata) {
-                                cachedOrgs = jdata;                   // store organizations
-                                populateOrgsTable(cachedOrgs);
-                                populateDelOrgsTable(cachedOrgs);
-                            }
-                            });
-                        } else {
-                            populateOrgsTable(cachedOrgs);
-                            populateDelOrgsTable(cachedOrgs);
-                        }
-                        if (!cachedGroups) {
-                            $.ajax({
-                            url: "dashboardUserControllers.php",
-                            data: { action: "get_groups" },
-                            type: "GET",
-                            dataType: "json",
-                            success: function (jdata) {
-                                cachedGroups = jdata;                   // store groups
-                                populateGroupsTable(cachedGroups);
-                            }
-                            });
-                        } else {
-                            populateGroupsTable(cachedGroups);
-                        }
-                        });
-
-                        // helper to rebuild the table from an array of org names
-                        function populateOrgsTable(orgs) {
-                        var $tb = $('#addUserPoolsTable tbody').empty();
-                        orgs.forEach(function (orgName) {
-                            $tb.append(
-                            '<tr>'
-                            + '<td class="checkboxCell"><input type="checkbox" class="check_org" value="' + orgName + '"/></td>'
-                            + '<td class="poolNameCell">' + orgName + '</td>'
-                            + '</tr>'
-                            );
-                        });
-                        }
-                        function populateGroupsTable(groups) {
-                        var $tb = $('#addUserGroupsTable tbody').empty();
-                        groups.forEach(function (groupName) {
-                            $tb.append(
-                            '<tr>'
-                            + '<td class="checkboxCell"><input type="checkbox" class="check_group" value="' + groupName + '"/></td>'
-                            + '<td class="poolNameCell">' + groupName + '</td>'
-                            + '</tr>'
-                            );
-                        });
-                        }
-                        function populateDelOrgsTable(orgs) {
-                        if (! $('#addUserDelOrgsRow').length) return; // if userstats isn't active
-                        var $tb = $('#addUserDelOrgsTable tbody').empty();
-                        orgs.forEach(function(o){
-                            $tb.append(
-                            '<tr>' +
-                                '<td class="checkboxCell">' +
-                                '<input type="checkbox" class="check_delorg" value="' + o + '"/>' +
-                                '</td>' +
-                                '<td class="orgNameCell">' + o + '</td>' +
-                            '</tr>'
-                            );
-                        });
-                        $('#addUserDelOrgsRow').show();
-                        }
-
-
-                    $('#addNewUserCancelBtn').click(function () {
-                        $('#addUserPoolsTable tbody').empty();
-                        $('#addUserGroupsTable tbody').empty();
-                        $('#addUserDelOrgsTable tbody').empty();
+                } else {
+                    populateOrgsTable(cachedOrgs);
+                    populateDelOrgsTable(cachedOrgs);
+                }
+                if (!cachedGroups) {
+                    $.getJSON('dashboardUserControllers.php',{ action:'get_groups' })
+                    .done(jdata => {
+                    cachedGroups = jdata;
+                    populateGroupsTable(cachedGroups);
                     });
-
-                    $('#usersTable thead').css("background", "rgba(0, 162, 211, 1)");
-                    $('#usersTable thead').css("color", "white");
-                    $('#usersTable thead').css("font-size", "1em");
-
-                    $('#usersTable button.delDashBtn').off('hover');
-                    $('#usersTable button.delDashBtn').hover(function () {
-                        $(this).css('background', '#ffcc00');
-                        $(this).parents('tr').find('td').eq(0).css('background', '#ffcc00');
-                    },
-                            function () {
-                                $(this).css('background', '#e37777');
-                                $(this).parents('tr').find('td').eq(0).css('background', $(this).parents('td').css('background'));
-                            });
-
-                    $('#usersTable button.delDashBtn').off('click');
-                    $('#usersTable button.delDashBtn').click(function () {
-                        var username = $(this).parents("tr").find("td").eq(0).html();
-                        $("#deleteUserModal div.modal-body").html('<div class="modalBodyInnerDiv"><span data-username = "' + username + '">Do you want to confirm deletion of user <b>' + username + '</b>?</span></div>');
-                        $("#deleteUserModal").modal('show');
-                    });
+                } else {
+                    populateGroupsTable(cachedGroups);
                 }
             });
+            // Helpers for the Add-User modal
+            function populateOrgsTable(orgs) {
+                var $tb = $('#addUserPoolsTable tbody').empty();
+                orgs.forEach(o =>
+                    $tb.append(
+                    `<tr>
+                        <td class="checkboxCell">
+                        <input type="checkbox" class="check_org" value="${o}"/>
+                        </td>
+                        <td class="poolNameCell">${o}</td>
+                    </tr>`
+                    )
+                );
+            }
+            function populateGroupsTable(groups) {
+                var $tb = $('#addUserGroupsTable tbody').empty();
+                groups.forEach(g => {
+                    const m = g.dn.match(/ou=([^,]+)/i);
+                    const ou = m ? m[1] : '(root)';
+                    $tb.append(`
+                    <tr>
+                        <td class="checkboxCell">
+                        <input type="checkbox" class="check_group" value="${g.dn}"/>
+                        </td>
+                        <td class="poolNameCell">${g.cn} <small>(${ou})</small></td>
+                    </tr>
+                    `);
+                });
+            }
+            function populateDelOrgsTable(orgs) {
+                if (!$('#addUserDelOrgsRow').length) return;
+                var $tb = $('#addUserDelOrgsTable tbody').empty();
+                orgs.forEach(o =>
+                    $tb.append(
+                    `<tr>
+                        <td class="checkboxCell">
+                        <input type="checkbox" class="check_delorg" value="${o}"/>
+                        </td>
+                        <td class="orgNameCell">${o}</td>
+                    </tr>`
+                    )
+                );
+                $('#addUserDelOrgsRow').show();
+            }
+            // Clear modal on cancel
+            $('#addNewUserCancelBtn').off('click').click(function() {
+                $('#addUserPoolsTable tbody').empty();
+                $('#addUserGroupsTable tbody').empty();
+                $('#addUserDelOrgsTable tbody').empty();
+            });
+            // Style header & delete-button handlers
+            $('#usersTable thead').css({
+            background: 'rgba(0, 162, 211, 1)',
+            color:      'white',
+            'font-size':'1em'
+            });
+            $('#usersTable button.delDashBtn').off('hover').hover(
+            function() {
+                $(this).css('background','#ffcc00');
+                $(this).closest('tr').find('td').eq(0).css('background','#ffcc00');
+            },
+            function() {
+                $(this).css('background','#e37777');
+                $(this).closest('tr').find('td').eq(0)
+                    .css('background', $(this).closest('td').css('background'));
+            }
+            ).off('click').click(function() {
+                var username = $(this).closest('tr').find('td').eq(0).text();
+                $("#deleteUserModal .modal-body").html(
+                `<div class="modalBodyInnerDiv">
+                    <span data-username="${username}">
+                    Do you want to confirm deletion of user <b>${username}</b>?
+                    </span>
+                </div>`
+                );
+                $("#deleteUserModal").modal('show');
+            });
         }
+
 
         //delDashBtn
         $(document).on('click', '.delete_user', function () {
@@ -1186,17 +1263,24 @@ text-transform: uppercase;
             $("#deleteUserModal").modal('show');
         });
 
-
+        var currentedituser = null;
         // Edit User: open modal and render multi-org checkboxes
         $(document).on('click', '.editUser', function () {
-            var $tr       = $(this).closest('tr'),
-                username  = $tr.find('td').eq(0).text(),
-                role      = $tr.find('td').eq(1).text(),
-                orgText   = $tr.find('td').eq(2).text(),
-                mail      = $tr.find('td').eq(3).text(),
-                user      = get_list.find(u => u.username === username),
-                userOrgs  = orgText.split(',').map(s => s.trim()).filter(Boolean),
-                userGroups = user.groups || [];
+            var $tr   = $(this).closest('tr'),
+            idx   = +$tr.attr('data-index'),                    // bootstrap-table’s zero-based index
+            rows  = $('#usersTable').bootstrapTable('getData'),
+            row   = rows[idx];                                  // your record object
+            var user = row;
+            currentedituser = row;
+            var username    = row.username,
+                role        = row.admin,
+                orgText     = row.organization,
+                mail        = row.mail,
+                userOrgs    = orgText.split(',').map(s => s.trim()).filter(Boolean),
+                userGroups  = (row.groups || []).map(function(g){ return g.dn; }),
+                csbl        = row.csbl,
+                dataIngest  = row.data_table,
+                delegated   = row.delegated_userstats_orgs || [];
             //pop fields
             console.log(user);
             $('#editNewUserModalLabel').text('Edit account - ' + username);
@@ -1230,15 +1314,18 @@ text-transform: uppercase;
             function renderGroups(groups) {
                 var $tb = $('#editUserGroupsTable tbody').empty();
                 groups.forEach(function(g){
-                var checked = userGroups.indexOf(g) !== -1 ? 'checked' : '';
-                $tb.append(
-                    '<tr>' +
-                    '<td class="checkboxCell">' +
-                        '<input type="checkbox" class="check_editgroup" value="' + g + '" ' + checked + ' />' +
-                    '</td>' +
-                    '<td class="groupNameCell">' + g + '</td>' +
-                    '</tr>'
-                );
+                var checked = userGroups.indexOf(g.dn) !== -1 ? 'checked' : '';
+                const m = g.dn.match(/ou=([^,]+)/i);
+                const ou = m ? m[1] : '(root)';
+                $tb.append(`
+                    <tr>
+                        <td class="checkboxCell">
+                        <input type="checkbox" class="check_editgroup" 
+                                value="${g.dn}" ${checked}/>
+                        </td>
+                        <td class="groupNameCell">${g.cn} <small>(${ou})</small></td>
+                    </tr>
+                `);
                 });
             }
             function renderDelOrgs(orgs) {
@@ -1285,7 +1372,7 @@ text-transform: uppercase;
         $(document).on('click', '#editUserConfirmBtn', function () {
             var username = $('#editNewUserModalLabel').text()
                             .replace('Edit account - ', '');
-            var user      = get_list.find(u => u.username === username);
+            var user     = currentedituser;
             var mail     = $('#emailM').val();
             var role     = $('#NewuserTypeM').val();
             var password = $('#passwordM').val();
@@ -1295,7 +1382,7 @@ text-transform: uppercase;
 
             var orgs       = $('.check_editorg:checked').map(function(){ return this.value; }).get();
             var groups     = $('.check_editgroup:checked').map(function(){ return this.value; }).get();
-            var oldGroups  = user.groups || [];
+            var oldGroups  = (user.groups || []).map(function(g){ return g.dn; });
             var csbl = $('#CSBL_Check')[0].checked 
             var data_ingestion = $('#Data-Ingestion')[0].checked 
             //var advisor = $('#Advisor')[0].checked
@@ -1336,7 +1423,12 @@ text-transform: uppercase;
                         $('#editUserOkModalInnerDiv1').text('User data successfully modified');
                         $('#editUserOkModal').modal('show');
                         $("#editNewUserModal").modal('hide');
-                        setTimeout(function () { buildMainTable(true); }, 2000);
+                        setTimeout(function () {
+                            $('#roleFilterButtons .role-filter').removeClass('active');
+                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]')
+                                .addClass('active'); 
+                            buildMainTable(true); 
+                        }, 2000);
                     } else {
                         $('#editUserKoModal').modal('show');
                         $("#editNewUserModal").modal('hide');
@@ -1494,95 +1586,162 @@ text-transform: uppercase;
             });
         });
         /*ACL functions*/ 
-        $(document).on('click', '.ACLDashBtn', function(){
+        function loadProfiles() {
+        return cachedProfiles
+            ? $.Deferred().resolve(cachedProfiles)
+            : $.ajax({
+                url:  'editACL.php',
+                type: 'POST',
+                data: { action: 'get_list_profiles' },
+                dataType: 'json'
+            }).done(prof => cachedProfiles = prof);
+        }
+        function loadACLDefs() {
+        return cachedADs
+            ? $.Deferred().resolve(cachedADs)
+            : $.ajax({
+                url:  'editACL.php',
+                type: 'POST',
+                data: { action: 'get_list_AD' },
+                dataType: 'json'
+            }).done(defs => cachedADs = defs);
+        }
+        function loadUserProfiles(username) {
+        return $.ajax({
+            url: 'editACL.php',
+            type: 'POST',
+            dataType: 'json',
+            data: { action: 'get_user_profiles', username }
+        });
+        }
+        $(document).on('click', '.ACLDashBtn', function() {
             const username = $(this).data('username');
-            $('#editACLModal .modalHeader')
-                .text(`Update ACL for ${username}`);
-            const defsDeferred = cachedADs
-                ? $.Deferred().resolve(cachedADs).promise()
-                : $.ajax({
-                    url:  'editACL.php',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: { action: 'get_list_AD' }
-                }).then(defs => {
-                    cachedADs = defs;
-                    return defs;
-                });
-            defsDeferred
-                .then(defs => {
-                return $.ajax({
-                    url:  'editACL.php',
+            $('#aclUsername').text(username);
+            Promise.all([
+                loadACLDefs(),             
+                loadProfiles(),
+                loadUserProfiles(username.toLowerCase())
+                ])
+                .then(([defs, profiles, userProfs]) =>
+                $.ajax({
+                    url: 'editACL.php',
                     type: 'POST',
                     dataType: 'json',
                     data: {
                     action:   'get_user_ACL',
-                    username: username
+                    username: username.toLowerCase()
                     }
-                }).then(userAcl => {
-                    if (!Array.isArray(userAcl)) {
-                    return $.Deferred().reject('Unexpected ACL payload').promise();
-                    }
-                    const hasSet = new Set(userAcl.map(r => r.defID));
-                    const $container = $('#editACLModalInnerDiv1').empty();
-                    const originalDefs = userAcl.map(r => Number(r.defID));
-                    $('#editACLModal').data('originalDefs', originalDefs);
-                    defs.forEach(def => {
-                        //if empty/null
-                        const orgText  = def.org     ? def.org     : 'None';
-                        const menuText = (def.menuID != null && def.menuID !== '') 
-                                        ? def.menuID 
-                                        : 'None';
-                        const checked  = hasSet.has(def.ID) ? 'checked' : '';
-
-                        $container.append(`
-                        <div class="acl-item">
-                            <label>
-                            <input 
-                                type="checkbox" 
-                                class="ACLCheckbox" 
-                                value="${def.ID}" 
-                                ${checked}
-                            >
-                            <strong>${def.authname}</strong>
-                            <em>(Org: ${orgText}, MenuID: ${menuText})</em>
-                            </label>
-                        </div>
-                        `);
+                }).then(userAcl => {//single ACL
+                const originalDefs = userAcl.map(r => Number(r.defID));
+                $('#editACLModal').data('originalDefs', originalDefs);
+                const selectedDefs = new Set(originalDefs);
+                const rows = defs.map(def => ({
+                    state:       selectedDefs.has(def.ID),
+                    ID:          def.ID,
+                    authname:    def.authname,
+                    org:         def.org       || '',
+                    menuID:      def.menuID    || '',
+                    dashboardID: def.dashboardID  || '',
+                    collectionID:def.collectionID || '',
+                    maxbyday:    def.maxbyday    != null ? def.maxbyday    : '',
+                    maxbymonth:  def.maxbymonth  != null ? def.maxbymonth  : '',
+                    maxtotal:    def.maxtotal    != null ? def.maxtotal    : ''
+                }));
+                $('#aclTable').bootstrapTable('destroy').bootstrapTable({
+                    data:          rows,
+                    search:        true,
+                    pagination:    true,
+                    pageSize:      10,
+                    pageList:      [5, 10, 25, 50],
+                    showPageList:  true,
+                    clickToSelect: true,
+                    onCheck:      row  => selectedDefs.add(row.ID),
+                    onUncheck:    row  => selectedDefs.delete(row.ID),
+                    onCheckAll:   rows => rows.forEach(r => selectedDefs.add(r.ID)),
+                    onUncheckAll: rows => rows.forEach(r => selectedDefs.delete(r.ID)),
+                    onPageChange: () => {
+                    $('#aclTable').bootstrapTable('checkBy', {
+                        field:  'ID',
+                        values: Array.from(selectedDefs)
                     });
-                    $('#editACLModal').modal('show');
-                });
-                })
-                .fail(err => {
-                console.error("ACL popup error:", err);
-                alert("Could not load ACL — check console.");
-                });
-            });
-        $('#editACLConfirmBtn').click(function(){
-            const username = $('#editACLModal .modalHeader')
-                                .text().replace('Update ACL for ', '');
-            const newDefs = $('.ACLCheckbox:checked')
-                                    .map((i,cb) => cb.value)
-                                    .get();
-            const originalDefs  = $('#editACLModal').data('originalDefs') || [];
-            $.ajax({
-                url: 'editACL.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                action:   'update_ACL',
-                username: username,
-                original_defs : originalDefs,
-                new_defs : newDefs,
-                }
-            }).done(function(res){
-                if (res.error) {
-                    alert("Error: " + res.error);
-                    } else {
-                    console.log("Added:", res.added, "Removed:", res.removed);
                     }
-                $('#editACLModal').modal('hide');
-            });
+                });//profiles
+                const originalProfiles = userProfs.map(n => Number(n));
+                $('#editACLModal').data('originalProfiles', originalProfiles);
+                const sel = new Set(originalProfiles);
+                const prow = profiles.map(pr => ({
+                    state:       sel.has(pr.ID),
+                    ID:          pr.ID,
+                    profilename: pr.profilename,
+                    authIDs:     pr.authIDs 
+                }));
+                $('#profileAssignTable')
+                    .bootstrapTable('destroy')
+                    .bootstrapTable({
+                    data:          prow,
+                    search:        true,
+                    pagination:    true,
+                    pageSize:      10,
+                    pageList:      [5, 10, 25, 50],
+                    showPageList:  true,
+                    clickToSelect: true,
+                    onCheck:      row => sel.add(row.ID),
+                    onUncheck:    row => sel.delete(row.ID),
+                    onCheckAll:   rows => rows.forEach(r=>sel.add(r.ID)),
+                    onUncheckAll: rows => rows.forEach(r=>sel.delete(r.ID)),
+                    onPageChange: () => {
+                        $('#profileAssignTable').bootstrapTable('checkBy', {
+                        field:  'ID',
+                        values: Array.from(sel)
+                        });
+                    }
+                    });
+
+                $('#editACLModal').modal('show');
+                })
+                )
+                .fail(err => {
+                console.error('ACL popup error:', err);
+                alert('Could not load ACL — see console.');
+                });
+        });
+        $('#editACLConfirmBtn').click(function(){
+            const username = $('#aclUsername').text().toLowerCase();
+            if ($('#btnModeACL').hasClass('active')) {
+                //ACL
+                const newDefs  = $('#aclTable').bootstrapTable('getSelections').map(r=>r.ID);
+                const origDefs = $('#editACLModal').data('originalDefs')||[];
+                $.post('editACL.php', {
+                action:        'update_ACL',
+                username:      username,
+                original_defs: origDefs,
+                new_defs:      newDefs
+                }, res => { $('#editACLModal').modal('hide'); });
+            } else {
+                //Profiles
+                const newPs  = $('#profileAssignTable').bootstrapTable('getSelections').map(r=>r.ID);
+                const origPs = $('#editACLModal').data('originalProfiles')||[];
+                $.post('editACL.php', {
+                action:            'update_user_profiles',
+                username:          username,
+                original_profiles: origPs,
+                new_profiles:      newPs
+                }, res => { $('#editACLModal').modal('hide'); });
+            }
+        });
+        //ACL switch mode (prfile/single)
+        $('#btnModeACL').on('click', () => {
+            $('#btnModeACL').addClass('btn-primary active').removeClass('btn-outline-primary');
+            $('#btnModeProfile').addClass('btn-outline-primary').removeClass('btn-primary active');
+            $('#aclContainer').show();
+            $('#aclProfileContainer').hide();
+        });
+
+        $('#btnModeProfile').on('click', () => {
+            $('#btnModeProfile').addClass('btn-primary active').removeClass('btn-outline-primary');
+            $('#btnModeACL').addClass('btn-outline-primary').removeClass('btn-primary active');
+            $('#aclContainer').hide();
+            $('#aclProfileContainer').show();
         });
     });
 

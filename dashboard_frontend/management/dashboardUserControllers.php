@@ -2,17 +2,16 @@
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
 require '../sso/autoload.php';
@@ -29,7 +28,49 @@ $action = $_REQUEST['action'];
 switch ($action) {
     case 'get_list':
         header('Content-Type: application/json');
-        echo json_encode(buildUserList($link, $ldap));
+        //pull server-side pagination params from GET
+        $limit  = isset($_GET['limit'])  ? intval($_GET['limit'])  : 10;
+        $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
+        $search = trim($_GET['search']  ?? '');
+        $sort   = $_GET['sort']   ?? 'username';
+        $order  = (isset($_GET['order']) && strtolower($_GET['order']) === 'desc')
+                   ? SORT_DESC
+                   : SORT_ASC;
+        $roleFilter = trim($_GET['role'] ?? '');
+        //get the full user list
+        $allUsers = buildUserList($link, $ldap, $roleFilter);
+        //filter by search term if present
+        if ($search !== '') {
+            $searchLower = mb_strtolower($search, 'UTF-8');
+            $allUsers = array_filter($allUsers, function($u) use ($searchLower) {
+                return
+                   mb_stripos($u['username'],     $searchLower, 0, 'UTF-8') !== false
+                || mb_stripos($u['mail'],         $searchLower, 0, 'UTF-8') !== false
+                || mb_stripos(mb_strtolower($u['admin'], 'UTF-8'), $searchLower, 0, 'UTF-8') !== false
+                || mb_stripos($u['organization'], $searchLower, 0, 'UTF-8') !== false;
+            });
+        }
+        //sort by the requested field
+        usort($allUsers, function($a, $b) use ($sort, $order) {
+            $va = $a[$sort] ?? '';
+            $vb = $b[$sort] ?? '';
+            if ($va == $vb) return 0;
+            // numeric vs string compare
+            if (is_numeric($va) && is_numeric($vb)) {
+                return $order === SORT_ASC ? ($va - $vb) : ($vb - $va);
+            }
+            return $order === SORT_ASC
+                ? strcasecmp($va, $vb)
+                : strcasecmp($vb, $va);
+        });
+        //compute total and slice the page
+        $total = count($allUsers);
+        $rows  = array_slice($allUsers, $offset, $limit);
+        //emit { total, rows }
+        echo json_encode([
+            'total' => $total,
+            'rows'  => array_values($rows),
+        ]);
         break;
 
     case 'add_user':
@@ -295,15 +336,16 @@ function get_user_ldap_groups($ldapConn, $baseDn, $username) {
     $attrs = ['cn'];
     $sr = @ldap_search($ldapConn, $baseDn, $filter, $attrs);
     if ($sr === false) {
-        return ldap_error($ldapConn);
+        return [];
     }
-
     $entries = ldap_get_entries($ldapConn, $sr);
     $groups = [];
     for ($i = 0; $i < $entries['count']; $i++) {
-        if (!empty($entries[$i]['cn'][0])) {
-            $groups[] = $entries[$i]['cn'][0];
-        }
+        if (empty($entries[$i]['cn'][0])) continue;
+        $groups[] = [
+            'cn' => $entries[$i]['cn'][0],
+            'dn' => $entries[$i]['dn'],
+        ];
     }
     return $groups;
 }
@@ -355,12 +397,93 @@ function get_delegated_userstats_orgs(string $owner, bool $encrypted){
     mysqli_stmt_close($stmt);
     return $orgs;
 }
-
+function findGroupDn($ldap, $baseDn, $cn) {
+    $filter = '(&(cn='
+            . ldap_escape($cn, '', LDAP_ESCAPE_FILTER)
+            . ')(|(objectClass=groupOfNames)'
+            .     '(objectClass=posixGroup)'
+            .     '(objectClass=groupOfUniqueNames)))';
+    $sr = @ldap_search($ldap, $baseDn, $filter, ['dn']);
+    if ($sr === false) {
+        return false;
+    }
+    $ents = ldap_get_entries($ldap, $sr);
+    return ($ents['count'] > 0)
+         ? $ents[0]['dn']
+         : false;
+}
 
 //Action handlers
 
-function buildUserList($link, $ldap) {
+function buildUserList($link, $ldap, string $roleFilter = '') {
     global $ldapBaseDN, $ldapToolGroups, $dbname, $userMonitoring;
+    $usersOut = [];
+    // If a roleFilter is specified, load only that group's members
+    if ($roleFilter !== '' && $roleFilter !== 'Observer') {
+        // fetch the group entry for the given role
+        $groupSearch = @ldap_search(
+            $ldap,
+            $ldapBaseDN,
+            "(cn={$roleFilter})",
+            ['roleOccupant']
+        );
+        $groupEnt = ldap_get_entries($ldap, $groupSearch);
+        if (! empty($groupEnt[0]['roleoccupant'])) {
+            $idx = 0;
+            // loop each DN listed as a roleOccupant
+            for ($i = 0; $i < $groupEnt[0]['roleoccupant']['count']; $i++) {
+                $userDn = $groupEnt[0]['roleoccupant'][$i];
+                // read just that one user entry
+                $userSearch = @ldap_read(
+                    $ldap,
+                    $userDn,
+                    '(objectClass=inetOrgPerson)',
+                    ['cn','mail','ou']
+                );
+                $userEnts = ldap_get_entries($ldap, $userSearch);
+                if ($userEnts['count'] === 0) {
+                    continue;
+                }
+                $e = $userEnts[0];
+                // extract username from DN
+                if (! preg_match('/^cn=([^,]+)/i', $e['dn'], $m)) {
+                    continue;
+                }
+                $username = $m[1];
+                $email    = $e['mail'][0] ?? '';
+                // collect OU-based organizations
+                $orgs = [];
+                if (! empty($e['ou']['count'])) {
+                    for ($j = 0; $j < $e['ou']['count']; $j++) {
+                        $orgs[] = $e['ou'][$j];
+                    }
+                }
+                $orgString = implode(', ', $orgs);
+                // assemble output row
+                $usersOut[] = [
+                    "IdUser"       => (string)$idx++,
+                    "username"     => $username,
+                    "organization" => $orgString,
+                    "status"       => null,
+                    "reg_data"     => null,
+                    "password"     => null,
+                    "mail"         => $email,
+                    "admin"        => $roleFilter,
+                    "cn"           => $e['dn'],
+                    "csbl"         => (check_csbl($link, $username) === true),
+                    "data_table"   => is_array(check_data_table_user($link, $username)),
+                    "groups"       => get_user_ldap_groups($ldap, $ldapBaseDN, $username),
+                    "delegated_userstats_orgs" =>
+                         ($userMonitoring === 'true')
+                         ? get_delegated_userstats_orgs($username, false)
+                         : [],
+                ];
+            }
+        }
+
+        return $usersOut;
+    }
+    // NO ROLE FILTER
     //role to dn map
     $roles = ['ToolAdmin','RootAdmin','Manager','AreaManager','Observer'];
     $roleMembers = [];
@@ -369,7 +492,6 @@ function buildUserList($link, $ldap) {
         $rEnt = ldap_get_entries($ldap, $rRes);
         $roleMembers[$r] = array_map('strtolower', $rEnt[0]['roleoccupant'] ?? []);
     }
-
     mysqli_select_db($link, $dbname);
     //get all users
     $srUsers = ldap_search(
@@ -383,11 +505,11 @@ function buildUserList($link, $ldap) {
         return [];
     }
     $entriesUsers = ldap_get_entries($ldap, $srUsers);
-
-    $usersOut = [];
+    //iterate and build each user
     for ($i = 0; $i < $entriesUsers['count']; $i++) {
         $e  = $entriesUsers[$i];
         $dn = $e['dn'] ?? '';
+        // extract username
         if (! preg_match('/^cn=([^,]+)/i', $dn, $m)) {
             continue;
         }
@@ -396,20 +518,18 @@ function buildUserList($link, $ldap) {
         //fetch orgs via 'l' from OUs
         $dnFilter  = ldap_escape($dn, '', LDAP_ESCAPE_FILTER);
         $orgFilter = '(&(objectClass=organizationalUnit)(l=' . $dnFilter . '))';
-        $srOrgs = @ldap_search($ldap, $ldapBaseDN, $orgFilter, ['ou']);
-        $orgs   = [];
+        $srOrgs    = @ldap_search($ldap, $ldapBaseDN, $orgFilter, ['ou']);
+        $orgs      = [];
         if ($srOrgs !== false) {
             $entriesOrgs = ldap_get_entries($ldap, $srOrgs);
             for ($j = 0; $j < $entriesOrgs['count']; $j++) {
-                if (!empty($entriesOrgs[$j]['ou'][0])) {
+                if (! empty($entriesOrgs[$j]['ou'][0])) {
                     $orgs[] = $entriesOrgs[$j]['ou'][0];
                 }
             }
-        } else {
-            error_log("buildUserList() OU search failed: " . ldap_error($ldap));
         }
         $orgString = implode(', ', $orgs);
-        //role
+        // find this user’s role by seeing which roleOccupant list contains their DN
         $dnLower = strtolower($dn);
         $role    = null;
         foreach ($roleMembers as $rName => $dns) {
@@ -418,12 +538,18 @@ function buildUserList($link, $ldap) {
                 break;
             }
         }
+        // check CSBL & data-table flags
         $has_csbl        = (check_csbl($link, $username) === true);
         $data_table_user = is_array(check_data_table_user($link, $username));
-        $groups          = get_user_ldap_groups($ldap, $ldapBaseDN, $username);
-        if($userMonitoring == 'true'){
+        // fetch LDAP groups
+        $groups = get_user_ldap_groups($ldap, $ldapBaseDN, $username);
+        // fetch delegated orgs if enabled
+        if ($userMonitoring == 'true') {
             $delegated_userstats_orgs = get_delegated_userstats_orgs($username, false);
+        } else {
+            $delegated_userstats_orgs = [];
         }
+        // push into the output
         $usersOut[] = [
             "IdUser"       => (string)$i,
             "username"     => $username,
@@ -439,6 +565,13 @@ function buildUserList($link, $ldap) {
             "groups"       => $groups,
             "delegated_userstats_orgs" => $delegated_userstats_orgs,
         ];
+    }
+    if ($roleFilter === 'Observer') {
+        $usersOut = array_filter($usersOut, function($u){
+            return isset($u['admin']) && $u['admin'] === 'Observer';
+        });
+        // re-index if you want contiguous numeric IdUser
+        $usersOut = array_values($usersOut);
     }
     return $usersOut;
 }
@@ -523,11 +656,14 @@ function AddUser($link, $ldap) {
     }
     if (! empty($group)) {
         foreach ($group as $g) {
-            @ldap_mod_add(
-                $ldap,
-                "cn={$g},ou={$primaryOrg},{$ldapBaseDN}",
-                ['member' => $dn]
-            );
+            $groupDn = $g;
+            $okUid    = @ldap_mod_add($ldap, $groupDn, ['memberUid'    => $dn]);
+            $okMember = @ldap_mod_add($ldap, $groupDn, ['member'       => $dn]);
+            $okUniq   = @ldap_mod_add($ldap, $groupDn, ['uniqueMember' => $dn]);
+            $results['debug']["add_group_{$g}"] =
+                ($okUid || $okMember || $okUniq)
+                ? "added with at least one attribute"
+                : ldap_error($ldap);
         }
     }
     @ldap_mod_replace($ldap, $dn, ['mail' => $mail]);
@@ -727,21 +863,22 @@ function EditUser($link, $ldap) {
     $toRemove = array_diff($oldGroups, $newGroups);
 
     foreach ($toRemove as $grp) {
-        $r = @ldap_mod_del(
-            $ldap,
-            "cn={$grp},{$ldapBaseDN}",
-            ['memberUid' => $dn]
-        );
+        $groupDn = $grp;
+        foreach (['memberUid','member','uniqueMember'] as $attr) {
+            @ldap_mod_del($ldap, $grp, [$attr => $dn]);
+        }
         $res['debug']["remove_group_{$grp}"] = $r ? "removed" : ldap_error($ldap);
     }
 
     foreach ($toAdd as $grp) {
-        $r = @ldap_mod_add(
-            $ldap,
-            "cn={$grp},{$ldapBaseDN}",
-            ['memberUid' => $dn]
-        );
-        $res['debug']["add_group_{$grp}"] = $r ? "added" : ldap_error($ldap);
+        $groupDn = $grp;
+        $okUid    = @ldap_mod_add($ldap, $grp, ['memberUid'   => $dn]);
+        $okMember = @ldap_mod_add($ldap, $grp, ['member'      => $dn]);
+        $okUniq   = @ldap_mod_add($ldap, $grp, ['uniqueMember'=> $dn]);
+        $res['debug']["add_group_{$grp}"] =
+            ($okUid || $okMember || $okUniq)
+            ? "added with at least one attr"
+            : ldap_error($ldap);
     }
     $res['group'] = 'OK';
 
@@ -862,19 +999,17 @@ function GetGroups($link, $ldap) {
     $filter = '(|(objectClass=groupOfNames)'
             . '(objectClass=posixGroup)'
             . '(objectClass=groupOfUniqueNames))';
-    $attrs = ['cn'];
+    $attrs = ['cn'];                
     $sr = @ldap_search($ldap, $ldapBaseDN, $filter, $attrs);
-    if ($sr === false) {
-        //error
-        echo json_encode([]);
-        return;
-    }
     $entries = ldap_get_entries($ldap, $sr);
     $groups  = [];
     for ($i = 0; $i < $entries['count']; $i++) {
-        if (!empty($entries[$i]['cn'][0])) {
-            $groups[] = $entries[$i]['cn'][0];
-        }
+        if (empty($entries[$i]['cn'][0])) continue;
+        $groups[] = [
+            'cn' => $entries[$i]['cn'][0],
+            'dn' => $entries[$i]['dn'],
+        ];
     }
     echo json_encode($groups);
 }
+

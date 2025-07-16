@@ -27,7 +27,6 @@ include '../config.php';
 require '../sso/autoload.php';
 
 use Jumbojett\OpenIDConnectClient;
-
 session_start();
 requireAdmin();
 
@@ -38,6 +37,11 @@ switch ($action) {
     case 'get_list_AD':
         header('Content-Type: application/json');
         echo json_encode(get_AD_list($link));
+        break;
+
+    case 'get_list_menus':
+        header('Content-Type: application/json');
+        echo json_encode(get_menu_list($link));
         break;
 
     case 'add_AD':
@@ -64,12 +68,98 @@ switch ($action) {
         echo json_encode(get_user_ACL($link));
         break;
 
+    case 'get_list_profiles':
+        header('Content-Type: application/json');
+        echo json_encode(get_profiles_list($link)); 
+        break;
+
+    case 'edit_profile':
+        header('Content-Type: application/json');
+        echo json_encode(edit_profile($link));
+        break;
+
+    case 'add_profile':
+        header('Content-Type: application/json');
+        echo json_encode(add_profile($link));
+        break;
+
+    case 'get_user_profiles':
+        header('Content-Type: application/json');
+        echo json_encode(get_user_profiles($link));
+        break;
+
+    case 'update_user_profiles':
+        header('Content-Type: application/json');
+        echo json_encode(update_user_profiles($link));
+        break;
+
     default:
         break;
 }
 exit;
 
 function requireAdmin() {
+    //grab any Authorization header
+    $auth = $_SERVER['HTTP_AUTHORIZATION']
+         ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION']
+         ?? '';
+    if (!$auth && function_exists('apache_request_headers')) {
+        foreach (apache_request_headers() as $k => $v) {
+            if (strtolower($k) === 'authorization') {
+                $auth = $v;
+                break;
+            }
+        }
+    }
+    //if it’s Bearer, call userinfo endpoint directly
+    if (preg_match('/^Bearer\s+(\S+)$/i', $auth, $m)) {
+        $token = $m[1];
+        global $ssoUserinfoEndpoint;
+        // init curl
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL,            $ssoUserinfoEndpoint);
+        curl_setopt($ch, CURLOPT_HTTPHEADER,     ["Authorization: Bearer {$token}"]);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_FAILONERROR,    false);
+
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+        if ($body === false || $httpCode !== 200) {
+            error_log("userinfo fetch failed (HTTP {$httpCode}): {$curlErr}");
+            header('HTTP/1.1 401 Unauthorized');
+            echo $body;
+            exit;
+        }
+        // parse JSON
+        $userinfo = json_decode($body, true);
+        if (! is_array($userinfo)) {
+            header('HTTP/1.1 401 Unauthorized');
+            echo 'Invalid userinfo response';
+            exit;
+        }
+        //pull roles from the JSON
+        $roles = [];
+        if (! empty($userinfo['roles']) && is_array($userinfo['roles'])) {
+            $roles = $userinfo['roles'];
+        } elseif (! empty($userinfo['role'])) {
+            $roles = [ $userinfo['role'] ];
+        } elseif (
+            ! empty($userinfo['realm_access']['roles'])
+            && is_array($userinfo['realm_access']['roles'])
+        ) {
+            $roles = $userinfo['realm_access']['roles'];
+        }
+        //must include RootAdmin
+        if (in_array('RootAdmin', $roles, true)) {
+            return;  //ok
+        }
+        header('HTTP/1.1 403 Forbidden');
+        echo 'You are not authorized to access this data!';
+        exit;
+    }
+    //session
     if (
         empty($_SESSION['loggedUsername'])
         || empty($_SESSION['refreshToken'])
@@ -79,11 +169,17 @@ function requireAdmin() {
         echo "You are not authorized to access to this data!";
         exit;
     }
-    global $ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint;
-    $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
-    $oidc->providerConfigParam(['token_endpoint' => $ssoTokenEndpoint]);
-    $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-    $_SESSION['refreshToken'] = $tkn->refresh_token;
+    try {
+        global $ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint;
+        $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
+        $oidc->providerConfigParam(['token_endpoint' => $ssoTokenEndpoint]);
+        $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
+        $_SESSION['refreshToken'] = $tkn->refresh_token;
+    } catch (\Exception $e) {
+        error_log("OIDC refresh error: " . $e->getMessage());
+        echo "Session refresh failed, please log in again.";
+        exit;
+    }
 }
 
 function getDbLink() {
@@ -93,8 +189,39 @@ function getDbLink() {
     return $link;
 }
 
+function reserveAcName(mysqli $link, string $name): void {
+    $sql = "INSERT INTO ACNames (name) VALUES (?)";
+    $stmt = mysqli_prepare($link, $sql);
+    if (! $stmt) {
+        throw new \Exception("reserveAcName(): " . mysqli_error($link));
+    }
+    mysqli_stmt_bind_param($stmt, "s", $name);
+    if (! mysqli_stmt_execute($stmt)) {
+        $errno = mysqli_errno($link);
+        mysqli_stmt_close($stmt);
+        if ($errno === 1062) {
+            // duplicate key on ACNames.name
+            throw new \Exception("That name is already in use");
+        }
+        throw new \Exception("reserveAcName(): " . mysqli_error($link));
+    }
+    mysqli_stmt_close($stmt);
+}
+
 function get_AD_list($link){
-    $sql = " SELECT * FROM AccessDefinitions ";
+    $sql = "
+        SELECT
+            ID,
+            authname,
+            org,
+            menuID,
+            dashboardID,
+            collectionID,
+            maxbyday,
+            maxbymonth,
+            maxtotalaccesses
+        FROM AccessDefinitions
+    ";
     if (! $stmt = mysqli_prepare($link, $sql)) {
         error_log("get_AD_list(): prepare failed: " . mysqli_error($link));
         return ['error' => mysqli_error($link)];
@@ -104,7 +231,18 @@ function get_AD_list($link){
         mysqli_stmt_close($stmt);
         return ['error' => mysqli_error($link)];
     }
-    mysqli_stmt_bind_result($stmt, $id, $authname, $org, $menuID);
+        mysqli_stmt_bind_result(
+            $stmt,
+            $id,
+            $authname,
+            $org,
+            $menuID,
+            $dashboardID,
+            $collectionID,
+            $maxbyday,
+            $maxbymonth,
+            $maxtotalaccesses
+        );
     $rows = [];
     while (mysqli_stmt_fetch($stmt)) {
         $rows[] = [
@@ -112,6 +250,33 @@ function get_AD_list($link){
             'authname' => $authname,
             'org'      => $org,
             'menuID'   => $menuID,
+            'dashboardID'  => $dashboardID,
+            'collectionID' => $collectionID,
+            'maxbyday'     => $maxbyday,
+            'maxbymonth'   => $maxbymonth,
+            'maxtotal'   => $maxtotalaccesses,
+        ];
+    }
+    mysqli_stmt_close($stmt);
+    return $rows;
+}
+function get_menu_list($link) {
+    $sql = "SELECT id, pageTitle FROM MainMenuSubmenus";
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("get_MainMenuSubmenus_list(): prepare failed: " . mysqli_error($link));
+        return ['error' => mysqli_error($link)];
+    }
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("get_MainMenuSubmenus_list(): execute failed: " . mysqli_error($link));
+        mysqli_stmt_close($stmt);
+        return ['error' => mysqli_error($link)];
+    }
+    mysqli_stmt_bind_result($stmt, $id, $pageTitle);
+    $rows = [];
+    while (mysqli_stmt_fetch($stmt)) {
+        $rows[] = [
+            'ID'        => $id,
+            'pageTitle' => $pageTitle,
         ];
     }
     mysqli_stmt_close($stmt);
@@ -124,20 +289,50 @@ function add_access_definition($link){
         return;
     }
     $name    = trim($_POST['name']);
+    //uniqueness for profiles and ACL
+    try {
+        reserveAcName($link, $name);
+    } catch (\Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+        exit;
+    }
     $orgs    = isset($_POST['orgs']) && is_array($_POST['orgs'])
                 ? $_POST['orgs']
                 : null;
     $menu_id = (isset($_POST['menu_id']) && $_POST['menu_id'] != '') 
                 ? (int)$_POST['menu_id'] 
                 : null;
+    if (isset($_POST['dashboard_id']) && trim($_POST['dashboard_id']) !== '') {
+        $dashboardID = trim($_POST['dashboard_id']);
+    } else {
+        $dashboardID = null;
+    }
+    if (isset($_POST['collection_id']) && trim($_POST['collection_id']) !== '') {
+        $collectionID = trim($_POST['collection_id']);
+    } else {
+        $collectionID = null;
+    }
+    if (isset($_POST['maxbyday']) && trim($_POST['maxbyday']) !== '') {
+        $maxByDay = (int) $_POST['maxbyday'];
+    } else {
+        $maxByDay = null;
+    }
+    if (isset($_POST['maxbymonth']) && trim($_POST['maxbymonth']) !== '') {
+        $maxByMonth = (int) $_POST['maxbymonth'];
+    } else {
+        $maxByMonth = null;
+    }
+    if (isset($_POST['maxtotal']) && trim($_POST['maxtotal']) !== '') {
+        $maxtotalaccesses = (int) $_POST['maxtotal'];
+    } else {
+        $maxtotalaccesses = null;
+    }
     $org_list = implode(',', $orgs);
     //Check for an existing entry
     $check_sql = "
-        SELECT ID 
-          FROM AccessDefinitions 
-         WHERE authname = ? 
-           AND org      <=> ? 
-           AND menuID   <=> ? 
+        SELECT ID
+          FROM AccessDefinitions
+         WHERE authname = ?
          LIMIT 1
     ";
     if (! $stmt = mysqli_prepare($link, $check_sql)) {
@@ -145,7 +340,7 @@ function add_access_definition($link){
         echo json_encode(['error' => mysqli_error($link)]);
         return;
     }
-    mysqli_stmt_bind_param($stmt, "ssi", $name, $org_list, $menu_id);
+    mysqli_stmt_bind_param($stmt, "s", $name);
     if (! mysqli_stmt_execute($stmt)) {
         error_log("add_access_definition(): execute failed: " . mysqli_error($link));
         echo json_encode(['error' => mysqli_error($link)]);
@@ -161,15 +356,29 @@ function add_access_definition($link){
     }
     mysqli_stmt_close($stmt);
     $insert_sql = "
-        INSERT INTO AccessDefinitions (authname, org, menuID) 
-             VALUES (?,        ?,   ?)
+        INSERT INTO AccessDefinitions
+            (authname, org, menuID, dashboardID, collectionID, maxbyday, maxbymonth, maxtotalaccesses)
+        VALUES
+            (?,        ?,   ?,      ?,           ?,            ?,        ?,         ?)
     ";
     if (! $stmt = mysqli_prepare($link, $insert_sql)) {
         error_log("add_access_definition(): prepare failed: " . mysqli_error($link));
         echo json_encode(['error' => mysqli_error($link)]);
         return;
     }
-    mysqli_stmt_bind_param($stmt, "ssi", $name, $org_list, $menu_id);
+    // param types: s = authname, s = org, i = menuID, s = dashboardID, s = collectionID, i = maxday, i = maxmonth
+    mysqli_stmt_bind_param(
+        $stmt,
+        "ssissiii",
+        $name,
+        $org_list,
+        $menu_id,
+        $dashboardID,
+        $collectionID,
+        $maxByDay,
+        $maxByMonth,
+        $maxtotalaccesses
+    );
     if (! mysqli_stmt_execute($stmt)) {
         error_log("add_access_definition(): execute failed: " . mysqli_error($link));
         echo json_encode(['error' => mysqli_error($link)]);
@@ -184,7 +393,12 @@ function add_access_definition($link){
         'id'       => $new_id,
         'name'     => $name,
         'orgs'     => $orgs,
-        'menu_id'  => $menu_id
+        'menu_id'  => $menu_id,
+        'dashboard_id'  => $dashboardID,
+        'collection_id' => $collectionID,
+        'maxbyday'      => $maxByDay,
+        'maxbymonth'    => $maxByMonth,
+        'maxtotal'    => $maxtotalaccesses
     ]);
 }
 function edit_access_definition($link){
@@ -202,6 +416,31 @@ function edit_access_definition($link){
     $newMenu    = isset($_POST['menu_id']) && $_POST['menu_id'] !== ''
                   ? (int) $_POST['menu_id']
                   : null;
+    if (isset($_POST['dashboard_id']) && trim($_POST['dashboard_id']) !== '') {
+        $newDashboard = trim($_POST['dashboard_id']);
+    } else {
+        $newDashboard = null;
+    }
+    if (isset($_POST['collection_id']) && trim($_POST['collection_id']) !== '') {
+        $newCollection = trim($_POST['collection_id']);
+    } else {
+        $newCollection = null;
+    }
+    if (isset($_POST['maxbyday']) && trim($_POST['maxbyday']) !== '') {
+        $newMaxByDay = (int) $_POST['maxbyday'];
+    } else {
+        $newMaxByDay = null;
+    }
+    if (isset($_POST['maxbymonth']) && trim($_POST['maxbymonth']) !== '') {
+        $newMaxByMonth = (int) $_POST['maxbymonth'];
+    } else {
+        $newMaxByMonth = null;
+    }
+    if (isset($_POST['maxtotal']) && trim($_POST['maxtotal']) !== '') {
+        $newmaxtotalaccesses = (int) $_POST['maxtotal'];
+    } else {
+        $newmaxtotalaccesses = null;
+    }
     $newOrgList = implode(',', $newOrgs);
 
     $debug = [];
@@ -211,13 +450,11 @@ function edit_access_definition($link){
       SELECT ID
         FROM AccessDefinitions
        WHERE authname = ?
-         AND org      <=> ?
-         AND menuID   <=> ?
          AND ID       != ?
        LIMIT 1
     ";
     $dup = mysqli_prepare($link, $dup_sql);
-    mysqli_stmt_bind_param($dup, "ssii", $newName, $newOrgList, $newMenu, $id);
+    mysqli_stmt_bind_param($dup, "si", $newName, $id);
     mysqli_stmt_execute($dup);
     mysqli_stmt_store_result($dup);
     if (mysqli_stmt_num_rows($dup) > 0) {
@@ -245,12 +482,32 @@ function edit_access_definition($link){
 
     //Update the AccessDefinitions row
     $upd_sql = "
-      UPDATE AccessDefinitions
-         SET authname = ?, org = ?, menuID = ?
-       WHERE ID = ?
+        UPDATE AccessDefinitions
+            SET authname     = ?,
+                org          = ?,
+                menuID       = ?,
+                dashboardID  = ?,
+                collectionID = ?,
+                maxbyday     = ?,
+                maxbymonth   = ?,
+                maxtotalaccesses   = ?
+        WHERE ID = ?
     ";
     $upd = mysqli_prepare($link, $upd_sql);
-    mysqli_stmt_bind_param($upd, "ssii", $newName, $newOrgList, $newMenu, $id);
+    // types: s, s, i, s, s, i, i, i , i
+    mysqli_stmt_bind_param(
+        $upd,
+        "ssissiiii",
+        $newName,
+        $newOrgList,
+        $newMenu,
+        $newDashboard,
+        $newCollection,
+        $newMaxByDay,
+        $newMaxByMonth,
+        $newmaxtotalaccesses,
+        $id
+    );
     if (! mysqli_stmt_execute($upd)) {
         mysqli_stmt_close($upd);
         echo json_encode(['error'=>mysqli_error($link)]);
@@ -339,6 +596,11 @@ function edit_access_definition($link){
         'name'    => $newName,
         'orgs'    => $newOrgs,
         'menu_id' => $newMenu,
+        'dashboard_id'   => $newDashboard,
+        'collection_id'  => $newCollection,
+        'maxbyday'       => $newMaxByDay,
+        'maxbymonth'     => $newMaxByMonth,
+        'maxtotal'       => $newmaxtotalaccesses,
         'debug'   => $debug
     ]);
 }
@@ -603,7 +865,153 @@ function update_ACL_list($link){
     ]);
 }
 
+function get_profiles_list($link) {
+    $sql = "SELECT ID, profilename, authIDs FROM ACLProfiles";
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("get_profiles_list(): prepare failed: " . mysqli_error($link));
+        return ['error' => mysqli_error($link)];
+    }
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("get_profiles_list(): execute failed: " . mysqli_error($link));
+        mysqli_stmt_close($stmt);
+        return ['error' => mysqli_error($link)];
+    }
+        mysqli_stmt_bind_result(
+            $stmt,
+            $id,
+            $profilename,
+            $authIDs
+        );
+    $rows = [];
+    while (mysqli_stmt_fetch($stmt)) {
+        $rows[] = [
+            'ID'       => $id,
+            'profilename' => $profilename,
+            'authIDs'      => $authIDs ?? '',
+        ];
+    }
+    mysqli_stmt_close($stmt);
+    return $rows;
+  }
+  function edit_profile($link) {
+    if (empty($_POST['id'])) {
+        return ['error'=>'missing profile ID'];
+    }
+    $id      = (int) $_POST['id'];
+    $authIDs = isset($_POST['authIDs']) && is_array($_POST['authIDs'])
+             ? $_POST['authIDs']
+             : [];
+    // build csv list
+    $authList = implode(',', array_map('intval', $authIDs));
 
+    $sql = "UPDATE ACLProfiles
+               SET authIDs = ?
+             WHERE ID = ?";
+    if (! $stmt = mysqli_prepare($link, $sql)) {
+        error_log("edit_profile(): prepare failed: ".mysqli_error($link));
+        return ['error'=>mysqli_error($link)];
+    }
+    mysqli_stmt_bind_param($stmt, "si", $authList, $id);
+    if (! mysqli_stmt_execute($stmt)) {
+        error_log("edit_profile(): execute failed: ".mysqli_error($link));
+        return ['error'=>mysqli_error($link)];
+    }
+    mysqli_stmt_close($stmt);
 
+    return [
+      'result'  => 'updated',
+      'id'      => $id,
+      'authIDs' => $authIDs
+    ];
+}
+function add_profile($link) {
+    $name = trim($_POST['name'] ?? '');
+    if ($name === '') {
+        return ['error' => 'Profile name cannot be empty'];
+        exit;
+    }
+    try {
+        reserveAcName($link, $name);
+    } catch (\Exception $e) {
+        return ['error' => $e->getMessage()];
+        exit;
+    }
+    // ACL IDs array
+    $authIDs = [];
+    if (!empty($_POST['authIDs']) && is_array($_POST['authIDs'])) {
+        // sanitize as integers
+        $authIDs = array_map('intval', $_POST['authIDs']);
+    }
+    $authList = implode(',', $authIDs);
+    $sql = "INSERT INTO ACLProfiles (profilename, authIDs) VALUES (?, ?)";
+    if (!$stmt = mysqli_prepare($link, $sql)) {
+        error_log("add_profile(): prepare failed: ".mysqli_error($link));
+        return ['error' => mysqli_error($link)];
+    }
+    mysqli_stmt_bind_param($stmt, "ss", $name, $authList);
+    if (!mysqli_stmt_execute($stmt)) {
+        $err = mysqli_errno($link) === 1062
+             ? 'Profile name already exists'
+             : mysqli_error($link);
+        mysqli_stmt_close($stmt);
+        return ['error' => $err];
+    }
+    $newId = mysqli_insert_id($link);
+    mysqli_stmt_close($stmt);
+    return [
+      'result'     => 'added',
+      'ID'         => $newId,
+      'profilename'=> $name,
+      'authIDs'    => $authIDs
+    ];
+}
+function get_user_profiles($link) {
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $user = trim($_POST['username'] ?? '');
+    if ($user === '') return [];
+    $enc_user = encryptOSSL($user, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    $sql = "SELECT profileID FROM ACLProfilesAssignment WHERE user = ?";
+    $stmt = mysqli_prepare($link, $sql);
+    mysqli_stmt_bind_param($stmt, "s", $enc_user);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $pid);
+    $out = [];
+    while (mysqli_stmt_fetch($stmt)) {
+        $out[] = (int)$pid;
+    }
+    mysqli_stmt_close($stmt);
+    return $out;
+}
+
+function update_user_profiles($link) {
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $user = trim($_POST['username'] ?? '');
+    if ($user === '') return ['error'=> 'no username'];
+    $enc_user = encryptOSSL($user, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+    $original = isset($_POST['original_profiles']) && is_array($_POST['original_profiles'])
+              ? array_map('intval', $_POST['original_profiles'])
+              : [];
+    $new      = isset($_POST['new_profiles'])      && is_array($_POST['new_profiles'])
+              ? array_map('intval', $_POST['new_profiles'])
+              : [];
+    $toAdd    = array_diff($new, $original);
+    $toRem    = array_diff($original, $new);
+
+    $ins = mysqli_prepare($link, "INSERT IGNORE INTO ACLProfilesAssignment(profileID,user) VALUES(?,?)");
+    mysqli_stmt_bind_param($ins, "is", $pid, $enc_user);
+    $del = mysqli_prepare($link, "DELETE FROM ACLProfilesAssignment WHERE profileID=? AND user=?");
+    mysqli_stmt_bind_param($del, "is", $pid, $enc_user);
+
+    $added = $removed = [];
+    foreach ($toAdd as $pid) {
+      if (mysqli_stmt_execute($ins)) $added[] = $pid;
+    }
+    foreach ($toRem as $pid) {
+      if (mysqli_stmt_execute($del)) $removed[] = $pid;
+    }
+    mysqli_stmt_close($ins);
+    mysqli_stmt_close($del);
+    return ['added'=>$added,'removed'=>$removed];
+}
 
 
