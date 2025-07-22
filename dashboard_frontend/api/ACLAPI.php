@@ -34,6 +34,18 @@
                 header('Content-Type: application/json');
                 echo json_encode(check_auth($link));
                 exit;
+            case 'check_dashboard':
+                header('Content-Type: application/json');
+                echo json_encode(check_dashboard($link));
+                exit;
+            case 'check_collection':
+                header('Content-Type: application/json');
+                echo json_encode(check_collection($link));
+                exit;
+            case 'get_user_menuIDs':
+                header('Content-Type: application/json');
+                echo json_encode(check_menuIDs($link));
+                exit;
             default:
                 http_response_code(400);
                 echo json_encode(['error'=>'Unknown action:' . $action]);
@@ -491,6 +503,404 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     }
     mysqli_close($link2);
     return true;
+}
+
+function check_dashboard(mysqli $link): array {
+    $debug = [];
+    // 1) Authenticate
+    $claims = requireUser();
+    $debug[] = "Authenticated user={$claims['preferred_username']}";
+    // 2) Get raw input
+    $dashboardParam = trim($_REQUEST['dashboard_id'] ?? '');
+    $debug[] = "Raw dashboard_id param='{$dashboardParam}'";
+    if ($dashboardParam === '') {
+        http_response_code(400);
+        return [
+            'authorized' => false,
+            'debug'      => $debug,
+            'error'      => 'dashboard_id parameter is required'
+        ];
+    }
+    // 3) Normalize into int / b64 / raw
+    $intParam = $b64Param = null;
+    $dashID   = null;
+    if (filter_var($dashboardParam, FILTER_VALIDATE_INT) !== false) {
+        $intParam = $dashboardParam;
+        $dashID   = (int)$dashboardParam;
+        $b64Param = base64_encode($dashboardParam);
+        $debug[]  = "INT input ⇒ intParam={$intParam}, dashID={$dashID}, b64Param={$b64Param}";
+    }
+    elseif (($dec = base64_decode($dashboardParam, true)) !== false
+           && filter_var($dec, FILTER_VALIDATE_INT) !== false) {
+        $dashID   = (int)$dec;
+        $b64Param = $dashboardParam;
+        $intParam = (string)$dashID;
+        $debug[]  = "B64 input ⇒ intParam={$intParam}, dashID={$dashID}, b64Param={$b64Param}";
+    }
+    else {
+        $debug[] = "Invalid format: neither INT nor valid INT-B64";
+        return ['authorized'=>false, 'debug'=>$debug];
+    }
+    // 4) Encrypt username for ACL lookups
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $enc_username = encryptOSSL(
+        strtolower($claims['preferred_username']),
+        $encryptionInitKey,
+        $encryptionIvKey,
+        $encryptionMethod
+    );
+    $debug[] = "Encrypted username={$enc_username}";
+    // 5) Fetch matching AccessDefinitions
+    $adSql = "
+      SELECT ID, maxbyday, maxbymonth, maxtotalaccesses
+        FROM AccessDefinitions
+       WHERE dashboardID = ?
+          OR dashboardID = ?
+          OR CAST(dashboardID AS UNSIGNED) = ?
+    ";
+    if (! $adStmt = mysqli_prepare($link, $adSql)) {
+        $debug[] = "AD prepare failed: " . mysqli_error($link);
+        return ['authorized'=>false, 'debug'=>$debug];
+    }
+    mysqli_stmt_bind_param($adStmt, 'ssi', $intParam, $b64Param, $dashID);
+    if (! mysqli_stmt_execute($adStmt)) {
+        $debug[] = "AD execute failed: " . mysqli_stmt_error($adStmt);
+        mysqli_stmt_close($adStmt);
+        return ['authorized'=>false, 'debug'=>$debug];
+    }
+    //BUFFER all rows so we can open new statements inside the loop
+    mysqli_stmt_store_result($adStmt);
+    mysqli_stmt_bind_result($adStmt, $defID, $maxByDay, $maxByMonth, $maxTotal);
+    $hitAny = false;
+    while (mysqli_stmt_fetch($adStmt)) {
+        $hitAny = true;
+        $debug[] = "Found AD row: defID={$defID}, maxByDay={$maxByDay}, maxByMonth={$maxByMonth}, maxTotal={$maxTotal}";
+        // 6a) Direct ACL?
+        $debug[] = "→ Checking direct ACL for defID={$defID}";
+        $aclSql = "SELECT 1 FROM ACL WHERE `user` = ? AND defID = ? LIMIT 1";
+        if (! $aclStmt = mysqli_prepare($link, $aclSql)) {
+            $debug[] = "  ACL prepare failed: " . mysqli_error($link);
+        } else {
+            mysqli_stmt_bind_param($aclStmt, 'si', $enc_username, $defID);
+            mysqli_stmt_execute($aclStmt);
+            mysqli_stmt_store_result($aclStmt);
+            $n = mysqli_stmt_num_rows($aclStmt);
+            $debug[] = "  ACL num_rows={$n}";
+            if ($n > 0) {
+                $debug[] = "  → Direct ACL HIT";
+                if (check_userstats_accesses_dashboards(
+                        $enc_username, $dashID, $maxByDay, $maxByMonth, $maxTotal
+                    )) {
+                    mysqli_stmt_close($aclStmt);
+                    mysqli_stmt_close($adStmt);
+                    return [
+                        'authorized'    => true,
+                        'authorized_by' => 'Direct_ACL'
+                    ];
+                }
+                $debug[] = "  → Usage-limit FAILED (direct)";
+            }
+            mysqli_stmt_close($aclStmt);
+        }
+        // 6b) Profile-based ACL?
+        $debug[] = "→ Checking profile ACLs";
+        $paSql = "SELECT profileID FROM ACLProfilesAssignment WHERE `user` = ?";
+        if (! $paStmt = mysqli_prepare($link, $paSql)) {
+            $debug[] = "  PA prepare failed: " . mysqli_error($link);
+        } else {
+            mysqli_stmt_bind_param($paStmt, 's', $enc_username);
+            mysqli_stmt_execute($paStmt);
+            mysqli_stmt_store_result($paStmt);
+            mysqli_stmt_bind_result($paStmt, $profileID);
+            $foundProfile = false;
+            while (mysqli_stmt_fetch($paStmt)) {
+                $foundProfile = true;
+                $debug[] = "  Profile assignment: profileID={$profileID}";
+                $pSql = "SELECT authIDs, profilename FROM ACLProfiles WHERE ID = ?";
+                if (! $pStmt = mysqli_prepare($link, $pSql)) {
+                    $debug[] = "    Profile prepare failed: " . mysqli_error($link);
+                    continue;
+                }
+                mysqli_stmt_bind_param($pStmt, 'i', $profileID);
+                mysqli_stmt_execute($pStmt);
+                mysqli_stmt_bind_result($pStmt, $rawAuthIDs, $profileName);
+                if (mysqli_stmt_fetch($pStmt)) {
+                    $debug[] = "    Loaded profile='{$profileName}', authIDs='{$rawAuthIDs}'";
+                    $ids = array_map('intval',
+                        array_filter(array_map('trim', explode(',', $rawAuthIDs)))
+                    );
+                    if (in_array($defID, $ids, true)) {
+                        $debug[] = "    → Profile '{$profileName}' includes defID={$defID}";
+                        if (check_userstats_accesses_dashboards(
+                                $enc_username, $dashID, $maxByDay, $maxByMonth, $maxTotal
+                            )) {
+                            mysqli_stmt_close($pStmt);
+                            mysqli_stmt_close($paStmt);
+                            mysqli_stmt_close($adStmt);
+                            return [
+                                'authorized'    => true,
+                                'authorized_by' => $profileName
+                            ];
+                        }
+                        $debug[] = "    → Usage-limit FAILED (profile)";
+                    } else {
+                        $debug[] = "    Profile does NOT include defID={$defID}";
+                    }
+                } else {
+                    $debug[] = "    No ACLProfiles row for ID={$profileID}";
+                }
+                mysqli_stmt_close($pStmt);
+            }
+            if (! $foundProfile) {
+                $debug[] = "  No profiles assigned to user";
+            }
+            mysqli_stmt_close($paStmt);
+        }
+    }
+    mysqli_stmt_close($adStmt);
+    if (! $hitAny) {
+        $debug[] = "→ No AccessDefinition matched dashboardID";
+    }
+    return [
+        'authorized' => false,
+        'debug'      => $debug
+    ];
+}
+
+
+function check_collection(mysqli $link): array {
+    $debug = [];
+    // 1) Authenticate
+    $claims = requireUser();
+    $debug[] = "Authenticated user={$claims['preferred_username']}";
+    // 2) Raw input
+    $collectionParam = trim($_REQUEST['collection_id'] ?? '');
+    $debug[] = "Raw collection_id param='{$collectionParam}'";
+    if ($collectionParam === '') {
+        http_response_code(400);
+        return [
+            'authorized' => false,
+            'debug'      => $debug,
+            'error'      => 'collection_id parameter is required'
+        ];
+    }
+    // 3) Encrypt username
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $enc_username = encryptOSSL(
+        strtolower($claims['preferred_username']),
+        $encryptionInitKey,
+        $encryptionIvKey,
+        $encryptionMethod
+    );
+    $debug[] = "Encrypted username={$enc_username}";
+    // 4) Fetch matching AccessDefinitions
+    $adSql = "
+      SELECT ID
+        FROM AccessDefinitions
+       WHERE collectionID = ?
+    ";
+    if (! $adStmt = mysqli_prepare($link, $adSql)) {
+        $debug[] = "AD prepare failed: " . mysqli_error($link);
+        return ['authorized'=>false, 'debug'=>$debug];
+    }
+    mysqli_stmt_bind_param($adStmt, 's', $collectionParam);
+    if (! mysqli_stmt_execute($adStmt)) {
+        $debug[] = "AD execute failed: " . mysqli_stmt_error($adStmt);
+        mysqli_stmt_close($adStmt);
+        return ['authorized'=>false, 'debug'=>$debug];
+    }
+    // buffer so we can open new stmts inside loop
+    mysqli_stmt_store_result($adStmt);
+    mysqli_stmt_bind_result($adStmt, $defID);
+    $hitAny = false;
+    while (mysqli_stmt_fetch($adStmt)) {
+        $hitAny = true;
+        $debug[] = "Found AD row: defID={$defID}";
+        // 5a) Direct ACL?
+        $debug[] = "→ Checking direct ACL for defID={$defID}";
+        $aclSql = "SELECT 1 FROM ACL WHERE `user` = ? AND defID = ? LIMIT 1";
+        if (! $aclStmt = mysqli_prepare($link, $aclSql)) {
+            $debug[] = "  ACL prepare failed: " . mysqli_error($link);
+        } else {
+            mysqli_stmt_bind_param($aclStmt, 'si', $enc_username, $defID);
+            mysqli_stmt_execute($aclStmt);
+            mysqli_stmt_store_result($aclStmt);
+            $n = mysqli_stmt_num_rows($aclStmt);
+            $debug[] = "  ACL num_rows={$n}";
+            if ($n > 0) {
+                $debug[] = "  → Direct ACL HIT";
+                // TODO: re-enable usage limits when collections are supported in userstats:
+                // if (! check_userstats_accesses_collections($enc_username, $defID, ...)) {
+                //     $debug[] = "  → Usage-limit FAILED (direct)";
+                //     mysqli_stmt_close($aclStmt);
+                //     continue;
+                // }
+                mysqli_stmt_close($aclStmt);
+                mysqli_stmt_close($adStmt);
+                return [
+                    'authorized'    => true,
+                    'authorized_by' => 'Direct_ACL'
+                ];
+            }
+            $debug[] = "  → Direct ACL MISS";
+            mysqli_stmt_close($aclStmt);
+        }
+        // 5b) Profile-based ACL?
+        $debug[] = "→ Checking profile ACLs";
+        $paSql = "SELECT profileID FROM ACLProfilesAssignment WHERE `user` = ?";
+        if (! $paStmt = mysqli_prepare($link, $paSql)) {
+            $debug[] = "  PA prepare failed: " . mysqli_error($link);
+        } else {
+            mysqli_stmt_bind_param($paStmt, 's', $enc_username);
+            mysqli_stmt_execute($paStmt);
+            mysqli_stmt_bind_result($paStmt, $profileID);
+
+            $foundProfile = false;
+            while (mysqli_stmt_fetch($paStmt)) {
+                $foundProfile = true;
+                $debug[] = "  Profile assignment: profileID={$profileID}";
+
+                $pSql = "SELECT authIDs, profilename FROM ACLProfiles WHERE ID = ?";
+                if (! $pStmt = mysqli_prepare($link, $pSql)) {
+                    $debug[] = "    Profile prepare failed: " . mysqli_error($link);
+                    continue;
+                }
+                mysqli_stmt_bind_param($pStmt, 'i', $profileID);
+                mysqli_stmt_execute($pStmt);
+                mysqli_stmt_bind_result($pStmt, $rawAuthIDs, $profileName);
+
+                if (mysqli_stmt_fetch($pStmt)) {
+                    $debug[] = "    Loaded profile='{$profileName}', authIDs='{$rawAuthIDs}'";
+                    $ids = array_map('intval',
+                        array_filter(array_map('trim', explode(',', $rawAuthIDs)))
+                    );
+                    if (in_array($defID, $ids, true)) {
+                        $debug[] = "    → Profile '{$profileName}' includes defID={$defID}";
+
+                        // TODO: re-enable usage limits when collections are supported in userstats:
+                        // if (! check_userstats_accesses_collections($enc_username, $defID, ...)) {
+                        //     $debug[] = "    → Usage-limit FAILED (profile)";
+                        //     mysqli_stmt_close($pStmt);
+                        //     continue;
+                        // }
+
+                        mysqli_stmt_close($pStmt);
+                        mysqli_stmt_close($paStmt);
+                        mysqli_stmt_close($adStmt);
+                        return [
+                            'authorized'    => true,
+                            'authorized_by' => $profileName
+                        ];
+                    }
+                    $debug[] = "    → Profile does NOT include defID={$defID}";
+                } else {
+                    $debug[] = "    No ACLProfiles row for ID={$profileID}";
+                }
+                mysqli_stmt_close($pStmt);
+            }
+
+            if (! $foundProfile) {
+                $debug[] = "  No profiles assigned to user";
+            }
+            mysqli_stmt_close($paStmt);
+        }
+    }
+    mysqli_stmt_close($adStmt);
+    if (! $hitAny) {
+        $debug[] = "→ No AccessDefinition matched collectionID";
+    }
+    return [
+        'authorized' => false,
+        'debug'      => $debug
+    ];
+}
+
+
+function check_menuIDs(mysqli $link): array {
+    //auth
+    $claims = requireUser();
+
+    //Encrypt username
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $enc_username = encryptOSSL(
+        strtolower($claims['preferred_username']),
+        $encryptionInitKey,
+        $encryptionIvKey,
+        $encryptionMethod
+    );
+    $menuIDs = [];
+    //Direct ACL
+    $sql = "
+      SELECT AD.menuID
+        FROM ACL AS A
+        JOIN AccessDefinitions AS AD
+          ON A.defID = AD.ID
+       WHERE A.`user` = ?
+    ";
+    if ($stmt = mysqli_prepare($link, $sql)) {
+        mysqli_stmt_bind_param($stmt, 's', $enc_username);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result($stmt, $mID);
+        while (mysqli_stmt_fetch($stmt)) {
+            if ($mID !== null) {
+                $menuIDs[] = (int)$mID;
+            }
+        }
+        mysqli_stmt_close($stmt);
+    } else {
+        error_log("check_menuIDs(): direct ACL prepare failed: " . mysqli_error($link));
+    }
+    //Profile-based ACL to authIDs to menuID
+    //Get all profile IDs for this user
+    $profileIDs = [];
+    $paSql = "SELECT profileID FROM ACLProfilesAssignment WHERE `user` = ?";
+    if ($paStmt = mysqli_prepare($link, $paSql)) {
+        mysqli_stmt_bind_param($paStmt, 's', $enc_username);
+        mysqli_stmt_execute($paStmt);
+        mysqli_stmt_bind_result($paStmt, $pid);
+        while (mysqli_stmt_fetch($paStmt)) {
+            $profileIDs[] = $pid;
+        }
+        mysqli_stmt_close($paStmt);
+    } else {
+        error_log("check_menuIDs(): profile assignment prepare failed: " . mysqli_error($link));
+    }
+
+    // For each profile, parse its authIDs and fetch menuIDs
+    foreach ($profileIDs as $profileID) {
+        $pSql = "SELECT authIDs FROM ACLProfiles WHERE ID = ?";
+        if ($pStmt = mysqli_prepare($link, $pSql)) {
+            mysqli_stmt_bind_param($pStmt, 'i', $profileID);
+            mysqli_stmt_execute($pStmt);
+            mysqli_stmt_bind_result($pStmt, $rawAuthIDs);
+            if (mysqli_stmt_fetch($pStmt) && $rawAuthIDs !== null) {
+                // parse comma-separated IDs
+                $auths = array_filter(
+                    array_map('trim', explode(',', $rawAuthIDs)),
+                    function($v) {
+                        return $v !== '';
+                    });
+                $auths = array_map('intval', $auths);
+                //for each authID, grab its menuID
+                foreach ($auths as $defID) {
+                    $mdSql = "SELECT menuID FROM AccessDefinitions WHERE ID = ? LIMIT 1";
+                    if ($mdStmt = mysqli_prepare($link, $mdSql)) {
+                        mysqli_stmt_bind_param($mdStmt, 'i', $defID);
+                        mysqli_stmt_execute($mdStmt);
+                        mysqli_stmt_bind_result($mdStmt, $mID2);
+                        if (mysqli_stmt_fetch($mdStmt) && $mID2 !== null) {
+                            $menuIDs[] = (int)$mID2;
+                        }
+                        mysqli_stmt_close($mdStmt);
+                    }
+                }
+            }
+            mysqli_stmt_close($pStmt);
+        }
+    }
+    //Dedupe and reindex
+    $menuIDs = array_values(array_unique($menuIDs, SORT_NUMERIC));
+    return $menuIDs;
 }
 
 ?>
