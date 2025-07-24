@@ -345,6 +345,74 @@ $lastUsedColors = null;
         height: 90%;
         width: 90%;
     }
+        
+    .order-popup-menu {
+        display: none;
+        position: absolute;
+        background-color: #f9f9f9;
+        min-width: 250px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 3;
+        border-radius: 4px;
+        padding: 10px;
+        overflow-y: scroll;
+        height: 40vh;
+    }
+    
+    .order-sortable-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .order-sortable-item {
+        padding: 8px 12px;
+        margin: 4px 0;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .order-sortable-item[draggable=true] {
+        cursor: move;
+    }
+    
+    .order-sortable-item:hover {
+        background-color: #f1f1f1;
+    }
+    
+    .order-sortable-item.dragging {
+        opacity: 0.5;
+        background-color: #e9e9e9;
+    }
+    
+    .order-item-controls {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .order-control-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 14px;
+        color: #666;
+    }
+    
+    .order-control-btn:hover {
+        color: #333;
+    }
+    #currMenuOrderElement, #currMenuOrderElement_e, #currMenuOrderElement_a{
+        background-color: aliceblue;
+        border: 1px solid darkgray;
+    }
+    #value_table td, #value_table th {
+        max-width: 18ch;
+        word-wrap: break-word;
+    }
 </style>
 
 <body style="overflow-y: hidden !important">
@@ -380,16 +448,16 @@ $lastUsedColors = null;
                         Filter by type of Menu <span class="caret">
                     </button>
                     <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="SelectAll" value="all" onclick="filtroData('select_all')" id="select_all">Select all</a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="SelectAll" value="all" onclick="filtroData('select_all')" id="select_all"><label for="select_all">Select all</label></a></li>
                         <li class="divider"></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="nature" value="MainMenu" onclick="filtroData('sel_MainMenu')" id="sel_MainMenu">MainMenu</a></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MainMenuSubmenus" onclick="filtroData('sel_MainMenuSubmenus')" id="sel_MainMenuSubmenus">MainMenuSubmenus</a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="nature" value="MainMenu" onclick="filtroData('sel_MainMenu')" id="sel_MainMenu"><label for="sel_MainMenu">MainMenu</label></a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MainMenuSubmenus" onclick="filtroData('sel_MainMenuSubmenus')" id="sel_MainMenuSubmenus"><label for="sel_MainMenuSubmenus">MainMenuSubmenus</label></a></li>
                         <li class="divider"></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="subnature" value="OrgMenu" onclick="filtroData('sel_OrgMenu')" id="sel_OrgMenu">OrgMenu</a></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="OrgMenuSubmenus" onclick="filtroData('sel_OrgMenuSubmenus')" id="sel_OrgMenuSubmenus">OrgMenuSubmenus</a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="subnature" value="OrgMenu" onclick="filtroData('sel_OrgMenu')" id="sel_OrgMenu"><label for="sel_OrgMenu">OrgMenu</label></a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="OrgMenuSubmenus" onclick="filtroData('sel_OrgMenuSubmenus')" id="sel_OrgMenuSubmenus"><label for="sel_OrgMenuSubmenus">OrgMenuSubmenus</label></a></li>
                         <li class="divider"></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MobMainMenu" onclick="filtroData('sel_MobMainMenu')" id="sel_MobMainMenu">MobMainMenu</a></li>
-                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MobMainMenuSubmenus" onclick="filtroData('sel_MobMainMenuSubmenus')" id="sel_MobMainMenuSubmenus">MobMainMenuSubmenus</a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MobMainMenu" onclick="filtroData('sel_MobMainMenu')" id="sel_MobMainMenu"><label for="sel_MobMainMenu">MobMainMenu</label></a></li>
+                        <li><a href="#"><input class="select_check check_org" type="checkbox" name="value type" value="MobMainMenuSubmenus" onclick="filtroData('sel_MobMainMenuSubmenus')" id="sel_MobMainMenuSubmenus"><label for="sel_MobMainMenuSubmenus">MobMainMenuSubmenus</label></a></li>
                     </div>
                 </div>
                 <div class="dropdown" style="display: inline; float:left; margin-left: 5px;">
@@ -458,7 +526,7 @@ $lastUsedColors = null;
                     <div class="input-group"><span class="input-group-addon">Link Url: </span><input id="url" name="url" type="text" class="form-control" required/></div><br />                    
                     <div class="input-group new_plu"><span class="input-group-addon">public Link Url: </span><input id="publicLinkUrl" name="publicLinkUrl" type="text" class="form-control" /></div><br class="new_plu" />
                     <div class="input-group"><span class="input-group-addon">Link Id: </span><input id="linkid" name="user_c" type="text" class="form-control" required/></div><br />
-                    <div class="input-group"><span class="input-group-addon" required>Icon: </span>
+                    <div class="input-group"><span class="input-group-addon" required>Icon: <i class="icon-preview"></i></span>
                         <!--<input id="icon"  type="text" class="form-control" />-->
                         <select id="icon" name="select_mode" class="form-control" onchange="select_icon('icon')">
 
@@ -466,7 +534,7 @@ $lastUsedColors = null;
                         <!-- -->
                     </div><br />
                     <div id="icon_new"></div>
-                    <div class="input-group"><span class="input-group-addon">Color: </span><input id="color"  type="text" class="form-control" required/></div><br />
+                    <div class="input-group"><span class="input-group-addon">Color: <i class="color-preview fa fa-circle" aria-hidden="true" style="color:#ffffff"></i></span><input id="color"  type="text" class="form-control" required/></div><br />
                     <div class="input-group"><span class="input-group-addon">Text: </span><input id="text"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Page title: </span><input id="pagetitle"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">External App: </span>
@@ -474,7 +542,16 @@ $lastUsedColors = null;
                         <option value="yes">yes</option>
                         <option value="no">no</option>
                         </select></div><br />
-                    <div class="input-group"><span class="input-group-addon">Menu Order: </span><input id="menuorder"  type="number" class="form-control" required/></div><br />
+                    <div class="input-group"><span class="input-group-addon">Menu Order: </span>
+                    <input id="menuorder"  type="number" class="form-control" required/>
+                    <!-- <input id="menuorder"  type="number" class="form-control" required disabled/> -->
+                    <div class="order-popup-menu" id="orderSortableMenu">
+                        <ul class="order-sortable-list" id="orderSortableList">
+                        </ul>
+                    </div>
+                    </div>
+
+                    <br />
                     <div class="input-group"><span class="input-group-addon">Domain: </span>
                         <select id="domain" name="select_mode" class="form-control">
 
@@ -544,7 +621,7 @@ $lastUsedColors = null;
                     <div class="input-group edit_plu"><span class="input-group-addon">public Link Url: </span><input id="publicLinkUrl_e" name="publicLinkUrl" type="text" class="form-control" /></div><br class='edit_plu'/>
                     <div class="input-group"><span class="input-group-addon">Link Id: </span><input id="linkid_e" name="user_c" type="text" class="form-control" /></div><br />
                     <!--<div class="input-group"><span class="input-group-addon">Icon: </span><input id="icon_e"  type="text" class="form-control" /></div><br />-->
-                    <div class="input-group"><span class="input-group-addon">Icon: </span>
+                    <div class="input-group"><span class="input-group-addon">Icon: <i class="icon-preview"></i></span>
                         <!--<input id="icon"  type="text" class="form-control" />-->
                         <select id="icon_e" name="select_mode" class="form-control" onchange="select_icon('icon_e')">
 
@@ -553,7 +630,7 @@ $lastUsedColors = null;
                     </div><br />
                     <div id="icon_e_new"></div>
                     <!-- -->
-                    <div class="input-group"><span class="input-group-addon">Color: </span><input id="color_e"  type="text" class="form-control" /></div><br />
+                    <div class="input-group"><span class="input-group-addon">Color: <i class="color-preview fa fa-circle" aria-hidden="true" style="color:#ffffff"></i></span><input id="color_e"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Text: </span><input id="text_e"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Page title: </span><input id="pagetitle_e"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">External App: </span>
@@ -578,7 +655,12 @@ $lastUsedColors = null;
                         </select>
                         <br />
                     </div>
-                    <div class="input-group"><span class="input-group-addon">Menu Order: </span><input id="menuorder_e"   type="number" class="form-control" /></div><br />
+                    <div class="input-group"><span class="input-group-addon">Menu Order: </span><input id="menuorder_e"   type="number" class="form-control" />
+                    <div class="order-popup-menu" id="orderSortableMenu_e">
+                        <ul class="order-sortable-list" id="orderSortableList_e">
+                        </ul>
+                    </div>
+                    </div><br />
                     <div class="input-group" style="display:none;"><span class="input-group-addon">Type of Menu: </span>
 
                         <select id="select_type_edit" name="select_type_edit" class="form-control" style="display:none;">  
@@ -727,7 +809,7 @@ $lastUsedColors = null;
                     <div class="input-group add_plu"><span class="input-group-addon">public Link Url: </span><input id="add_publicLinkUrl" name="publicLinkUrl" type="text" class="form-control" /></div><br class="add_plu" />
                     <div class="input-group"><span class="input-group-addon">Link Id: </span><input id="add_plinkid" name="user_c" type="text" class="form-control" /></div><br />
                     <!--<div class="input-group"><span class="input-group-addon">Icon: </span><input id="add_picon"  type="text" class="form-control" /></div><br />-->
-                    <div class="input-group"><span class="input-group-addon">Icon: </span>
+                    <div class="input-group"><span class="input-group-addon">Icon: <i class="icon-preview"></i></span>
                         <!--<input id="icon"  type="text" class="form-control" />-->
                         <select id="add_icon" name="select_mode" class="form-control" onchange="select_icon('add_icon')">
 
@@ -735,7 +817,7 @@ $lastUsedColors = null;
                         <!-- -->
                     </div><br />
                     <div id="add_icon_new"></div>
-                    <div class="input-group"><span class="input-group-addon">Color: </span><input id="add_pcolor"  type="text" class="form-control" /></div><br />
+                    <div class="input-group"><span class="input-group-addon">Color: <i class="color-preview fa fa-circle" aria-hidden="true" style="color:#ffffff"></i></span><input id="add_pcolor"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Text: </span><input id="add_ptext"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Page title: </span><input id="add_ppagetitle"  type="text" class="form-control" /></div><br />
                     <div class="input-group"><span class="input-group-addon">Type of menu: </span><input id="add_type"  type="text" class="form-control" readonly/></div><br />
@@ -746,7 +828,12 @@ $lastUsedColors = null;
                             <option value="no">no</option>
                         </select>
                     </div><br />
-                    <div class="input-group"><span class="input-group-addon">Menu Order: </span><input id="add_menuorder"  type="number" class="form-control" /></div><br />
+                    <div class="input-group"><span class="input-group-addon">Menu Order: </span><input id="add_menuorder"  type="number" class="form-control" />
+                    <div class="order-popup-menu" id="orderSortableMenu_a">
+                        <ul class="order-sortable-list" id="orderSortableList_a">
+                        </ul>
+                    </div>
+                    </div><br />
                     <div class="input-group"><span class="input-group-addon">Open mode: </span>
 
                         <select id="add_pselect_mode" name="add_pselect_mode" class="form-control">
@@ -785,6 +872,41 @@ $lastUsedColors = null;
     </div>
     <!-- -->
     <script type='text/javascript'>
+        var menuOrderObj = {
+            n: {
+                currPos:0,
+                initialPos:0,
+                currOrder: [],
+                initialOrder: {},
+                menuTypeId: "select_type_creation",
+                fatherMenuId: "menu",
+                menuOrderId: "menuorder",
+                textId: "text",
+                currId: ""
+            },
+            e: {
+                currPos:0,
+                initialPos:0,
+                currOrder: [],
+                initialOrder: {},
+                menuTypeId: "select_type_edit",
+                fatherMenuId: "main_menu_id",
+                menuOrderId: "menuorder_e",
+                textId: "text_e",
+                currId: ""
+            },
+            a: {
+                currPos:0,
+                initialPos:0,
+                currOrder: [],
+                initialOrder: {},
+                menuTypeId: "add_type",
+                fatherMenuId: "add_id",
+                menuOrderId: "add_menuorder",
+                textId: "add_ptext",
+                currId: ""
+            },
+        }
         if ($(window).width() < 1200) {
             $('#right').css('float', 'left');
         }
@@ -865,8 +987,15 @@ $lastUsedColors = null;
             $("#color").colorpicker();
             $("#color_e").colorpicker();
             $("#add_pcolor").colorpicker();
+            $("#add_pcolor, #color, color_e").colorpicker().on("changeColor", (evt) => {
+                let newColor = $(evt.target).colorpicker("getValue", "#ffffff")
+                $(evt.target).siblings("span").find(".color-preview").css("color", newColor)
+                $(evt.target.parentElement).siblings(".input-group").find(".icon-preview").css("color", newColor)
+
+            })
             ///
             var array_act0 = new Array();
+            var order_elements = new Array()
             $.ajax({
                 async: true,
                 type: 'POST',
@@ -882,7 +1011,7 @@ $lastUsedColors = null;
                     console.log(data);
                     var data0 = $.parseJSON(data);
                     var checkdom_select_all = "'select_all'";
-                    $('#domain_list').append('<li><a href="#"><input class="select_check check_domain" type="checkbox" name="SelectAll" value="select_all" onclick="filtroDom(' + checkdom_select_all + ')" id="checkdom_select_all">Select all</a></li><li class="divider"></li>');
+                    $('#domain_list').append('<li><a href="#"><input class="select_check check_domain" type="checkbox" name="SelectAll" value="select_all" onclick="filtroDom(' + checkdom_select_all + ')" id="checkdom_select_all"><label for="checkdom_select_all">Select all</label></a></li><li class="divider"></li>');
                     for (var i = 0; i < data0.length; i++)
                     {
                         array_act0[i] = {
@@ -890,7 +1019,7 @@ $lastUsedColors = null;
                             claim: data0[i]['claim']
                         }
                         //var idcheckdom="'checkdom_1_"+array_act0[i]['id']+"'";
-                        $('#domain_list').append('<li><a href="#"><input class="select_check check_domain" type="checkbox" name="value type" id="checkdom_' + array_act0[i]['id'] + '" value="' + array_act0[i]['id'] + '" onclick="filtroDom(' + array_act0[i]['id'] + ')">' + array_act0[i]['claim'] + '</a></li>');
+                        $('#domain_list').append('<li><a href="#"><input class="select_check check_domain" type="checkbox" name="value type" id="checkdom_' + array_act0[i]['id'] + '" value="' + array_act0[i]['id'] + '" onclick="filtroDom(' + array_act0[i]['id'] + ')"><label for="checkdom_' + array_act0[i]['id'] + '">' + array_act0[i]['claim'] + '</label></a></li>');
                         $('#domain').append('<option value="' + array_act0[i]['id'] + '">' + array_act0[i]['claim'] + '</option>');
                         $('#domain_e').append('<option  value="' + array_act0[i]['id'] + '">' + array_act0[i]['claim'] + '</option>');
                         $('#add_domain').append('<option  value="' + array_act0[i]['id'] + '">' + array_act0[i]['claim'] + '</option>');
@@ -947,7 +1076,7 @@ $lastUsedColors = null;
                         //
                         var button_submenu = '';
                         if ((array_act[i]['linkUrl'] === 'submenu') && ((array_act[i]['typemenu'] === 'MainMenu') || (array_act[i]['typemenu'] === 'MobMainMenu') || (array_act[i]['typemenu'] === 'OrgMenu'))) {
-                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>ADD</button> ';
+                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '","' + escape(array_act[i]['text']) + '")>ADD</button> ';
                         } else {
                             button_submenu = '';
                         }
@@ -956,7 +1085,10 @@ $lastUsedColors = null;
                         var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + i + '" onclick=deleteData(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>DELETE</button> ';
                         //console.log(lun);
                         var controls = button_edit + button_submenu + button_del;
-                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + array_act[i]['submenu'] + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
+                        var submenuText = data.find(x => x.id == array_act[i]['submenu'] && x.typemenu == array_act[i]['typemenu'].replace("Submenus", ""))?.text || array_act[i]['submenu']
+                        // console.log('submenuText :>> ', submenuText);
+                        // $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + array_act[i]['submenu'] + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
+                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + submenuText + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
                     }
                     /****/
                     var table = $('#value_table').DataTable({
@@ -1032,6 +1164,7 @@ $lastUsedColors = null;
                 $(".org_sel_c").attr("checked", false);
                 $(".rol_sel_add").attr("checked", false);
                 $('#add_id').val();
+                $('#add_id').attr("menuId", "");
                 $('#add_url').val();
                 $('#add_publicLinkUrl').val();
                 $('#add_plinkid').val();
@@ -1121,6 +1254,7 @@ $lastUsedColors = null;
                     $('#icon').append('<option  value="other">Other...</option>');
                     $('#icon_e').append('<option  value="other">Other...</option>');
                     $('#add_icon').append('<option  value="other">Other...</option>');
+                    $("#icon, #icon_e, #add_icon").change()
                 }
             });
             
@@ -1167,6 +1301,146 @@ $lastUsedColors = null;
         });
         function newData() {
             console.log('NEW RULE');
+            setMenuOrder("n")
+        }
+
+        function updateMenuOrder(mode, reload = false){
+            var diffMenuOrder = {}
+            menuOrderObj[mode].currOrder.forEach((x, i) => {
+                if(x != menuOrderObj[mode].currId && menuOrderObj[mode].initialOrder[x] != i) diffMenuOrder[x] = i
+            })
+            let menuType = $("#"+menuOrderObj[mode].menuTypeId).val()
+            if(Object.keys(diffMenuOrder).length > 0){
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                //     //url: url_parameters,
+                //     //dataType: 'json',
+                    url: 'geteditormenu.php',
+                    data: {
+                        service: 'update_menu_order',
+                        menu_type: menuType,
+                        update_list: JSON.stringify(diffMenuOrder)
+                    },
+                    success: function (data) {
+                        console.log('data :>> ', data);
+                    }
+                });
+            }
+            if(reload) {
+                location.reload();
+            }
+        }
+
+        function loadSubmenuOrder(mode, pos){
+            pos ??= menuOrderObj[mode].initialPos
+            var modeSuffix = (mode == "n")?"":"_"+mode
+            let menuType = $("#"+menuOrderObj[mode].menuTypeId).val()
+            let fatherMenu = (mode=="a")?$("#"+menuOrderObj[mode].fatherMenuId).attr("menuId"):$("#"+menuOrderObj[mode].fatherMenuId).val()
+            $.ajax({
+                async: false,
+                type: 'POST',
+                //url: url_parameters,
+                //dataType: 'json',
+                url: 'geteditormenu.php',
+                data: {
+                    service: 'list_submenu',
+                    menu_type: menuType,
+                    father_menu: fatherMenu
+                },
+                success: function (data) {
+                    menuOrderObj[mode].currPos = pos
+                    menuOrderObj[mode].currOrder = []
+                    populateMenuOrder(data, mode);
+                }
+            });
+            
+        }
+
+        function saveMenuOrder(mode){
+            var modeSuffix = (mode == "n")?"":"_"+mode
+            menuOrderObj[mode].currOrder = $("#orderSortableList"+modeSuffix).children().toArray().map(x => x.getAttribute("data-id"))
+            menuOrderObj[mode].currPos = menuOrderObj[mode].currOrder.findIndex(x => x==menuOrderObj[mode].currId)
+            if(menuOrderObj[mode].currPos < 0) menuOrderObj[mode].currPos = menuOrderObj[mode].initialPos
+            $("#"+menuOrderObj[mode].menuOrderId).val(menuOrderObj[mode].currPos)
+        }
+
+        function setMenuPosition(mode, html){
+            var modeSuffix = (mode == "n")?"":"_"+mode
+            menuOrderObj[mode].currPos = Number($("#"+menuOrderObj[mode].menuOrderId).val())
+            html ??= $("#currMenuOrderElement"+modeSuffix).remove()[0]
+            if(menuOrderObj[mode].currPos<$("#orderSortableList"+modeSuffix).children().length) $(`#orderSortableList${modeSuffix} > li:nth-child(${menuOrderObj[mode].currPos+1})`).before(html);
+            else $("#orderSortableList"+modeSuffix).append(html)
+            if(!menuOrderObj[mode].currOrder || menuOrderObj[mode].currOrder.length == 0) saveMenuOrder(mode)
+        }
+
+        function setMenuOrder(mode){
+            var menuType = $('#'+menuOrderObj[mode].menuTypeId).val()
+            if(!menuType.toLowerCase().includes("submenus")){
+                $.ajax({
+                    async: false,
+                    type: 'POST',
+                    //url: url_parameters,
+                    //dataType: 'json',
+                    url: 'geteditormenu.php',
+                    data: {
+                        service: 'list_menu',
+                        ["sel_"+menuType]: true,
+                        select_all: false,
+                        domain: "select_all"
+                    },
+                    success: function (data) {
+                        populateMenuOrder(data, mode);
+                            
+                    }
+                });
+            }else{
+                loadSubmenuOrder(mode)
+            }
+        }
+
+        function populateMenuOrder(data, mode){
+            menuOrderObj[mode].initialOrder = {}
+            let obj = JSON.parse(data).map(x => {
+                menuOrderObj[mode].initialOrder[x.id] = x.menuOrder
+                return {
+                    id: x.id,
+                    text: x.text,
+                    menuOrder: x.menuOrder
+                }
+            })
+            
+            var modeSuffix = (mode == "n")?"":"_"+mode
+            $("#"+menuOrderObj[mode].menuOrderId).val(menuOrderObj[mode].currPos)
+            obj.sort((x, y) => Number(x.menuOrder)-Number(y.menuOrder))
+            var html = ""
+            if(mode != "e"){
+                html = `<li class="order-sortable-item" data-id="" id="currMenuOrderElement${modeSuffix}" draggable=true>
+                    <span>New menu element</span>
+                    <div class="order-item-controls">
+                        <button class="control-btn move-up">↑</button>
+                        <button class="control-btn move-down">↓</button>
+                    </div>
+                </li>`
+            }else if($("#currMenuOrderElement"+modeSuffix).length>0 && !obj.some(x => x.id == menuOrderObj.e.currId)){
+                html = $("#currMenuOrderElement"+modeSuffix).remove()[0]
+            }
+            $("#orderSortableList"+modeSuffix).empty()
+            if(mode == "n" && menuOrderObj.n.currOrder && menuOrderObj.n.currOrder.length > 0){
+                obj = menuOrderObj[mode].currOrder.filter(x => x != "").map(x => obj.find(y => y.id == x))
+            }
+            obj.forEach((x, i) => {
+                $("#orderSortableList"+modeSuffix).append(`<li class="order-sortable-item" ${(mode=="e" && x.id == menuOrderObj.e.currId)?"id=currMenuOrderElement_e":""} data-id="${x.id}">
+                    <span>${x.text}</span>
+                    <div class="order-item-controls">
+                        <button class="control-btn move-up">↑</button>
+                        <button class="control-btn move-down">↓</button>
+                    </div>
+                </li>`)
+            })
+            
+            $('.order-sortable-item').attr("draggable", true)
+            if(html != "" || mode == "e") setMenuPosition(mode, html)
         }
 
         //$(document).on('click', '.edit_file', function () {
@@ -1204,7 +1478,7 @@ $lastUsedColors = null;
             $('#text_e').val(text_e);
             $('#pagetitle_e').val(pagetitle_e);
             $('#color_e').val(color_e);
-            $('#icon_e').val(icon_e);
+            $('#icon_e').val(icon_e).change();
             var lr = arr_role.length;
             for (var y = 0; y < lr; y++) {
                 if (document.getElementById(arr_role[y].toLowerCase() + '_e')) {
@@ -1229,6 +1503,7 @@ $lastUsedColors = null;
             //
         });
         $('#edit_rule').click(function () {
+            saveMenuOrder("e")
             //
             var id_e = $('#id_e').val();
             var url_e = $('#url_e').val();
@@ -1291,7 +1566,7 @@ $lastUsedColors = null;
             //
             console.log('COMANDO DI EDIT');
             $.ajax({
-                async: true,
+                async: false,
                 type: 'POST',
                 //url: url_parameters,
                 //dataType: 'json',
@@ -1319,7 +1594,7 @@ $lastUsedColors = null;
                     console.log(data);
                     //$('#table_delete').val();
                     //$('#table_delete').val();
-                    location.reload();
+                    updateMenuOrder("e", true)
                     //
                 }
             });
@@ -1350,6 +1625,7 @@ $lastUsedColors = null;
             });
         });
         $('#create_rule').click(function () {
+            saveMenuOrder("n")
             //console.log("CLICK BUTTON");
             var url = $('#url').val();
             var linkid = $('#linkid').val();
@@ -1426,10 +1702,12 @@ $lastUsedColors = null;
                     domain: domain
                 },
                 success: function (data) {
-                    location.reload();
+                    updateMenuOrder("n", true)
                     //
                 }
             });
+
+            
         });
 
         $('#copy_table_command').click(function () {
@@ -1497,7 +1775,7 @@ $lastUsedColors = null;
             //
             var publicLinkUrl = $('#add_publicLinkUrl').val();
             var select_type_creation = $('#add_pselect_mode').val();
-            var add_id = $('#add_id').val();
+            var add_id = $('#add_id').attr("menuId");
             var add_url = $('#add_url').val();
             var org = '';
             var role = '';
@@ -1558,7 +1836,7 @@ $lastUsedColors = null;
                 success: function (data) {
                     console.log(data);
                     //alert('create_child');
-                    location.reload();
+                    updateMenuOrder("a", true)
                     //
                 }
             });
@@ -1583,7 +1861,7 @@ $lastUsedColors = null;
                     var obj = JSON.parse(data);
                     var lr = obj.length;
                     for (var y = 0; y < lr; y++) {
-                        list_arr= list_arr + '<option value="'+obj[y]['id']+'">'+obj[y]['id']+'</option>';
+                        list_arr= list_arr + '<option value="'+obj[y]['id']+'">'+obj[y]['text']+'</option>';
                     }
                     //alert('create_child');
                     //location.reload();
@@ -1592,6 +1870,10 @@ $lastUsedColors = null;
             });
             //
             //
+            menuOrderObj.n.currOrder = []
+            menuOrderObj.n.currPos = menuOrderObj.n.initialPos
+            menuOrderObj.n.initialOrder = {}
+            $("#menuorder").val("")
             if ((select === "MainMenuSubmenus") || (select === "MobMainMenuSubmenus") || (select === "OrgMenuSubmenus")) {
                 $('.new_plu').hide();
                 if (select === "OrgMenuSubmenus"){
@@ -1600,21 +1882,128 @@ $lastUsedColors = null;
                 //$('#menu_code').html('<br /><div class="input-group"><span class="input-group-addon">Menu id: </span><input id="menu" name="menu_c" type="text" class="form-control" /></div><br />');
                 //
                 $('#menu_code').html('<br/><div class="input-group"><span class="input-group-addon">Main Menu Id: </span><select id="menu" name="menu_c" class="form-control">'+list_arr+'</select></div><br/>');
+                $("#menu").change((evt) => loadSubmenuOrder("n"))
                 console.log(select);
             } else {
                 $('#menu').val('');
                 $('#menu_code').empty();
                 $('.new_plu').show();
             }
+
+            setMenuOrder("n")
         });
+        
+        $("#menuorder").parents(".modal").click(evt => {
+            toggleOrderMenu("n", evt)
+        })
+        $("#menuorder_e").parents(".modal").click(evt => {
+            toggleOrderMenu("e", evt)
+        })
+        $("#add_menuorder").parents(".modal").click(evt => {
+            toggleOrderMenu("a", evt)
+        })
+
+        function toggleOrderMenu(mode, evt){
+            var modeSuffix = (mode == "n")?"":"_"+mode
+            if($("#orderSortableMenu"+modeSuffix).is(":visible") && !$("#orderSortableMenu"+modeSuffix)[0].contains(evt.target)){
+                //CHIUDE MODALE ORDINE
+                $("#"+menuOrderObj[mode].menuOrderId).val(menuOrderObj[mode].currPos)
+                saveMenuOrder(mode)
+                $("#orderSortableMenu"+modeSuffix).hide()
+            }else if(evt.target == $("#"+menuOrderObj[mode].menuOrderId)[0]){
+                //APRE MODALE ORDINE
+                $("#orderSortableMenu"+modeSuffix).show()
+                setMenuPosition(mode)
+            }
+        }
+
+        $(document).on("input", Object.values(menuOrderObj).map(x => "#"+x.textId).join(", "), (evt) => {
+            let mode = Object.entries(menuOrderObj).find(([key, value]) => value.textId == evt.target.id)[0]
+            let newText = $(evt.target).val()
+            if(newText == "") newText = ((mode == "e")?"Current":"New")+" menu element"
+            $("#currMenuOrderElement"+((mode == "n")?"":"_"+mode)+" span").text(newText)
+        })
+
+        $(document).on("click", ".order-item-controls", evt => {
+            var direction = evt.target.classList.contains("move-up")?-1:evt.target.classList.contains("move-down")?1:0
+            if(direction != 0){
+                item = $(evt.target).parents(".order-sortable-item")
+                var modeSuffix = $(evt.target).parents(".order-sortable-list").attr("id").replace("orderSortableList", "")
+                var mode = (modeSuffix=="")?"n":modeSuffix.replace("_", "")
+                otherItem = (direction == -1)?item.prev():item.next()
+                if(otherItem.length>0) {
+                    menuOrderObj[mode].currPos += direction;
+                    if(direction==-1) item.insertBefore(otherItem)
+                    else item.insertAfter(otherItem)
+                    $("#"+menuOrderObj[mode].menuOrderId).val(menuOrderObj[mode].currPos)
+                }
+            }
+        })
+        var draggedMenuOrderItem
+        var draggedMenuOrderItemMode
+        $(".order-sortable-list").on('dragstart', function(evt) {
+            let modeSuffix = evt.currentTarget.id.replace("orderSortableList", "")
+            e = evt.originalEvent
+            if (e.target.classList.contains('order-sortable-item')) {
+                draggedMenuOrderItem = e.target;
+                draggedMenuOrderItemMode = modeSuffix
+                e.target.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/html', e.target.innerHTML);
+            }
+        });
+        
+        $(".order-sortable-list").on('dragover', function(evt) {
+            e = evt.originalEvent
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            
+            const targetItem = e.target.closest('.order-sortable-item');
+            if (!targetItem || targetItem === draggedMenuOrderItem) return;
+            
+            const rect = targetItem.getBoundingClientRect();
+            const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+            
+            document.getElementById("orderSortableList"+draggedMenuOrderItemMode).insertBefore(
+                draggedMenuOrderItem, 
+                next ? targetItem.nextSibling : targetItem
+            );
+        });
+            
+        $(".order-sortable-list").on('dragend', function(e) {
+            if (e.target.classList.contains('order-sortable-item')) {
+                e.target.classList.remove('dragging');
+                saveMenuOrder(draggedMenuOrderItemMode.replace("_","") || "n")
+                draggedMenuOrderItem = null
+                draggedMenuOrderItemMode = null
+            }
+        });
+
+        
+        
+        $(".order-sortable-list").on('dragenter', function(e) {
+            e.preventDefault();
+        });
+        
+        $(".order-sortable-list").on('dragleave', function(e) {
+            e.preventDefault();
+        });
+        
+        $(".order-sortable-list").on('drop', function(e) {
+            e.preventDefault();
+        });
+
         function editData(id, linkUrl, publicLinkUrl, linkId, color, pageTitle, typemenu, text, icon, organizations, roles, menuOrder, externalApp, openmomde, submenu, domain) {
             console.log('EDIT MENU');
             //submenu
+            menuOrderObj.e.initialPos = Number(menuOrder)
+            menuOrderObj.e.currId = id
+            $("#currMenuOrderElement_e").remove()
             $('#id_e').val(unescape(id));
             $('#url_e').val(unescape(linkUrl));
             $('#publicLinkUrl_e').val(unescape(publicLinkUrl));
             $('#linkid_e').val(unescape(linkId));
-            $('#icon_e').val(unescape(icon));
+            $('#icon_e').val(unescape(icon)).change();
             if ((typemenu === 'MainMenu') || (typemenu === 'MobMainMenu') || (typemenu === 'OrgMenu')) {
                 $('#domain_div').show();
                 $('#domain_e').val(domain);
@@ -1651,7 +2040,7 @@ $lastUsedColors = null;
                     var obj = JSON.parse(data);
                     var lr = obj.length;
                     for (var y = 0; y < lr; y++) {
-                        list_menu= list_menu + '<option value="'+obj[y]['id']+'">'+obj[y]['id']+'</option>';
+                        list_menu= list_menu + '<option value="'+obj[y]['id']+'">'+obj[y]['text']+'</option>';
                     }
                     //alert('create_child');
                     //location.reload();
@@ -1660,7 +2049,12 @@ $lastUsedColors = null;
             });
                 //$('#mainmenu_c').html('<div class="input-group"><span class="input-group-addon">Main Menu Id: </span><input id="main_menu_id"  type="text" class="form-control" /></div><br />');
                 $('#mainmenu_c').html('<div class="input-group"><span class="input-group-addon">Main Menu Id: </span><select id="main_menu_id"  type="text" class="form-control">'+list_menu+'</select></div><br />');
+                console.log('submenu :>> ', submenu);
                 $('#main_menu_id').val(submenu);
+                $("#main_menu_id").change((evt) => {
+                    newPos = (evt.target.value == submenu)?menuOrder:0
+                    loadSubmenuOrder("e", newPos)
+                })
                 //
             } else {
                 $('#mainmenu_c').empty();
@@ -1725,6 +2119,8 @@ $lastUsedColors = null;
                 //$('#'+arr_org[z]+'_e').checked = true;
             }
 
+            setMenuOrder("e")
+
         }
         //
         function deleteData(id, table) {
@@ -1746,14 +2142,29 @@ $lastUsedColors = null;
 
             $('.check_domain').attr("checked", false);
             var id2 = 'checkdom_' + id;
+
+            var dataObj = {
+                service: 'list_menu',
+                sel_MainMenu: $('#sel_MainMenu').prop("checked"),
+                sel_MainMenuSubmenus: $('#sel_MainMenuSubmenus').prop("checked"),
+                sel_OrgMenu: $('#sel_OrgMenu').prop("checked"),
+                sel_OrgMenuSubmenus: $('#sel_OrgMenuSubmenus').prop("checked"),
+                sel_MobMainMenuSubmenus: $('#sel_MobMainMenuSubmenus').prop("checked"),
+                sel_MobMainMenu: $('#sel_MobMainMenu').prop("checked"),
+                select_all: $('#select_all').prop("checked"),
+                domain: $('#checked_dom').val()
+            }
+            var filteredFatherTypes = []
+            Object.keys(dataObj).filter(x => x.includes("sel_") && x.includes("Submenus")).forEach(key => {
+                let fatherKey = key.replace("Submenus", "")
+                if(dataObj[key] && !dataObj[fatherKey]){
+                    filteredFatherTypes.push(fatherKey.replace("sel_", ""))
+                    dataObj[fatherKey] = true
+                }
+            })
+
             $('#checked_dom').val(id);
             var checked_menu = $('#checked_dom').val();
-            var sel_MainMenu = $('#sel_MainMenu').prop("checked");
-            var sel_MainMenuSubmenus = $('#sel_MainMenuSubmenus').prop("checked");
-            var sel_OrgMenu = $('#sel_OrgMenu').prop("checked");
-            var sel_OrgMenuSubmenus = $('#sel_OrgMenuSubmenus').prop("checked");
-            var sel_MobMainMenuSubmenus = $('#sel_MobMainMenuSubmenus').prop("checked");
-            var sel_MobMainMenu = $('#sel_MobMainMenu').prop("checked");
             var select_all = $('#select_all').prop("checked");
             $('#checked_menu').val(id);
             var checked_dom = $('#checked_dom').val();
@@ -1784,27 +2195,25 @@ $lastUsedColors = null;
             var array_act = new Array();
             table.destroy();
             $('#value_table tbody').empty();
-            if ((sel_MainMenu == false) && (sel_MainMenuSubmenus == false) && (sel_OrgMenu == false) && (sel_OrgMenuSubmenus == false) && (sel_MobMainMenuSubmenus == false) && (sel_MobMainMenu == false) && (select_all == false)) {
-                select_all = true;
-            }
+            if(!Object.entries(dataObj).some(([key, value]) => key.includes("sel_") && value)) dataObj.select_all = true;
+            // if ((sel_MainMenu == false) && (sel_MainMenuSubmenus == false) && (sel_OrgMenu == false) && (sel_OrgMenuSubmenus == false) && (sel_MobMainMenuSubmenus == false) && (sel_MobMainMenu == false) && (select_all == false)) {
+            //     select_all = true;
+            // }
             $.ajax({
                 async: true,
                 type: 'POST',
                 //url: url_parameters,
                 dataType: 'json',
                 url: 'geteditormenu.php',
-                data: {
-                    service: 'list_menu',
-                    sel_MainMenu: sel_MainMenu,
-                    sel_MainMenuSubmenus: sel_MainMenuSubmenus,
-                    sel_OrgMenu: sel_OrgMenu,
-                    sel_OrgMenuSubmenus: sel_OrgMenuSubmenus,
-                    sel_MobMainMenuSubmenus: sel_MobMainMenuSubmenus,
-                    sel_MobMainMenu: sel_MobMainMenu,
-                    select_all: select_all,
-                    domain: checked_dom
-                },
+                data: dataObj,
                 success: function (data) {
+                    var fatherMenus = []
+                    data = data.filter(x => {
+                        if(!x.typemenu.includes("Submenu") && filteredFatherTypes.includes(x.typemenu)){
+                            fatherMenus.push(x)
+                            return false
+                        }else return true
+                    })
                     //console.log(data);
                     //value_table
                     for (var i = 0; i < data.length; i++)
@@ -1834,7 +2243,7 @@ $lastUsedColors = null;
                         //
                         var button_submenu = '';
                         if ((array_act[i]['linkUrl'] === 'submenu') && ((array_act[i]['typemenu'] === 'MainMenu') || (array_act[i]['typemenu'] === 'MobMainMenu') || (array_act[i]['typemenu'] === 'OrgMenu'))) {
-                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>ADD</button> ';
+                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '","' + escape(array_act[i]['text']) + '")>ADD</button> ';
                         } else {
                             button_submenu = '';
                         }
@@ -1843,7 +2252,13 @@ $lastUsedColors = null;
                         var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + i + '" onclick=deleteData(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>DELETE</button> ';
                         //console.log(lun);
                         var controls = button_edit + button_submenu + button_del;
-                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + array_act[i]['submenu'] + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
+                        var submenuText = ""
+                        if(array_act[i].typemenu.includes("Submenu")){
+                            let fatherMenu = data.find(x => x.id == array_act[i].submenu) || fatherMenus.find(x => x.id == array_act[i].submenu)
+                            if(fatherMenu) submenuText = fatherMenu.text
+                            else submenuText = array_act[i].submenu
+                        }
+                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + submenuText + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
                     }
                     /****/
                     var table = $('#value_table').DataTable({
@@ -1882,16 +2297,28 @@ $lastUsedColors = null;
             $('.check_org').attr("checked", false);
             document.getElementById(id).checked = true;
             //
-            var sel_MainMenu = $('#sel_MainMenu').prop("checked");
-            var sel_MainMenuSubmenus = $('#sel_MainMenuSubmenus').prop("checked");
-            var sel_OrgMenu = $('#sel_OrgMenu').prop("checked");
-            var sel_OrgMenuSubmenus = $('#sel_OrgMenuSubmenus').prop("checked");
-            var sel_MobMainMenuSubmenus = $('#sel_MobMainMenuSubmenus').prop("checked");
-            var sel_MobMainMenu = $('#sel_MobMainMenu').prop("checked");
-            var select_all = $('#select_all').prop("checked");
             $('#checked_menu').val(id);
-            var checked_dom = $('#checked_dom').val();
+            var dataObj = {
+                service: 'list_menu',
+                sel_MainMenu: $('#sel_MainMenu').prop("checked"),
+                sel_MainMenuSubmenus: $('#sel_MainMenuSubmenus').prop("checked"),
+                sel_OrgMenu: $('#sel_OrgMenu').prop("checked"),
+                sel_OrgMenuSubmenus: $('#sel_OrgMenuSubmenus').prop("checked"),
+                sel_MobMainMenuSubmenus: $('#sel_MobMainMenuSubmenus').prop("checked"),
+                sel_MobMainMenu: $('#sel_MobMainMenu').prop("checked"),
+                select_all: $('#select_all').prop("checked"),
+                domain: $('#checked_dom').val()
+            }
+            var filteredFatherTypes = []
+            Object.keys(dataObj).filter(x => x.includes("sel_") && x.includes("Submenus")).forEach(key => {
+                let fatherKey = key.replace("Submenus", "")
+                if(dataObj[key] && !dataObj[fatherKey]){
+                    filteredFatherTypes.push(fatherKey.replace("sel_", ""))
+                    dataObj[fatherKey] = true
+                }
+            })
             //
+            if(!Object.entries(dataObj).some(([key, value]) => key.includes("sel_") && value)) dataObj.select_all = true;
             $('input[class="check_domain"]:checked').each(function () {      // $(':checkbox:checked')
                 var i1 = $(this).val();
                 console.log('i1: ' + i1);
@@ -1908,20 +2335,17 @@ $lastUsedColors = null;
                 //url: url_parameters,
                 dataType: 'json',
                 url: 'geteditormenu.php',
-                data: {
-                    service: 'list_menu',
-                    sel_MainMenu: sel_MainMenu,
-                    sel_MainMenuSubmenus: sel_MainMenuSubmenus,
-                    sel_OrgMenu: sel_OrgMenu,
-                    sel_OrgMenuSubmenus: sel_OrgMenuSubmenus,
-                    sel_MobMainMenuSubmenus: sel_MobMainMenuSubmenus,
-                    sel_MobMainMenu: sel_MobMainMenu,
-                    select_all: select_all,
-                    domain: checked_dom
-                },
+                data: dataObj,
                 success: function (data) {
                     //console.log(data);
                     //value_table
+                    var fatherMenus = []
+                    data = data.filter(x => {
+                        if(!x.typemenu.includes("Submenu") && filteredFatherTypes.includes(x.typemenu)){
+                            fatherMenus.push(x)
+                            return false
+                        }else return true
+                    })
                     for (var i = 0; i < data.length; i++)
                     {
                         array_act[i] = {
@@ -1949,7 +2373,7 @@ $lastUsedColors = null;
                         //
                         var button_submenu = '';
                         if ((array_act[i]['linkUrl'] === 'submenu') && ((array_act[i]['typemenu'] === 'MainMenu') || (array_act[i]['typemenu'] === 'MobMainMenu') || (array_act[i]['typemenu'] === 'OrgMenu'))) {
-                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>ADD</button> ';
+                            button_submenu = '<button type="button" class="viewDashBtn addchild" data-target="#add-modal" data-toggle="modal" value="' + i + '" onclick=addSubmenu(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '","' + escape(array_act[i]['text']) + '")>ADD</button> ';
                         } else {
                             button_submenu = '';
                         }
@@ -1958,7 +2382,13 @@ $lastUsedColors = null;
                         var button_del = '<button type="button" class="delDashBtn delete_file" data-target="#delete-modal" data-toggle="modal" value="' + i + '" onclick=deleteData(' + array_act[i]['id'] + ',"' + array_act[i]['typemenu'] + '")>DELETE</button> ';
                         //console.log(lun);
                         var controls = button_edit + button_submenu + button_del;
-                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + array_act[i]['submenu'] + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
+                        var submenuText = ""
+                        if(array_act[i].typemenu.includes("Submenu")){
+                            let fatherMenu = data.find(x => x.id == array_act[i].submenu) || fatherMenus.find(x => x.id == array_act[i].submenu)
+                            if(fatherMenu) submenuText = fatherMenu.text
+                            else submenuText = array_act[i].submenu
+                        }
+                        $('#value_table tbody').append('<tr><td>' + array_act[i]['id'] + '</td><td>' + array_act[i]['claim'] + '</td><td>' + array_act[i]['text'] + '</td><td>' + array_act[i]['linkUrl'] + '</td><td>' + array_act[i]['pageTitle'] + '</td><td>' + controls + '</td><td>' + array_act[i]['publicLinkUrl'] + '</td><td>' + array_act[i]['linkId'] + '</td><td>' + array_act[i]['typemenu'] + '</td><td>' + submenuText + '</td><td><i class="' + array_act[i]['icon'] + '"></i></td><td><i class="fa fa-circle" aria-hidden="true" style="color:' + array_act[i]['iconColor'] + '"></i>' + array_act[i]['iconColor'] + '</td><td>' + array_act[i]['privileges'] + '</td><td>' + array_act[i]['externalApp'] + '</td><td>' + array_act[i]['organizations'] + '</td><td>' + array_act[i]['openMode'] + '</td><td>' + array_act[i]['menuOrder'] + '</td></tr>');
                     }
                     /****/
                     var table = $('#value_table').DataTable({
@@ -1998,11 +2428,14 @@ $lastUsedColors = null;
                 $('#' + icon_new).empty();
                 console.log('DELETE ICON NEW');
             }
+            let iconPreview = $("#"+icon).siblings("span").children(".icon-preview")[0]
+            if(iconPreview) iconPreview.classList = "icon-preview "+icon_val
         }
 
-        function addSubmenu(id, type) {
+        function addSubmenu(id, type, text) {
             //addSubmenu
-            $('#add_id').val(id);
+            $('#add_id').val(unescape(text));
+            $('#add_id').attr("menuId", id);
             console.log(type);
             if (type === 'MainMenu') {
                 $('#add_type').val('MainMenuSubmenus');
@@ -2021,6 +2454,7 @@ $lastUsedColors = null;
                 $('.add_plu').show();
                 //
             }
+            setMenuOrder("a")
 
         }
 

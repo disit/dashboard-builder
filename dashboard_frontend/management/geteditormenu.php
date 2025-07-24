@@ -3,17 +3,16 @@
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 
 include '../config.php';
@@ -644,6 +643,53 @@ if (isset($_SESSION['loggedRole'])) {
                 //nothing
             }
             echo ($result_mess);
+        } elseif ($service == 'list_submenu'){
+            $menu_type = mysqli_real_escape_string($link, $_REQUEST['menu_type']);
+            $menu_type = filter_var($menu_type, FILTER_SANITIZE_STRING);
+
+            $father_menu = mysqli_real_escape_string($link, $_REQUEST['father_menu']);
+            $father_menu = filter_var($father_menu, FILTER_SANITIZE_STRING);
+
+            $query = "SELECT * FROM Dashboard." .$menu_type. " WHERE menu = ".$father_menu." order by menuOrder ASC";
+            $result = mysqli_query($link, $query);
+            $out = [];
+            if ($result) {
+                while ($row = mysqli_fetch_assoc($result)) {
+                    array_push($out, $row);
+                }
+            };
+            echo json_encode($out);
+        } elseif ($service == "update_menu_order") {
+            $menu_type = mysqli_real_escape_string($link, $_REQUEST['menu_type']);
+            $menu_type = filter_var($menu_type, FILTER_SANITIZE_STRING);
+            // $update_list = mysqli_real_escape_string($link, $_REQUEST['update_list']);
+            // $update_list = filter_var($update_list, FILTER_SANITIZE_STRING);
+            $update_list = $_REQUEST['update_list'];
+            if(is_string($menu_type) && !empty($menu_type) && !strpos($menu_type, ' ')){
+                // echo(json_encode(["string and empty and space",$update_list]));
+                $q = "UPDATE Dashboard.". $menu_type . " SET menuOrder = (case";
+                $id_arr = array();
+                foreach (json_decode($update_list) as $id => $order){
+                    $id = strval($id);
+                    $order = strval($order);
+                    if(!($id == "" || strpos($id, ' ') || $id == "" || strpos($order, ' '))) {
+                        $q = $q." when id = ".$id." then ".$order;
+                        array_push($id_arr, $id);
+                    }
+                }
+                $q = $q." end) WHERE id in (".implode(", ", $id_arr).")";
+                echo([$update_list, $menu_type]);
+                $result = mysqli_query($link, $q);
+                if ($result) {
+                    $result_mess = 'OK';
+                } else {
+                    $result_mess = 'No';
+                }
+                echo($result_mess);
+            }else{
+                echo("Error: menu_type not valid");
+            }
+            // echo $menu_type;
         }
     }
 }
