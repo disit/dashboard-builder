@@ -92,6 +92,12 @@ switch ($action) {
     case 'get_groups':
         GetGroups($link, $ldap);
         break;
+    
+    case 'get_user_details':
+        header('Content-Type: application/json');
+        $out = GetUserDetails($link, $ldap);
+        echo json_encode($out);
+        break;
 
     default:
         break;
@@ -105,14 +111,15 @@ function requireAdmin() {
         || empty($_SESSION['loggedRole'])
         || $_SESSION['loggedRole'] !== 'RootAdmin'
     ) {
-        echo "You are not authorized to access ot this data!";
+        echo "You are not authorized to access to this data!";
         exit;
     }
+    /*
     global $ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint;
     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
     $oidc->providerConfigParam(['token_endpoint' => $ssoTokenEndpoint]);
     $tkn = $oidc->refreshToken($_SESSION['refreshToken']);
-    $_SESSION['refreshToken'] = $tkn->refresh_token;
+    $_SESSION['refreshToken'] = $tkn->refresh_token;*/
 }
 
 function getDbLink() {
@@ -470,13 +477,10 @@ function buildUserList($link, $ldap, string $roleFilter = '') {
                     "mail"         => $email,
                     "admin"        => $roleFilter,
                     "cn"           => $e['dn'],
-                    "csbl"         => (check_csbl($link, $username) === true),
-                    "data_table"   => is_array(check_data_table_user($link, $username)),
-                    "groups"       => get_user_ldap_groups($ldap, $ldapBaseDN, $username),
-                    "delegated_userstats_orgs" =>
-                         ($userMonitoring === 'true')
-                         ? get_delegated_userstats_orgs($username, false)
-                         : [],
+                    "csbl"         => false,
+                    "data_table"   => false,
+                    "groups"       => [],
+                    "delegated_userstats_orgs" => [],
                 ];
             }
         }
@@ -538,14 +542,14 @@ function buildUserList($link, $ldap, string $roleFilter = '') {
                 break;
             }
         }
-        // check CSBL & data-table flags
-        $has_csbl        = (check_csbl($link, $username) === true);
-        $data_table_user = is_array(check_data_table_user($link, $username));
+        // check CSBL & data-table flags (delayed to GetUserDetails)
+        $has_csbl        = false;
+        $data_table_user = false;
         // fetch LDAP groups
-        $groups = get_user_ldap_groups($ldap, $ldapBaseDN, $username);
+        $groups = [];
         // fetch delegated orgs if enabled
         if ($userMonitoring == 'true') {
-            $delegated_userstats_orgs = get_delegated_userstats_orgs($username, false);
+            $delegated_userstats_orgs = [];
         } else {
             $delegated_userstats_orgs = [];
         }
@@ -1013,3 +1017,35 @@ function GetGroups($link, $ldap) {
     echo json_encode($groups);
 }
 
+//for single or multiuser
+function GetUserDetails($link, $ldap) {
+    global $ldapBaseDN, $userMonitoring;
+    $reqUsers = $_REQUEST['requested_user'];
+    if (is_string($reqUsers) && substr($reqUsers,0,1)==='[') {
+        $usernames = json_decode($reqUsers, true);
+        $ids       = json_decode($_REQUEST['requested_user_id'], true);
+    } else {
+        $usernames = [$reqUsers];
+        $ids       = [$_REQUEST['requested_user_id']];
+    }
+
+    $results = [];
+    foreach ($usernames as $i => $u) {
+        $csbl    = (check_csbl($link, $u) === true);
+        $dt      = is_array(check_data_table_user($link, $u));
+        $groups  = get_user_ldap_groups($ldap, $ldapBaseDN, $u);
+        $del     = [];
+        if ($userMonitoring === 'true') {
+            $del = get_delegated_userstats_orgs($u, false);
+        }
+        $results[] = [
+            'IdUser'                    => $ids[$i] ?? null,
+            'username'                  => $u,
+            'csbl'                      => $csbl,
+            'data_table'                => $dt,
+            'groups'                    => $groups,
+            'delegated_userstats_orgs'  => $del,
+        ];
+    }
+    return $results;
+}

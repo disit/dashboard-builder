@@ -886,6 +886,8 @@ text-transform: uppercase;
                         {
                             $("#addUserOkModal").modal('hide');
                             $('#addUserModal').modal('hide');
+                            $('#roleFilterButtons .role-filter').removeClass('active');
+                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
                             buildMainTable(true);
                         }, 2000);
                         //
@@ -1034,6 +1036,9 @@ text-transform: uppercase;
                 sidePagination: 'server',
                 pagination:      true,
                 search:          true,
+                searchOnEnterKey:true,
+                showSearchButton:true,
+                showSearchClearButton:true,
                 sortable:        true,
                 pageSize:        10,
                 locale:          'en-US',
@@ -1043,15 +1048,15 @@ text-transform: uppercase;
                 searchTimeOut:   60,
                 classes:         'table table-hover table-no-bordered',
 
-                // Adapt your PHP response { total, rows }
+                // PHP response to { total, rows }
                 responseHandler: function(res) {
                     return {
                         total: res.total,
                         rows:  res.rows
                     };
                 },
-                // Update the total-users badge
                 onLoadSuccess: function(data) {
+                    // Update total users
                     $('#dashboardTotNumberCnt div.pageSingleDataCnt').text(data.total);
                 },
                 // Inject the “+” button once
@@ -1148,7 +1153,7 @@ text-transform: uppercase;
             $('#usersTable').bootstrapTable('refresh', {silent: true});
             });
             //user modal trigger & caching
-            $('#addUserBtn').off('click').click(function () {
+            $('#addUserBtn').on('click').click(function () {
                 $('#addUserGroupsRow').show();
                 if (!cachedOrgs) {
                     $.getJSON('dashboardUserControllers.php', { action: 'list_org' })
@@ -1263,110 +1268,130 @@ text-transform: uppercase;
             $("#deleteUserModal").modal('show');
         });
 
+        //edit user helpers
+        function renderOrgs(orgs, userOrgs) {
+                    var $tb = $('#editUserPoolsTable tbody').empty();
+                    orgs.forEach(function(o){
+                    var checked = userOrgs.indexOf(o) !== -1 ? 'checked' : '';
+                    $tb.append(
+                        '<tr>' +
+                        '<td class="checkboxCell">' +
+                            '<input type="checkbox" class="check_editorg" value="' + o + '" ' + checked + ' />' +
+                        '</td>' +
+                        '<td class="poolNameCell">' + o + '</td>' +
+                        '</tr>'
+                    );
+                    });
+                }
+        function renderGroups(groups, userGroups) {
+            var $tb = $('#editUserGroupsTable tbody').empty();
+            groups.forEach(function(g){
+            var checked = userGroups.indexOf(g.dn) !== -1 ? 'checked' : '';
+            const m = g.dn.match(/ou=([^,]+)/i);
+            const ou = m ? m[1] : '(root)';
+            $tb.append(`
+                <tr>
+                    <td class="checkboxCell">
+                    <input type="checkbox" class="check_editgroup" 
+                            value="${g.dn}" ${checked}/>
+                    </td>
+                    <td class="groupNameCell">${g.cn} <small>(${ou})</small></td>
+                </tr>
+            `);
+            });
+        }
+        function renderDelOrgs(orgs, delegated) {
+                if (! $('#editUserDelOrgsRowMod').length) return;
+                var $tb = $('#editUserDelOrgsTable tbody').empty();
+                orgs.forEach(function(o){
+                    var checked = delegated.indexOf(o) !== -1
+                                ? 'checked' : '';
+                    $tb.append(
+                    '<tr>' +
+                        '<td class="checkboxCell">' +
+                        '<input type="checkbox" class="check_editdelorg" value="' + o + '" ' + checked + '/>' +
+                        '</td>' +
+                        '<td class="orgNameCell">' + o + '</td>' +
+                    '</tr>'
+                    );
+                });
+                $('#editUserDelOrgsRowMod').show();
+                }
         var currentedituser = null;
         // Edit User: open modal and render multi-org checkboxes
         $(document).on('click', '.editUser', function () {
-            var $tr   = $(this).closest('tr'),
-            idx   = +$tr.attr('data-index'),                    // bootstrap-table’s zero-based index
-            rows  = $('#usersTable').bootstrapTable('getData'),
-            row   = rows[idx];                                  // your record object
-            var user = row;
+            const $tr  = $(this).closest('tr');
+            const idx  = +$tr.attr('data-index');
+            const rows = $('#usersTable').bootstrapTable('getData');
+            const row  = rows[idx];
             currentedituser = row;
-            var username    = row.username,
-                role        = row.admin,
-                orgText     = row.organization,
-                mail        = row.mail,
-                userOrgs    = orgText.split(',').map(s => s.trim()).filter(Boolean),
-                userGroups  = (row.groups || []).map(function(g){ return g.dn; }),
-                csbl        = row.csbl,
-                dataIngest  = row.data_table,
-                delegated   = row.delegated_userstats_orgs || [];
-            //pop fields
-            console.log(user);
-            $('#editNewUserModalLabel').text('Edit account - ' + username);
-            $('#emailM').val(mail);
-            $('#old_emailM').val(mail);
-            $('#NewuserTypeM').val(role);
-            $('#old_roleM').val(role);
-            $('#old_organizationM').val(orgText);
-            $('#passwordM, #Confirm_passwordM').val('');
-            $('#Confirm_passwordM').siblings('.modalFieldLabelCnt').text('Confirm Password');
-            $('#confirm_passwordMsg').text('');
-            $('#CSBL_Check')[0].checked      = user.csbl;
-            $('#Data-Ingestion')[0].checked  = user.data_table;
-            $('#editUserPoolsTable tbody').empty();
-            $('#editUserGroupsTable tbody').empty();
-            //ou & gropus
-            function renderOrgs(orgs) {
-                var $tb = $('#editUserPoolsTable tbody').empty();
-                orgs.forEach(function(o){
-                var checked = userOrgs.indexOf(o) !== -1 ? 'checked' : '';
-                $tb.append(
-                    '<tr>' +
-                    '<td class="checkboxCell">' +
-                        '<input type="checkbox" class="check_editorg" value="' + o + '" ' + checked + ' />' +
-                    '</td>' +
-                    '<td class="poolNameCell">' + o + '</td>' +
-                    '</tr>'
-                );
+
+            $.ajax({
+                url:         'dashboardUserControllers.php',
+                method:      'GET',
+                dataType:    'json',
+                data: {
+                action:            'get_user_details',
+                requested_user:    row.username,
+                requested_user_id: row.IdUser
+                }
+            }).done(function(detailsArray) {
+                //merge new data
+                const d = detailsArray[0];
+                $.extend(row, {
+                csbl:                     d.csbl,
+                data_table:               d.data_table,
+                groups:                   d.groups,
+                delegated_userstats_orgs: d.delegated_userstats_orgs
                 });
-            }
-            function renderGroups(groups) {
-                var $tb = $('#editUserGroupsTable tbody').empty();
-                groups.forEach(function(g){
-                var checked = userGroups.indexOf(g.dn) !== -1 ? 'checked' : '';
-                const m = g.dn.match(/ou=([^,]+)/i);
-                const ou = m ? m[1] : '(root)';
-                $tb.append(`
-                    <tr>
-                        <td class="checkboxCell">
-                        <input type="checkbox" class="check_editgroup" 
-                                value="${g.dn}" ${checked}/>
-                        </td>
-                        <td class="groupNameCell">${g.cn} <small>(${ou})</small></td>
-                    </tr>
-                `);
+
+                //populate form
+                const username   = row.username;
+                const role       = row.admin;
+                const orgText    = row.organization;
+                const mail       = row.mail;
+                const userOrgs   = orgText.split(',').map(s=>s.trim()).filter(Boolean);
+                const userGroups = (row.groups||[]).map(g=>g.dn);
+                const csbl       = row.csbl;
+                const dataIngest = row.data_table;
+                const delegated  = row.delegated_userstats_orgs||[];
+
+                $('#editNewUserModalLabel').text('Edit account – ' + username);
+                $('#emailM').val(mail);
+                $('#old_emailM').val(mail);
+                $('#NewuserTypeM').val(role);
+                $('#old_roleM').val(role);
+                $('#old_organizationM').val(orgText);
+                $('#passwordM, #Confirm_passwordM').val('');
+                $('#confirm_passwordMsg').text('');
+                $('#CSBL_Check')[0].checked     = csbl;
+                $('#Data-Ingestion')[0].checked = dataIngest;
+
+                // render the checkboxes
+                if (!cachedOrgs) {
+                $.getJSON('dashboardUserControllers.php', {action:'list_org'})
+                .done(orgs => {
+                    cachedOrgs = orgs;
+                    renderOrgs(orgs, userOrgs);
+                    renderDelOrgs(orgs, delegated);
                 });
-            }
-            function renderDelOrgs(orgs) {
-            if (! $('#editUserDelOrgsRowMod').length) return;
-            var $tb = $('#editUserDelOrgsTable tbody').empty();
-            orgs.forEach(function(o){
-                var checked = user.delegated_userstats_orgs && user.delegated_userstats_orgs.indexOf(o) !== -1
-                            ? 'checked' : '';
-                $tb.append(
-                '<tr>' +
-                    '<td class="checkboxCell">' +
-                    '<input type="checkbox" class="check_editdelorg" value="' + o + '" ' + checked + '/>' +
-                    '</td>' +
-                    '<td class="orgNameCell">' + o + '</td>' +
-                '</tr>'
-                );
+                } else {
+                renderOrgs(cachedOrgs, userOrgs);
+                renderDelOrgs(cachedOrgs, delegated);
+                }
+
+                if (!cachedGroups) {
+                $.getJSON('dashboardUserControllers.php', {action:'get_groups'})
+                .done(groups => {
+                    cachedGroups = groups;
+                    renderGroups(groups, userGroups);
+                });
+                } else {
+                renderGroups(cachedGroups, userGroups);
+                }
+
+                $('#editNewUserModal').modal('show');
             });
-            $('#editUserDelOrgsRowMod').show();
-            }
-            // fetch orgs+ groups
-            if (!cachedOrgs) {
-                $.getJSON('dashboardUserControllers.php', { action: 'list_org' })
-                .done(function(orgs){
-                cachedOrgs = orgs;
-                renderOrgs(orgs);
-                renderDelOrgs(orgs);
-                });
-            } else {
-                renderOrgs(cachedOrgs);
-                renderDelOrgs(cachedOrgs);
-            }
-            if (!cachedGroups) {
-                $.getJSON('dashboardUserControllers.php', { action: 'get_groups' })
-                .done(function(groups){
-                cachedGroups = groups;
-                renderGroups(groups);
-                });
-            } else {
-                renderGroups(cachedGroups);
-            }
-            $('#editNewUserModal').modal('show');
             });
 
         $(document).on('click', '#editUserConfirmBtn', function () {
@@ -1571,6 +1596,8 @@ text-transform: uppercase;
                         setTimeout(function ()
                         {
                             buildMainTable(true);
+                            $('#roleFilterButtons .role-filter').removeClass('active');
+                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
                             $("#deleteUserModal").modal('hide');
                             $("#deleteUserCancelBtn").show();
                             $("#deleteUserConfirmBtn").show();
@@ -1700,7 +1727,7 @@ text-transform: uppercase;
                 $('#editACLModal').modal('show');
                 })
                 )
-                .fail(err => {
+                .catch(err => {
                 console.error('ACL popup error:', err);
                 alert('Could not load ACL — see console.');
                 });
