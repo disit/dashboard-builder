@@ -1953,6 +1953,14 @@ var fetchAjax = function(queryUrl, dataObj, type, dataType, asyncFlag, timeoutVa
         queryUrl = "../controllers/nullProxy.php";
     }
     // Return the $.ajax promise
+
+    var serviceUriMatch = queryUrl.match(/serviceUri=([^&]*)/);
+
+    if (serviceUriMatch) {
+        var serviceUri = serviceUriMatch[1];
+        queryUrl = "../controllers/superservicemapProxy.php/api/v1/?serviceUri=" + encodeServiceUri(serviceUri);
+    }
+
     return $.ajax({
         url: queryUrl,
         data: dataObj,
