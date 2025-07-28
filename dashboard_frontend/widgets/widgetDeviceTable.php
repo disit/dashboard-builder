@@ -62,7 +62,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         pin: "hidden"
     }
 
-	var isCreated = false;
+	var isCreated_<?= $_REQUEST['name_w'] ?> = false;
 
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) { <?php
         $link = mysqli_connect($host, $username, $password);
@@ -288,9 +288,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				console.log(arr_col_<?= $_REQUEST['name_w'] ?>);
 				console.log('indexCol:	'+indexCol_<?= $_REQUEST['name_w'] ?>);
 				//
-			if(isCreated)
+			if(isCreated_<?= $_REQUEST['name_w'] ?>)
 				$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
-			isCreated = true;
+			isCreated_<?= $_REQUEST['name_w'] ?> = true;
             table = $('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable({
                data: dataSet_<?= $_REQUEST['name_w'] ?>,
                scrollResize: true,
