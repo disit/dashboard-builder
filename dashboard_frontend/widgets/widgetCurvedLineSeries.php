@@ -3080,7 +3080,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     case "Sensor":
                         utcOption = false;
                         var smPayload = aggregationGetData[i].data;
-                        var smField = aggregationGetData[i].smField;
+                        var smField = (aggregationGetData[i].smField != null) ? aggregationGetData[i].smField : aggregationGetData[i].metricType;
                         smPayload = JSON.parse(smPayload);
                         chartSeriesObject.valueUnit = "";
 

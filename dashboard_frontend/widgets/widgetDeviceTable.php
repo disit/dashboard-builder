@@ -62,6 +62,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
         pin: "hidden"
     }
 
+	var isCreated = false;
+
     $(document).ready(function <?= $_REQUEST['name_w'] ?>(firstLoad, metricNameFromDriver, widgetTitleFromDriver, widgetHeaderColorFromDriver, widgetHeaderFontColorFromDriver, fromGisExternalContent, fromGisExternalContentServiceUri, fromGisExternalContentField, fromGisExternalContentRange, /*randomSingleGeoJsonIndex,*/ fromGisMarker, fromGisMapRef) { <?php
         $link = mysqli_connect($host, $username, $password);
         if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
@@ -110,7 +112,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							//
 							current_page_<?= $_REQUEST['name_w'] ?> = 0;
 							$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
-							$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+							//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 							//						
 							populateWidget(newValue_<?= $_REQUEST['name_w'] ?>);
 
@@ -131,7 +133,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 		function change_page(start, end, current){
 			current_page_<?= $_REQUEST['name_w'] ?> = current;
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current);
-			$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+			//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 			populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 			
 		}
@@ -184,7 +186,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					action_<?= $_REQUEST['name_w'] ?> = 'ChangeNumberRows';
 					maintable_length = parseInt($('#n_rows_<?= $_REQUEST['name_w'] ?>').val());
 					current_page_<?= $_REQUEST['name_w'] ?> = 0;
-					$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+					//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 					$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
 					populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
 					$('.paginate_button.active').removeClass('active');
@@ -286,6 +288,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 				console.log(arr_col_<?= $_REQUEST['name_w'] ?>);
 				console.log('indexCol:	'+indexCol_<?= $_REQUEST['name_w'] ?>);
 				//
+			if(isCreated)
+				$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+			isCreated = true;
             table = $('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable({
                data: dataSet_<?= $_REQUEST['name_w'] ?>,
                scrollResize: true,
@@ -372,7 +377,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					if (order_column_n >= 0 || text !== 'Actions') {
 						$('#num_column_<?= $_REQUEST['name_w'] ?>').val(order_column_n);
 						$('#current_page_<?= $_REQUEST['name_w'] ?>').val(0);
-						$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
+						//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 						$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
 
 						// Gestione della direzione di ordinamento
