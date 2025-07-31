@@ -1356,7 +1356,7 @@ text-transform: uppercase;
                 const dataIngest = row.data_table;
                 const delegated  = row.delegated_userstats_orgs||[];
 
-                $('#editNewUserModalLabel').text('Edit account – ' + username);
+                $('#editNewUserModalLabel').text('Edit account - ' + username);
                 $('#emailM').val(mail);
                 $('#old_emailM').val(mail);
                 $('#NewuserTypeM').val(role);
