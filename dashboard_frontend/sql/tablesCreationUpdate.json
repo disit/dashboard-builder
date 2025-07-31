@@ -1,6 +1,9 @@
 {
   "sessions": "CREATE TABLE IF NOT EXISTS `Dashboard`.`sessions` (`id` varchar(32) NOT NULL, `access` int(10) unsigned DEFAULT NULL, `data` text, PRIMARY KEY (id));",
   "TrustedUserGroups": "CREATE TABLE IF NOT EXISTS `Dashboard`.`TrustedUserGroups` (`id` INT NOT NULL,`username` VARCHAR(45) NULL, PRIMARY KEY (`id`));",
-  "ACL" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACL` (ID INT NOT NULL AUTO_INCREMENT,defID INT NOT NULL,user VARCHAR(500) NOT NULL,PRIMARY KEY (ID),FOREIGN KEY (defID) REFERENCES AccessDefinitions(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
-  "AccessDefinitions" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`AccessDefinitions` (ID INT NOT NULL AUTO_INCREMENT,authname VARCHAR(500) NOT NULL,org TEXT NULL,menuID INT NULL,PRIMARY KEY (ID));"
+  "AccessDefinitions" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`AccessDefinitions` (ID INT NOT NULL AUTO_INCREMENT, authname VARCHAR(500) NOT NULL UNIQUE, org TEXT NULL, menuID INT NULL, dashboardID VARCHAR(500) NULL, collectionID VARCHAR(500) NULL, maxbyday INT NULL, maxbymonth INT NULL, maxtotalaccesses INT NULL, PRIMARY KEY (ID));",
+  "ACL" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACL` (ID INT NOT NULL AUTO_INCREMENT, defID INT NOT NULL, user VARCHAR(500) NOT NULL, PRIMARY KEY (ID), FOREIGN KEY (defID) REFERENCES `Dashboard`.`AccessDefinitions`(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
+  "ACLProfiles" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACLProfiles` (ID INT NOT NULL AUTO_INCREMENT, profilename VARCHAR(500) NOT NULL UNIQUE, authIDs TEXT NULL, PRIMARY KEY (ID));",
+  "ACLProfilesAssignment": "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACLProfilesAssignment` (profileID INT NOT NULL, user VARCHAR(500) NOT NULL, PRIMARY KEY (profileID, user), FOREIGN KEY (profileID) REFERENCES `Dashboard`.`ACLProfiles`(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
+  "ACNames": "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACNames` (name VARCHAR(500) NOT NULL, PRIMARY KEY (name));"
 }
