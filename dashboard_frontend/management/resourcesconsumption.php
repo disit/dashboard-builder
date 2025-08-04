@@ -472,7 +472,7 @@ if ($canSeeAdmin) {
             } else if (byMonth.checked) {
               route = `all/usage?&date=${dateMon.value}`;
             } else {
-              route = `org/usage?`
+              route = `all/usage?`
                     + `&start_date=${startDate.value}`
                     + `&end_date=${endDate.value}`;
             }

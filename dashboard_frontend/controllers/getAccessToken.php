@@ -39,6 +39,7 @@ if(isset($_SESSION['loggedUsername'])) {
 
         $response["detail"] = "Ok";
         $response["accessToken"] = $accessToken;
+        $response["loggedUsername"] = $_SESSION["loggedUsername"];
 
         if (isset($_GET['includeRefresh']) && $_GET['includeRefresh'] === 'true') {
             $response["refreshToken"] = $_SESSION['refreshToken'];
