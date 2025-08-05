@@ -2753,18 +2753,18 @@
                 
                 $("#button_close_popup").click(function()
                 {
-                    // location.reload();
-                    $("#modal-add-widget-body").modal('hide')
+                    location.reload();
+                    // $("#modal-add-widget-body").modal('hide')
 
                 });
                 
                 $("#closeModifyWidgetBtn").click(function()
                 {
-                    //location.reload();
-                    $("#modal-modify-widget").modal('hide')
-                    $("#specificParamsMRight").empty()
-                    $("#deviceTableEditorSM").empty()
-                    $(".wellCustom2right").css("width", "")
+                    location.reload();
+                    // $("#modal-modify-widget").modal('hide')
+                    // $("#specificParamsMRight").empty()
+                    // $("#deviceTableEditorSM").empty()
+                    // $(".wellCustom2right").css("width", "")
                 });
                 
                 function updateLastUsedColors(newColor)
