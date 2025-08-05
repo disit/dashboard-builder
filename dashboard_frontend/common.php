@@ -361,8 +361,25 @@ function checkLdapRole($connection, $userDn, $role, $baseDn)
 
 function checkLdapOrganization($connection, $userDn, $baseDn)
 {
+    $orgsArray = checkLdapOrganizations($connection, $userDn, $baseDn);
+    
+    if(sizeof($orgsArray)==0) {
+        if(isset($GLOBALS['defaultOrganization']))
+            return $GLOBALS['defaultOrganization'];
+        else
+            return "None";
+    } else if (sizeof($orgsArray) > 1) {
+        if(isset($_SESSION['loggedOrganization']))
+            return $_SESSION['loggedOrganization'];
+        return "None";
+    } else {
+        return $orgsArray[0];
+    }
+}
+
+function checkLdapOrganizations($connection, $userDn, $baseDn)
+{
     $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalUnit)(l=' . $userDn . '))');
-  //  $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalUnit))');
     $entries = ldap_get_entries($connection, $result);
     $orgsArray = [];
     foreach ($entries as $key => $value)
@@ -376,12 +393,7 @@ function checkLdapOrganization($connection, $userDn, $baseDn)
         }
     }
     
-    if (sizeof($orgsArray) > 1 || sizeof($orgsArray)==0) {
-        return "DISIT";
-    } else {
-        return $orgsArray[0];
-    }
-  //  return "";
+    return $orgsArray;
 }
 
 function checkLdapGroup($connection, $userDn, $baseDn, $userOrg)

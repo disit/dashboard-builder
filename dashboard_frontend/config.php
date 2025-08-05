@@ -21,7 +21,7 @@
     
     for($i = 0; $i < count($filesList); $i++)
     {
-        if(($filesList[$i] != ".")&&($filesList[$i] != "..")&&($filesList[$i] != "environment.ini"))
+        if(($filesList[$i] != ".")&&($filesList[$i] != "..")&&($filesList[$i] != "environment.ini")&&(substr($filesList[$i], -4)=='.ini'))
         {
             $fileContent = parse_ini_file("../conf/" . $filesList[$i]);
            
@@ -82,3 +82,8 @@
     $session_handler = new DBSessionHandler($host, $username, $password, $dbname);
     session_set_save_handler($session_handler, true);
     }
+    
+    if(isset($_GET['setOrg'])) {
+        setcookie("organization", $_GET['setOrg'], time() + (86400), "/", $cookieDomain); // 86400 = 1 day
+    }
+

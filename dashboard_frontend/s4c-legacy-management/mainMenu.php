@@ -64,19 +64,36 @@
             <div class="col-md-12 mainMenuUsrCnt">
                 <div class="row">
 <?php if(!$_SESSION['isPublic']) : ?>                  
-                    <div class="col-md-12 centerWithFlex" id="mainMenuUsrCnt">
+                    <div class="col-md-12" id="mainMenuUsrCnt">
                         <?php if (($_SESSION['loggedOrganization'] == 'None' || $_SESSION['loggedOrganization'] == 'none')) {
                             if ($_SESSION['loggedUsername'] == 'roottooladmin1') {
-                                echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
+                                echo "User: " . $_SESSION['loggedUsername'] . "<br> Org: " . $_SESSION['loggedOrganization'];
                             } else {
-                                echo "User: " . $_SESSION['loggedUsername'] . ", Org: None";
+                                echo "User: " . $_SESSION['loggedUsername'] . "<br> Org: None";
                             }
                         } else {
-                            echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
+                            if(count($_SESSION['loggedOrganizations'])==1)
+                                echo "User: " . $_SESSION['loggedUsername'] . "<br> Org: " . $_SESSION['loggedOrganization'];
+                            else {
+                                if(isset($_GET['setOrg'])) {
+                                    //TBD check is valid organization of logged user
+                                    $_SESSION['loggedOrganization'] = $_GET['setOrg'];
+                                }
+                                $orgsHtml = "<select style='color:black' id='org' onchange=\"document.location.href = select_org(this.value)\">";
+                                
+                                foreach($_SESSION['loggedOrganizations'] as $o) {
+                                    $selected="";
+                                    if($o==$_SESSION['loggedOrganization'])
+                                        $selected = "selected";
+                                    $orgsHtml .= "<option $selected>$o</option>";
+                                }
+                                $orgsHtml .= "</select>";
+                                echo "User: " . $_SESSION['loggedUsername'] . "<br>Org: ". $orgsHtml;
+                            }
                         }?>
                     </div>
-                    <div class="col-md-12 centerWithFlex" id="mainMenuUsrDetCnt">
-                        <?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
+                    <div class="col-md-12" id="mainMenuUsrDetCnt">
+                        <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none' ?: ", Level: " . $_SESSION['loggedUserLevel']); ?>
                     </div>
                   <!--  <div class="col-md-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
                         Logout<br/>
@@ -597,7 +614,13 @@ EOT;
                 }
                     }
                 });
-            }
+        }
+        
+        function select_org(org) {
+            if(document.location.href.includes('setOrg='))
+                return document.location.href.replace(/(setOrg=)[^\&]+/, '$1' + org);
+            return document.location.href + (document.location.href.includes('?')?'&':'?') + "setOrg="+org;
+        }
 
         function searchElement(text=""){
             $(".menuFilteredOut").removeClass("menuFilteredOut")
@@ -616,6 +639,5 @@ EOT;
             }
             $("div.mainMenuItemCntActive").removeClass("mainMenuItemCntActive")
         }
-            
 </script>    
 

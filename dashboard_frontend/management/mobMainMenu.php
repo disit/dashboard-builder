@@ -51,7 +51,7 @@
                 }?>
             </div>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrDetCnt">
-                <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
+                <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none' ?: ", Levelx: " . $_SESSION['loggedUserLevel']); ?>
             </div>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
                 <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>
@@ -322,7 +322,7 @@
                 <?php echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . @$_SESSION['loggedOrganization']; ?>
             </div>
             <div class="col-xs-5 centerWithFlex" id="mobMainMenuUsrDetCnt">
-                <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
+                <i class="fa fa-lock" style="font-size: 20px; color: rgba(0, 162, 211, 1)"></i>&nbsp;<?php echo "Role: " . $_SESSION['loggedRole'] . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none' ?: ", Level: " . $_SESSION['loggedUserLevel']); ?>
             </div>
             <div class="col-xs-2 centerWithFlex" id="mobMainMenuUsrLogoutCnt">
                 <button type="button" id="mobMainMenuUsrLogoutBtn" class="editDashBtn">logout</button>

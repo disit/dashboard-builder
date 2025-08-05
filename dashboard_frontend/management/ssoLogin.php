@@ -84,14 +84,16 @@ if($ldapAdminDN)
   $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
 else
   $bind = ldap_bind($ds);
-$organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
-$groups = [];
+
+$organizations = checkLdapOrganizations($ds, $ldapUsername, $ldapBaseDN);
+$organization = $organizations[0];
 $groups = checkLdapGroup($ds, $ldapUsername, $ldapBaseDN, $organization);
 if (is_null($organization)) {
     $organization = "Other";
 } else if ($organization == "") {
     $organization = "Other";
 }
+
 if ($ds && $bind) {
   if (checkLdapMembership($ds, $ldapUsername, $ldapToolName, $ldapBaseDN)) {
     if (checkLdapRole($ds, $ldapUsername, "RootAdmin", $ldapBaseDN)) {
@@ -148,12 +150,16 @@ if ($ldapOk) {
   $_SESSION['accessToken'] = $oidc->getAccessToken();
   $_SESSION['idToken'] = $oidc->getIdToken();
   $_SESSION['loggedOrganization'] = $organization;
+  $_SESSION['loggedOrganizations'] = $organizations;
+  
   $_SESSION['loggedUserGroups'] = $groups;
   $_SESSION['loggedUserLevel'] = $userLevel;
   $_SESSION['isPublic'] = false;
   if ($_COOKIE['layout'] == 'new_layout') {
       $_SESSION['newLayout'] = true;
   }
+  
+  setcookie("organization", $organization, time() + (86400), "/", $cookieDomain); // 86400 = 1 day
   
   $link = mysqli_connect($host, $username, $password);
   mysqli_select_db($link, $dbname);

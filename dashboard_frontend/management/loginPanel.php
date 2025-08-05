@@ -26,11 +26,24 @@
 								  echo "User: " . $_SESSION['loggedUsername'] . ", Org: None";
 							  }
 						  } else {
-							  echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
-						  }?>
+                                                        if(count($_SESSION['loggedOrganizations'])==1)
+                                                            echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
+                                                        else {
+                                                            $orgsHtml = "<select id='org' onchange=\"document.location.href = '?setOrg=' + this.value\">";
+
+                                                            foreach($_SESSION['loggedOrganizations'] as $o) {
+                                                                $selected="";
+                                                                if($o==$_SESSION['loggedOrganization'])
+                                                                    $selected = "selected";
+                                                                $orgsHtml .= "<option $selected>$o</option>";
+                                                            }
+                                                            $orgsHtml .= "</select>";
+                                                            echo "User: " . $_SESSION['loggedUsername'] . ", Org: ". $orgsHtml;
+                                                        }
+                                                 }?>
 					  </div>
 					  <div id="mainMenuUsrDetCnt">
-						  <?php echo "Role: " . $_SESSION['loggedRole'] . ", Level: " . $_SESSION['loggedUserLevel']; ?>
+						  <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none'?: ", Level: " . $_SESSION['loggedUserLevel']); ?>
 					  </div>
 					<!--  <div class="col-md-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
 						  Logout<br/>
