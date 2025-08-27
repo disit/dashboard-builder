@@ -937,7 +937,8 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     $finfo = finfo_open(FILEINFO_MIME_TYPE);
                     $mimetype = finfo_file($finfo, $filepath);
                     header("Content-Description: File Transfer");
-                    header("Content-Type: " . mime_content_type($filename));
+                    //header("Content-Type: " . mime_content_type($filename));
+                    header("Content-Type: " . $mimetype);
                     header("Content-Disposition: inline; filename=" . basename($filepath));
                     header("Content-Transfer-Encoding: binary");
                     header("Expires: 0");
