@@ -446,6 +446,89 @@
         background: #04AA6D;
         cursor: pointer;
         }
+
+        .customLinkButton{
+            margin: 0.3vw;
+        }
+        .customLink{
+            display: grid !important;
+            grid-template-columns: 1.5vw auto;
+        }
+        .customLinkText {
+            max-width: 5vw;
+            overflow-x: clip;
+            text-overflow: ellipsis;
+        }
+        .customLink .fa {
+            align-self: center;
+        }
+        input[type="text"]:disabled {
+            background-color: #eee;
+        }
+
+        .order-popup-menu {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 250px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 3;
+            border-radius: 4px;
+            padding: 10px;
+            overflow-y: scroll;
+            height: 40vh;
+        }
+        
+        .order-sortable-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .order-sortable-item {
+            padding: 8px 12px;
+            margin: 4px 0;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-sortable-item[draggable=true] {
+            cursor: move;
+        }
+        
+        .order-sortable-item:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .order-sortable-item.dragging {
+            opacity: 0.5;
+            background-color: #e9e9e9;
+        }
+        
+        .order-item-controls {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .order-control-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .order-control-btn:hover {
+            color: #333;
+        }
+        #currMenuOrderElement{
+            background-color: aliceblue;
+            border: 1px solid darkgray;
+        }
     </style>
 
 <body> 
@@ -621,7 +704,7 @@
                             ?>
 
                     <div id="orgMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">
-                        <div id="orgMenuCnt">
+                        <div id="orgMenuCnt" style="background-color: white; height:auto">
                             <?php
 
                             $link = mysqli_connect($host, $username, $password);
@@ -661,6 +744,30 @@
                             }   */
 
                             $organizationSql = $dashOrg;
+
+                            $newItem = '<div class="row fullCtxMenuRow" id="addRow" data-selected="false">'.
+                            '<div class="col-md-12 orgMenuItemCnt customLink">'.
+                            '<i class="fa fa-plus"></i><span>Add new link...</span>'.
+                            '</div>'.
+                            '</div>';
+
+                            echo($newItem);
+
+                            $newItem = '<div class="row fullCtxMenuRow" id="exportCustomLinkRow" data-selected="false">'.
+                            '<div class="col-md-12 orgMenuItemCnt customLink">'.
+                            '<i class="fa fa-download"></i><span>Export Custom Links</span>'.
+                            '</div>'.
+                            '</div>';
+
+                            echo($newItem);
+
+                            $newItem = '<div class="row fullCtxMenuRow" id="importCustomLinkRow" data-selected="false">'.
+                            '<div class="col-md-12 orgMenuItemCnt customLink">'.
+                            '<i class="fa fa-upload"></i><span>Import Custom Links</span>'.
+                            '</div>'.
+                            '</div>';
+
+                            echo($newItem);
 
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
                             $r = mysqli_query($link, $menuQuery);
@@ -2736,6 +2843,132 @@
 
     </div>
     
+    <!-- Modale custom link -->
+    <a id="customLinkDownloadAnchor" style="display:none"></a>
+    <div id="modalCustomLink" class="modal fade in" role="dialog" style="display: none; padding-left: 15px;">
+        <div class="modal-dialog">
+
+            <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title">Custom Link Management</h4>
+                </div>
+
+                <div class="modal-body">
+                    <div class="input-group"><span class="input-group-addon">Link Url: </span><input id="customLinkUrl" name="linkUrl" type="text" class="form-control" required></div><br>
+                    <div class="input-group"><span class="input-group-addon" required>Icon: <i class="icon-preview fa fa-assistive-listening-systems"></i></span>
+                        <select id="customLinkIcon" name="icon" class="form-control" onchange="select_icon('customLinkIcon')" defaultValue="">
+                        </select>
+                    </div><br>
+                    <div id="icon_new"></div>
+                    <div class="input-group"><span class="input-group-addon">Color: <i class="color-preview fa fa-circle" aria-hidden="true" style="color:#ffffff"></i></span>
+                        <input id="customLinkColor" name="iconColor" type="text" class="form-control colorpicker-element" defaultValue="#000000">
+                    </div><br>
+                    <div class="input-group"><span class="input-group-addon">Text: </span><input id="customLinkText" name="text" type="text" class="form-control" required></div><br>
+                    <div class="input-group"><span class="input-group-addon">Menu Order: </span>
+                    <input id="menuorder" name="menuOrder" type="number" class="form-control" min="0" defaultValue="0">
+                    <div class="order-popup-menu" id="orderSortableMenu">
+                        <ul class="order-sortable-list" id="orderSortableList">
+                        </ul>
+                    </div>
+                    </div>
+                    <br>
+                    <div class="input-group"><span class="input-group-addon">Open mode: </span>
+
+                        <select id="customLinkMode" name="openMode" class="form-control" defaultValue="newTab">
+                            <option value="newTab">newTab</option>
+                            <option value="samePage">samePage</option>
+                        </select>
+                    </div>
+                    <!-- <br> -->
+                    <!-- <div class="input-group"><span class="input-group-addon">Type of Link: </span>
+
+                        <select id="customLinkType" name="linkType" class="form-control">  
+                            <option value="DashboardLinkMenu">Custom Link</option>
+                            <option value="DashboardLinkMenuSubmenus">Custom Sublink</option>
+                        </select>
+                    </div><br> -->
+                    <!-- <div id ="linkCode" class="input-group" style="display:none">
+                        <span class="input-group-addon">Main Link Id: </span>
+                        <select id="customLinkFather" name="menuId" class="form-control"></select>
+                    </div> -->
+                    </div>
+                    <br>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <input type="button" id="customLinkConfirm" value="Confirm" class="btn confirmBtn" disabled>
+                    </div>
+                    <div class="row customLinkMsg" id="customLinkRunningMsg" style="display:none">
+                        <div class="col-xs-12 modalCell">
+                            <div id="customLinktRunningText" class="col-xs-12 centerWithFlex modalDelMsg"></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row customLinkMsg" id="customLinkOkMsg" style="display:none">
+                        <div class="col-xs-12 modalCell">
+                            <div id="customLinktOkText" class="col-xs-12 centerWithFlex modalDelMsg"></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row customLinkMsg" id="customLinkKoMsg" style="display:none">
+                        <div class="col-xs-12 modalCell">
+                            <div id="customLinktErrorText" class="col-xs-12 centerWithFlex modalDelMsg"></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- Fine modale custom link -->
+
+    <!-- Modale import customLink -->
+    <div class="modal fade" id="modalImportCustomLink" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modalHeader centerWithFlex">
+                    Import Custom Link
+                </div>
+                <input type="hidden" id="customLinkImportHidden" name="customLinkImportHidden" />
+                <div id="importCustomLinkModalBody" class="modal-body modalBody">
+                    <div class="row">
+                        <div id="importCustomLinkNameMsg" class="col-xs-12 modalCell">
+                            <div class="modalDelMsg col-xs-12 centerWithFlex">
+                                <?= _("Choose the JSON File of the Custom Links to Import")?>
+                            </div>
+                            <div id="importCustomLinkFile" class="modalDelObjName col-xs-12 centerWithFlex">
+                                <input type="file" id="customLinkJsonFile" accept=".json"/>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="importCustomLinkRunningMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Importing custom links, please wait")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-circle-o-notch fa-spin" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row" id="importCustomLinkOkMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Custom links imported successfully")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-up" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                    <div class="row" id="importCustomLinkKoMsg">
+                        <div class="col-xs-12 modalCell">
+                            <div id = "importCustomLinkErrorText" class="col-xs-12 centerWithFlex modalDelMsg"><?= _("Error importing custom links, please try again")?></div>
+                            <div class="col-xs-12 centerWithFlex modalDelObjName"><i class="fa fa-thumbs-o-down" style="font-size:36px"></i></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="importCustomLinkModalFooter" class="modal-footer">
+                    <button type="button" id="importCustomLinkCancelBtn" class="btn cancelBtn" data-dismiss="modal"><?= _("Cancel")?></button>
+                    <button type="button" id="importCustomLinkConfirmBtn" class="btn confirmBtn internalLink" disabled><?= _("Confirm")?></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Fine dei modali -->
             <script type='text/javascript'>
                 var gridster, num_cols, indicatore, datoTitle, datoSubtitle, datoColor, datoWidth, datoRemains, nuovaDashboard, headerFontSize, headerModFontSize, subtitleFontSize, clockFontSizeMod, dashboardName, dashboardOrg, dashboardOrgKbUrl, logoFilename, logoLink, temp, widgetsArray, nomeComune, metricType = null;
@@ -2766,6 +2999,538 @@
                     // $("#deviceTableEditorSM").empty()
                     // $(".wellCustom2right").css("width", "")
                 });
+                
+                // INIZIO CUSTOM LINK
+
+                var menuOrderObj = {
+                    currPos:0,
+                    initialPos:0,
+                    currOrder: [],
+                    initialOrder: {},
+                    currId: ""
+                }
+                var linkList = []
+
+                $("#customLinkColor").colorpicker();
+                $("#addRow").click(() => openCustomLinkModal())
+
+                $("#exportCustomLinkRow").click(() => exportCustomLinks())
+
+                $("#importCustomLinkRow").click(() => {
+                    $('#importCustomLinkRunningMsg').hide();
+                    $('#importCustomLinkOkMsg').hide();
+                    $('#importCustomLinkKoMsg').hide();
+                    $('#modalImportCustomLink').modal('show');
+                })
+
+                $('#importCustomLinkConfirmBtn').click(async function () {
+                    try{
+                        $("#importCustomLinkRunningMsg").show()
+                        let fileInput = $('#customLinkJsonFile')[0];
+                        let file = fileInput.files[0];
+                        let importJson = await parseJsonFile(file)
+                        if(importJson.error) throw new Error(JSON.stringify(importJson))
+                        let maxOrder = (linkList.length > 0)?Math.max(...linkList.map(x => x.menuOrder))+1:0
+                        
+                        importJson.forEach(x =>{
+                            x.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
+                            x.menuOrder += maxOrder
+                        })
+                        $.ajax({
+                            url: 'process-form.php',
+                            type: 'POST',
+                            data: {
+                                importCustomLink: true,
+                                importObj: JSON.stringify(importJson)
+                            },
+                            success: function (response) {
+                                getCustomLinks()
+                                $('#importCustomLinkKoMsg').hide();
+                                $('#importCustomLinkOkMsg').show();
+                                setTimeout(function () {
+                                    $('#modalImportCustomLink').modal('hide');
+                                }, 1000);
+                            },
+                            error: function (err) {
+                                throw new Error(err)
+                            },
+                        });
+                    }catch(e){
+                        var err = JSON.parse(e.message)
+                        var errMessage = err.error.responseText
+                        if(errMessage.includes("is not valid JSON")) errMessage = "JSON file not valid"
+                        console.log('err:>> ', err);
+                        setTimeout(() => {
+                            $("#importCustomLinkErrorText").text(errMessage)
+                            $("#importCustomLinkRunningMsg").hide()
+                            $("#importCustomLinkKoMsg").show()
+                        }, 500);
+                    }
+                });
+
+
+                async function parseJsonFile(file) {
+                    return new Promise((resolve, reject) => {
+                        try{
+                            if(file.type == "application/json"){
+                                const fileReader = new FileReader()
+                                fileReader.onload = event => {
+                                    try{
+                                        return resolve(JSON.parse(event.target.result))
+                                    }catch(exception){
+                                        return resolve({error: {responseText: exception.message}})
+                                    }
+                                }
+                                fileReader.onerror = error => {
+                                    console.log('error :>> ', error);
+                                    return reject(error);
+                                }
+                                fileReader.readAsText(file)
+                            }else{
+                                return resolve({error: {responseText: "is not valid JSON"}})
+                            }
+                        }catch(e){
+                            throw e
+                        }
+                    })
+                }
+
+                $("#customLinkJsonFile").change(() => {
+                    $("#importCustomLinkConfirmBtn").prop("disabled", !$("#customLinkJsonFile").val().includes(".json"))
+                });
+
+
+                $("#customLinkColor").colorpicker().on("changeColor", (evt) => {
+                    let newColor = $(evt.target).colorpicker("getValue", "#ffffff")
+                    $(evt.target).siblings("span").find(".color-preview").css("color", newColor)
+                    $(evt.target.parentElement).siblings(".input-group").find(".icon-preview").css("color", newColor)
+
+                })
+
+                $("#modalCustomLink .form-control[required]").on("input", (evt) => {
+                    let missingRequired = $("#modalCustomLink .form-control[required]").filter((i, x) => x.value == "").css("border", "1px solid red").length
+                    $("#modalCustomLink .form-control[required]").filter((i, x) => x.value != "").css("border", "")
+                    $("#modalCustomLink .form-control[required]").toArray().filter(x => x.value == "")
+                    $("#customLinkConfirm").prop("disabled", missingRequired)
+                })
+
+                $("#customLinkConfirm").click(() => {
+                    $(".customLinkMsg").hide()
+                    $("#modalCustomLink .form-control[required]").trigger("input")
+                    if(!$("#customLinkConfirm").prop("disabled")){
+
+                        let id = $("#customLinkConfirm").attr("linkId")
+                        let mode = $("#customLinkConfirm").attr("mode")
+                        let data = {}
+                        let linkInfo = linkList.find(x => x.id == id)
+                        $("#customLinktRunningText").text(((mode=="delete")?"Deleting":(linkInfo)?"Editing":"Creating")+" link")
+                        $("#customLinkRunningMsg").show()
+                        if(mode != "delete"){
+                            $("#modalCustomLink").find(".form-control").each((i, x) => {
+                                let name = x.name
+                                if(name && name != ""){
+                                    if(x.value=="" && x.getAttribute("defaultValue")!= undefined) x.value = x.getAttribute("defaultValue")
+                                    if((!linkInfo || linkInfo[name] != x.value))
+                                        data[name] = x.value
+                                }
+                            })
+                        }
+                        if(mode == "delete" || Object.keys(data).length > 0){
+                            data[`${mode}CustomLink`] = true;
+                            data.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
+                            if(linkInfo) data.id = id
+        
+                            $.ajax({
+                                async: true,
+                                type: "POST",
+                                url: "process-form.php",
+                                data,
+                                success: (res) => {
+                                    res = JSON.parse(res)
+                                    if(mode == "delete"){
+                                        let index = linkList.findIndex(x => x.id == id)
+                                        if(index > -1) linkList.splice(index, 1)
+                                        $("#currMenuOrderElement").remove()
+                                        saveMenuOrder()
+                                    }
+                                    else if(linkInfo){
+                                        Object.entries(data).forEach(([name, value]) => {
+                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId"].includes(name)){
+                                                linkInfo[name] = value
+                                            }
+                                        })
+                                    }else{
+                                        let newItem = {id: res.response}
+                                        Object.entries(data).forEach(([name, value]) => {
+                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId"].includes(name)){
+                                                newItem[name] = value
+                                            }
+                                        })
+                                        linkList.push(newItem)
+                                    }
+                                    setTimeout(() => {
+                                        $("#customLinktOkText").text("Link " + ((mode=="delete")?"deleted":(linkInfo)?"edited":"created"))
+                                        $("#customLinkRunningMsg").hide()
+                                        $("#customLinkOkMsg").show()
+                                        updateMenuOrder()
+                                        setTimeout(() => {
+                                            $('#modalCustomLink').modal('hide');
+                                        }, 500)
+                                    }, 500);
+                                },
+                                error: function (err) {
+                                    err = JSON.parse(err.responseText)
+                                    console.log('err link:>> ', err.error, err.sql);
+                                    setTimeout(() => {
+                                        $("#customLinktErrorText").text(err.error.responseText)
+                                        $("#customLinkRunningMsg").hide()
+                                        $("#customLinkKoMsg").show()
+                                    }, 500);
+                                }
+                            })
+                        }else{
+                            $("#customLinktErrorText").text("Fields are already updated")
+                            $("#customLinkRunningMsg").hide()
+                            $("#customLinkKoMsg").show()
+                        }
+                    }else{
+                        $("#customLinktErrorText").text("Required fields missing")
+                        $("#customLinkRunningMsg").hide()
+                        $("#customLinkKoMsg").show()
+                    }
+                })
+
+                // $("#customLinkType").change(() => {
+                //     let isSubmenu = $("#customLinkType").val() == "DashboardLinkMenuSubmenus"
+                //     $("#linkCode").toggle(isSubmenu)
+                //     if(isSubmenu){
+                //         $("#customLinkFather").empty()
+                //         linkList.DashboardLinkMenu.sort((x, y) => x.menuOrder - y.menuOrder).forEach(x => {
+                //             $("#customLinkFather").append(`<option value="${x.id}">${x.text}</option>`)
+                //         })
+                //     }
+                // })
+
+                $.ajax({
+                    async: true,
+                    type: 'GET',
+                    //url: url_parameters,
+                    //dataType: 'json',
+                    url: 'geteditormenu.php',
+                    data: {
+                        service: 'list_icons'
+                    },
+                    success: function (data) {
+                        console.log('ICONs');
+                        // console.log(data);
+                        data = data.replaceAll('"', '');
+                        data = data.replaceAll('"', '');
+                        data = data.replaceAll("'", "");
+                        data = data.replace("[", "");
+                        data = data.replace("]", "");
+                        var data1 = data.split(/[,.]/);
+                        // console.log(data1)
+                        for (var i = 0; i < data1.length; i++)
+                        {
+                            $('#customLinkIcon').append('<option  value="' + data1[i] + '"><i class="' + data1[i] + '" style="color:black;"></i>   ' + data1[i] + '</option>');
+                        }
+                        $('#customLinkIcon').append('<option  value="">Blank icon</option>');
+                        $("#customLinkIcon").change()
+                    }
+                });
+
+                function getCustomLinks(){
+                    $.ajax({
+                        async: true,
+                        type: 'GET',
+                        //url: url_parameters,
+                        //dataType: 'json',
+                        url: 'process-form.php',
+                        data: {
+                            getCustomLink: true,
+                            dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>
+                        },
+                        success: function (data) {
+                            linkList = JSON.parse(data).response
+                            populateCustomLinkMenu()
+                        },
+                        error: function (err) {
+                            err = JSON.parse(err.responseText)
+                            console.log('err link:>> ', err, err.responseText);
+                        }
+                    });
+                }
+                getCustomLinks()
+                
+
+                function openCustomLinkModal(id = "", isDelete = false){
+                    var linkItem = linkList.find(x => x.id == id)
+                    if(id == "" || linkItem){
+                        $(".customLinkMsg").hide()
+                        if(linkItem){
+                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = linkItem[x.name])
+                        }else{
+                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = (x.getAttribute("defaultValue") != undefined)?x.getAttribute("defaultValue"):"")
+                        }
+                        $("#modalCustomLink").find(".form-control").change()
+                        $("#modalCustomLink").find(".form-control[required]").trigger("input")
+                        $("#customLinkConfirm").val((isDelete)?"Delete link":(id == "")?"Add link":"Edit link")
+                        $("#customLinkConfirm").attr("mode", (isDelete)?"delete":(id == "")?"add":"edit")
+                        $("#customLinkConfirm").attr("linkId", id)
+                        $("#modalCustomLink").find(".form-control").prop("disabled", isDelete)
+                        $('#modalCustomLink').modal('show');
+                        populateMenuOrder()
+                    }
+                    
+                    
+                }
+
+                function populateCustomLinkMenu(){
+                    var lastId = ""
+                    $(".row.customLinkRow").remove()
+                    // linkList.DashboardLinkMenu.forEach(x => {
+                    linkList.sort((x, y) => Number(x.menuOrder) - Number(y.menuOrder)).forEach(x => {
+                        // var isFather = false;
+                        // var linkHtml = linkList.DashboardLinkMenuSubmenus.filter(y => y.menuId == x.id).map(y => {
+                        //     if(!isFather) isFather = true;
+                        //     let target = (y.openMode == "samePage")?"":'target="_blank"'
+                        //     return `<div class="row customLinkRow">
+                        //     <div class="col-md-12 orgMenuSubItemCnt" data-fathermenuiddiv="${x.id}" style="display: none;">
+                        //     <a href="${x.linkUrl}" id="${y.id}" style="text-decoration: none;padding-left: 15px;display: inline;" class="internalLink moduleLink orgMenuSubItemLink mainMenuIframeLink" ${target}>
+                        //     <i class="${y.icon}" style="color: ${y.iconColor}"></i>&nbsp;&nbsp;&nbsp;${y.text}</a>
+                        //     </div></div>`
+                        // }).join("")
+                        let target = (x.openMode == "samePage")?"":'target="_blank"'
+                        let href = `href='${x.linkUrl}'`
+                        // let submenuIndicator = ""
+                        // if(isFather){
+                        //     href = ""
+                        //     submenuIndicator = `<i class="fa fa-caret-down submenuIndicator" style="color: rgb(51, 64, 69)"></i>`
+                        // }
+                        let html = `<div class="row customLinkRow" data-linkid="${x.id}">
+                        <div class="col-md-12 orgMenuItemCnt">
+                        <a title="${x.text}" ${href} ${target} id="customLink_${x.id}" class="customLink">
+                        <i class="${x.icon}" style="color: ${x.iconColor}"></i><span class='customLinkText'>${x.text}</span>
+                        </a>
+                        <a class="customLinkButton customLinkEdit"><i class="fa fa-pencil" style="color: rgb(51, 64, 69)"></i></a>
+                        <a class="customLinkButton customLinkDelete"><i class="fa fa-trash" style="color: rgb(51, 64, 69)"></i></a>
+                        </div></div>`
+                        let lastIdQuery = (lastId=="")?"#addRow":`.customLinkRow[data-linkid=${lastId}]`
+                        $(`#orgMenuCnt ${lastIdQuery}`).after(html)
+                        lastId = x.id
+                    })
+                    $(".customLinkEdit").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow").attr("data-linkid")))
+                    $(".customLinkDelete").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow").attr("data-linkid"), true))
+                }
+
+                function select_icon(icon) {
+                    var icon_val = document.getElementById(icon).value;
+                    var icon_new = icon + '_new';
+                    if (icon_val === 'other') {
+
+                        $('#' + icon_new).html('<div class="input-group"><span class="input-group-addon">Add new Icon: </span><input id="' + icon_new + '_text"  type="text" class="form-control" /></div><br />');
+                    } else {
+                        $('#' + icon_new).empty();
+                        console.log('DELETE ICON NEW');
+                    }
+                    let iconPreview = $("#"+icon).siblings("span").children(".icon-preview")[0]
+                    if(iconPreview) iconPreview.classList = "icon-preview "+icon_val
+                }
+
+                function exportCustomLinks(){
+                    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(linkList));
+                    var dlAnchorElem = document.getElementById('customLinkDownloadAnchor');
+                    dlAnchorElem.setAttribute("href",dataStr);
+                    dlAnchorElem.setAttribute("download", `CustomLink ${$("#dashboardTitle span").text()}.json`);
+                    dlAnchorElem.click();
+                }
+
+                //MENU ORDER
+                function updateMenuOrder(){
+                    if($("#modalCustomLink:visible").length > 0){
+                        var diffMenuOrder = {}
+                        menuOrderObj.currOrder.forEach((x, i) => {
+                            if(x != menuOrderObj.currId && menuOrderObj.initialOrder[x] != i) diffMenuOrder[x] = i
+                        })
+                        if(Object.keys(diffMenuOrder).length > 0){
+                            $.ajax({
+                                async: false,
+                                type: 'POST',
+                                url: 'process-form.php',
+                                data: {
+                                    updateCustomLinkOrder: true,
+                                    update_list: JSON.stringify(diffMenuOrder)
+                                },
+                                success: function (data) {
+                                    data = JSON.parse(data);
+                                    Object.entries(diffMenuOrder).forEach(([id, order]) => {
+                                        let link = linkList.find(x => x.id == id)
+                                        if(link) link.menuOrder = order
+                                    })
+                                    populateCustomLinkMenu()
+                                }
+                            });
+                        }else populateCustomLinkMenu()
+                    }
+                }
+
+                function saveMenuOrder(){
+                    menuOrderObj.currOrder = $("#orderSortableList").children().toArray().map(x => x.getAttribute("data-id"))
+                    menuOrderObj.currPos = menuOrderObj.currOrder.findIndex(x => x==menuOrderObj.currId)
+                    if(menuOrderObj.currPos < 0) menuOrderObj.currPos = menuOrderObj.initialPos
+                    $("#menuorder").val(menuOrderObj.currPos)
+                }
+
+                function setMenuPosition(html){
+                    menuOrderObj.currPos = Number($("#menuorder").val())
+                    html ??= $("#currMenuOrderElement").remove()[0]
+                    if(menuOrderObj.currPos<$("#orderSortableList").children().length) $(`#orderSortableList > li:nth-child(${menuOrderObj.currPos+1})`).before(html);
+                    else $("#orderSortableList").append(html)
+                    if(!menuOrderObj.currOrder || menuOrderObj.currOrder.length == 0) saveMenuOrder()
+                }
+
+
+                function populateMenuOrder(){
+                    mode = $("#customLinkConfirm").attr("mode")
+                    currId = $("#customLinkConfirm").attr("linkId")
+                    menuOrderObj.currId = currId
+                    menuOrderObj.initialOrder = {}
+                    var html = ""
+                    let obj = linkList.map((x, i) => {
+                        if(currId != "" && x.id == currId){
+                            menuOrderObj.initialPos = i
+                            menuOrderObj.currPos = i
+                        }
+                        menuOrderObj.initialOrder[x.id] = x.menuOrder
+                        return {
+                            id: x.id,
+                            text: x.text,
+                            menuOrder: x.menuOrder
+                        }
+                    })
+                    if(currId == ""){
+                        menuOrderObj.initialPos = 0
+                        menuOrderObj.currPos = 0
+                        menuOrderObj.currOrder = [""]
+                    }else{
+                        menuOrderObj.currOrder = []
+                    }
+
+                    menuOrderObj.currOrder = [...menuOrderObj.currOrder, ...linkList.map(x => x.id)]
+                    $("#menuorder").val(menuOrderObj.currPos)
+                    obj.sort((x, y) => Number(x.menuOrder)-Number(y.menuOrder))
+                    
+                    if(mode == "add" && !obj.some(x => x.id == currId)){
+                        html = `<li class="order-sortable-item" data-id="" id="currMenuOrderElement" draggable=true>
+                            <span>New menu element</span>
+                            <div class="order-item-controls">
+                                <button class="control-btn move-up">↑</button>
+                                <button class="control-btn move-down">↓</button>
+                            </div>
+                        </li>`
+                    }
+                    $("#orderSortableList").empty()
+                    if(mode == "add" && menuOrderObj.currOrder && menuOrderObj.currOrder.length > 0){
+                        obj = menuOrderObj.currOrder.filter(x => x != "").map(x => obj.find(y => y.id == x))
+                    }
+                    obj.forEach((x, i) => {
+                        $("#orderSortableList").append(`<li class="order-sortable-item" ${((mode=="edit" || mode == "delete") && x.id == currId)?"id=currMenuOrderElement":""} data-id="${x.id}">
+                            <span>${x.text}</span>
+                            <div class="order-item-controls">
+                                <button class="control-btn move-up">↑</button>
+                                <button class="control-btn move-down">↓</button>
+                            </div>
+                        </li>`)
+                    })
+                    
+                    $('.order-sortable-item').attr("draggable", true)
+                    if(html != "" || mode == "edit") setMenuPosition(html)
+                }
+
+                $("#menuorder").parents(".modal").click(evt => {
+                    if($("#orderSortableMenu").is(":visible") && !$("#orderSortableMenu")[0].contains(evt.target)){
+                        //CHIUDE MODALE ORDINE
+                        $("#menuorder").val(menuOrderObj.currPos)
+                        saveMenuOrder()
+                        $("#orderSortableMenu").hide()
+                    }else if(evt.target == $("#menuorder")[0]){
+                        //APRE MODALE ORDINE
+                        $("#orderSortableMenu").show()
+                        setMenuPosition()
+                    }
+                })
+
+                $(document).on("input", "#customLinkText", (evt) => {
+                    let mode = $("#customLinkConfirm").attr("mode")
+                    let newText = $(evt.target).val()
+                    if(newText == "") newText = ((mode == "edit")?"Current":"New")+" menu element"
+                    $("#currMenuOrderElement span").text(newText)
+                })
+
+                $(document).on("click", ".order-item-controls", evt => {
+                    var direction = evt.target.classList.contains("move-up")?-1:evt.target.classList.contains("move-down")?1:0
+                    if(direction != 0){
+                        item = $(evt.target).parents(".order-sortable-item")
+                        otherItem = (direction == -1)?item.prev():item.next()
+                        if(otherItem.length>0) {
+                            menuOrderObj.currPos += direction;
+                            if(direction==-1) item.insertBefore(otherItem)
+                            else item.insertAfter(otherItem)
+                            $("#menuorder").val(menuOrderObj.currPos)
+                        }
+                    }
+                })
+                var draggedMenuOrderItem
+                $(".order-sortable-list").on('dragstart', function(evt) {
+                    e = evt.originalEvent
+                    if (e.target.classList.contains('order-sortable-item')) {
+                        draggedMenuOrderItem = e.target;
+                        e.target.classList.add('dragging');
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/html', e.target.innerHTML);
+                    }
+                });
+                
+                $(".order-sortable-list").on('dragover', function(evt) {
+                    e = evt.originalEvent
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    const targetItem = e.target.closest('.order-sortable-item');
+                    if (!targetItem || targetItem === draggedMenuOrderItem) return;
+                    
+                    const rect = targetItem.getBoundingClientRect();
+                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5;
+                    
+                    document.getElementById("orderSortableList").insertBefore(
+                        draggedMenuOrderItem, 
+                        next ? targetItem.nextSibling : targetItem
+                    );
+                });
+                    
+                $(".order-sortable-list").on('dragend', function(e) {
+                    if (e.target.classList.contains('order-sortable-item')) {
+                        e.target.classList.remove('dragging');
+                        saveMenuOrder()
+                        draggedMenuOrderItem = null
+                    }
+                });
+
+                
+                
+                $(".order-sortable-list").on('dragenter', function(e) {
+                    e.preventDefault();
+                });
+                
+                $(".order-sortable-list").on('dragleave', function(e) {
+                    e.preventDefault();
+                });
+                
+                $(".order-sortable-list").on('drop', function(e) {
+                    e.preventDefault();
+                });
+
+                // FINE CUSTOM LINK
                 
                 function updateLastUsedColors(newColor)
                 {

@@ -36,10 +36,10 @@ $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 if (isset($_SESSION['loggedRole'])) {
     $role_session_active = $_SESSION['loggedRole'];
+    session_start();
+    $arr = Array();
+    $service = $_REQUEST['service'];
     if ($role_session_active == "RootAdmin") {
-        session_start();
-        $arr = Array();
-        $service = $_REQUEST['service'];
 //$service = 'list_menu';
 
         if ($service == 'list_menu') {
@@ -354,35 +354,6 @@ if (isset($_SESSION['loggedRole'])) {
             }
             sort($arr);
             echo json_encode($arr);
-        } else if ($service == 'list_icons') {
-            //$query = "SELECT DISTINCT count(icon) AS count, icon FROM MainMenu GROUP BY icon ORDER BY count DESC;";
-            $query = "SELECT DISTINCT icon FROM MainMenu GROUP BY icon
-                        UNION
-                        SELECT DISTINCT icon FROM OrgMenu GROUP BY icon
-                        UNION
-                        SELECT DISTINCT icon FROM OrgMenuSubmenus GROUP BY icon
-                        UNION
-                        SELECT DISTINCT icon FROM MobMainMenu GROUP BY icon
-                        UNION
-                        SELECT DISTINCT icon FROM MobMainMenuSubmenus GROUP BY icon
-                        UNION
-                        SELECT DISTINCT icon FROM MainMenuSubmenus GROUP BY icon ORDER BY icon ASC
-                        ";
-            $result = mysqli_query($link, $query) or die(mysqli_error($link));
-            $i = 0;
-            while ($row = mysqli_fetch_assoc($result)) {
-                //print_r($row);
-                //$row['id'];
-                //
-        $arr[$i] = trim($row['icon']);
-                //
-                $i++;
-
-// [id] => 1155 [linkUrl] => submenu [publicLinkUrl] => [linkId] => mainSetupLink [icon] => fa fa-cogs [text] => Settings [privileges] => ['RootAdmin','ToolAdmin'] [userType] => any [externalApp] => no [openMode] => submenu [iconColor] => #99ff99 [pageTitle] => Settings [domain] => 2 [menuOrder] => 19 [organizations] => ['Toscana', 'Firenze', 'Sardegna'. 'Helsinki', 'Antwerp', 'Garda Lake', 'DISIT', 'Other'] )
-            }
-            array_unique($arr);
-            sort($arr);
-            echo json_encode($arr);
         } else if ($service == 'create_menu') {
             $url = mysqli_real_escape_string($link, $_POST['url']);
             $url = filter_var($url, FILTER_SANITIZE_STRING);
@@ -692,6 +663,39 @@ if (isset($_SESSION['loggedRole'])) {
             // echo $menu_type;
         }
     }
+    if ($service == 'list_icons') {
+        //$query = "SELECT DISTINCT count(icon) AS count, icon FROM MainMenu GROUP BY icon ORDER BY count DESC;";
+        $query = "SELECT DISTINCT icon FROM MainMenu GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM OrgMenu GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM OrgMenuSubmenus GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM MobMainMenu GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM MobMainMenuSubmenus GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM MainMenuSubmenus GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM DashboardLinkMenu GROUP BY icon ORDER BY icon ASC
+                    ";
+        $result = mysqli_query($link, $query) or die(mysqli_error($link));
+        $i = 0;
+        while ($row = mysqli_fetch_assoc($result)) {
+            //print_r($row);
+            //$row['id'];
+            //
+            $arr[$i] = trim($row['icon']);
+            //
+            $i++;
+
+        // [id] => 1155 [linkUrl] => submenu [publicLinkUrl] => [linkId] => mainSetupLink [icon] => fa fa-cogs [text] => Settings [privileges] => ['RootAdmin','ToolAdmin'] [userType] => any [externalApp] => no [openMode] => submenu [iconColor] => #99ff99 [pageTitle] => Settings [domain] => 2 [menuOrder] => 19 [organizations] => ['Toscana', 'Firenze', 'Sardegna'. 'Helsinki', 'Antwerp', 'Garda Lake', 'DISIT', 'Other'] )
+        }
+        array_unique($arr);
+        sort($arr);
+        echo json_encode($arr);
+    }
+    
 }
 
 //

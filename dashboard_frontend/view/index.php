@@ -1867,6 +1867,17 @@
         updateAccess();
 
     </script>
+    <style>
+        .customLink{
+            display: grid;
+            grid-template-columns: 1.5vw auto;
+        }
+        .customLinkText {
+            max-width: 5vw;
+            overflow-x: clip;
+            text-overflow: ellipsis;
+        }
+    </style>
 </head>
 <body>
   <?php include "../cookie_banner/cookie-banner.php"; ?>
@@ -1943,6 +1954,29 @@
 
                             $newDivItem = '<div id=orgMenuCnt"><div id="orgMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">';
                             echo($newDivItem);
+
+
+                            $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
+                            $customLinkSql = "SELECT ".join(",", $customLinkVars)." FROM Dashboard.DashboardLinkMenu WHERE dashboardId = $dashId ORDER BY menuOrder ASC";
+                            // echo $customLinkSql;
+                            if (($customLinkStmt = mysqli_prepare($link, $customLinkSql)) && mysqli_stmt_execute($customLinkStmt)) {
+                                $customLinkRefs = [];
+                                foreach ($customLinkVars as $customLinkVar) {
+                                    $$customLinkVar = null;
+                                    $customLinkRefs[] = &$$customLinkVar;
+                                }
+                                mysqli_stmt_bind_result($customLinkStmt, ...$customLinkRefs);
+            
+                                while ($customLinkStmt->fetch()) {
+                                    $target = $openMode == "samePage" ? "" : "target='_blank'";
+                                    echo "<div class='row customLinkRow' data-linkid='$id'>".
+                                        "<div class='col-md-12 orgMenuItemCnt'>".
+                                        "<a title='$text' href='$linkUrl' $target id='customLink_$id' class='customLink'>".
+                                        "<i class='$icon' style='color: $iconColor'></i><span class='customLinkText'>$text</span>".
+                                        "</a>".
+                                        "</div></div>";
+                                }
+                            }
 
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
                             $r = mysqli_query($link, $menuQuery);

@@ -5,5 +5,6 @@
   "ACL" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACL` (ID INT NOT NULL AUTO_INCREMENT, defID INT NOT NULL, user VARCHAR(500) NOT NULL, PRIMARY KEY (ID), FOREIGN KEY (defID) REFERENCES `Dashboard`.`AccessDefinitions`(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
   "ACLProfiles" : "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACLProfiles` (ID INT NOT NULL AUTO_INCREMENT, profilename VARCHAR(500) NOT NULL UNIQUE, authIDs TEXT NULL, PRIMARY KEY (ID));",
   "ACLProfilesAssignment": "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACLProfilesAssignment` (profileID INT NOT NULL, user VARCHAR(500) NOT NULL, PRIMARY KEY (profileID, user), FOREIGN KEY (profileID) REFERENCES `Dashboard`.`ACLProfiles`(ID) ON DELETE CASCADE ON UPDATE CASCADE);",
-  "ACNames": "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACNames` (name VARCHAR(500) NOT NULL, PRIMARY KEY (name));"
+  "ACNames": "CREATE TABLE IF NOT EXISTS `Dashboard`.`ACNames` (name VARCHAR(500) NOT NULL, PRIMARY KEY (name));",
+  "DashboardLinkMenu": "CREATE TABLE IF NOT EXISTS `DashboardLinkMenu` (`id` int(11) NOT NULL AUTO_INCREMENT, `linkUrl` varchar(300) NOT NULL, `icon` varchar(200) DEFAULT '', `text` varchar(200) DEFAULT '', `openMode` varchar(45) DEFAULT 'newTab', `iconColor` varchar(45) DEFAULT '#FFFFFF', `menuOrder` int(2) DEFAULT 0, `dashboardId` int(11) NOT NULL, PRIMARY KEY (`id`), KEY `DashboardLinkMenu_idfk` (`dashboardId`)) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci;"
 }
