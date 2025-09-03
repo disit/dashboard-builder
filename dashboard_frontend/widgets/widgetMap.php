@@ -2731,7 +2731,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
 
 
-        function onMapEntityClick(feature, marker) {
+        function onMapEntityClick(feature, marker, descBim) {
 
             marker.on('mouseover', function (event) {
                 if (feature.properties.deviceName != null) {
@@ -2748,7 +2748,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     this.bindTooltip(tooltipString);
                     event.target.openTooltip();
                 } else if (feature.properties.name != null) {
-                    let tooltipString = feature.properties.name;
+                    let metric = descBim || "";
+                    let tooltipString = feature.properties.name + " - " + metric;
                     this.bindTooltip(tooltipString);
                     event.target.openTooltip();
                 }
@@ -25748,10 +25749,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+        
     $(document).on('addBimShape', function (event) {
+
+        console.log(event.passedData)
+        if (!map.bimShapesOnMap) map.bimShapesOnMap = {};   // ADDITIVE SHAPE GP
+        if (!map.bimLegendsOnMap) map.bimLegendsOnMap = {};
+        
         var currentBimShapePage = 0;
-        var newBimShape = null;
+        // var newBimShape = null;
         if (event.target === map.mapName) {
             var bimColorScale = "";
             if (lastPopup !== null) {
@@ -25771,7 +25777,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
             }
 
-            function styleBimShape(feature) {
+        /*    function styleBimShape(feature) {
                 //var color = getBimColor(feature.properties.density[Object.keys(feature.properties.density)[0]]);
                 var color = "";
                 if (feature.properties.values) {
@@ -25791,8 +25797,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     fillColor: color
                 };
 
-            }
+            }   */
 
+            $(document).off('newBimShape.bimshape');
             $(document).on('newBimShape', newBimShape = function (event) {
                 //    console.log('[event] newOdTargetData')
                 /*    if(sourcePolyID.length > 0 && targetPolyID.length >0){
@@ -25803,7 +25810,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             function addBimShapeEventToMap() {
 
-                if (map.eventsOnMap.length > 0) {
+                if (addMode === 'exclusive' && map.eventsOnMap.length > 0) {
                     for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
                         if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
                             removeBimShapeColorLegend(i, true);
@@ -25822,16 +25829,37 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 var color1 = passedData.color1;
                 var color2 = passedData.color2;
                 var queryType = passedData.queryType;
-                descBim = passedData.desc;
+                // descBim = passedData.desc;
+                var localDesc = passedData.desc;
                 var display = passedData.display;
                 var pinattr = passedData.pinattr;
                 var pincolor = passedData.pincolor;
                 var symbolcolor = passedData.symbolcolor;
                 var iconFilePath = passedData.iconFilePath;
                 selectedMetrics = passedData.selectedMetrics;
-                bubbleSelectedMetric[descBim] = passedData.bubbleSelectedMetric;
+                var metricKey = passedData.bubbleSelectedMetric;
+                bubbleSelectedMetric[localDesc] = passedData.bubbleSelectedMetric;
                 altViewMode = passedData.altViewMode;
                 bimShapeOnMap = true;
+
+                var shapeEntityId = "";
+                if (passedData.query && passedData.query.indexOf("model=") !== -1) {
+                    // Prendi tutto tra "model=" e "&" oppure fino a fine stringa
+                    var modelStart = passedData.query.indexOf("model=") + "model=".length;
+                    var modelEnd = passedData.query.indexOf("&", modelStart);
+                    if (modelEnd !== -1) {
+                        shapeEntityId = passedData.query.substring(modelStart, modelEnd);
+                    } else {
+                        shapeEntityId = passedData.query.substring(modelStart);
+                    }
+                } else if (passedData.query && passedData.query.lastIndexOf("/") !== -1) {
+                    shapeEntityId = passedData.query.substring(passedData.query.lastIndexOf("/") + 1);
+                } else {
+                    shapeEntityId = passedData.query;
+                }
+                // combined key
+                var shapeKey = shapeEntityId + "_" + metricKey;
+
 
                 var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
 
@@ -25845,14 +25873,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 loadingDiv.css("top", ($('#<?= $_REQUEST['name_w'] ?>_div').height() - ($('#<?= $_REQUEST['name_w'] ?>_content div.gisMapLoadingDiv').length * loadingDiv.height())) + "px");
                 loadingDiv.css("left", ($('#<?= $_REQUEST['name_w'] ?>_div').width() - loadingDiv.width()) + "px");
 
-                if (descBim == query) {
+                if (localDesc == query) {
                     var loadingText = $('<p class="gisMapLoadingDivTextPar">adding to map<br><i class="' + spinIcon + '" style="font-size: 30px"></i></p>');
                     var loadOkText = $('<p class="gisMapLoadingDivTextPar"> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
                     var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                 } else {
-                    var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + descBim.toLowerCase() + '</b> to map<br><i class="' + spinIcon + '" style="font-size: 30px"></i></p>');
-                    var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + descBim.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
-                    var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + descBim.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                    var loadingText = $('<p class="gisMapLoadingDivTextPar">adding <b>' + localDesc.toLowerCase() + '</b> to map<br><i class="' + spinIcon + '" style="font-size: 30px"></i></p>');
+                    var loadOkText = $('<p class="gisMapLoadingDivTextPar"><b>' + localDesc.toLowerCase() + '</b> added to map<br><i class="fa fa-check" style="font-size: 30px"></i></p>');
+                    var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + localDesc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                 }
 
                 loadingDiv.css("background", color1);
@@ -25865,6 +25893,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                 loadingDiv.append(loadingText);
                 loadingDiv.css("opacity", 1);
+
+                if (map.bimShapesOnMap && map.bimShapesOnMap[shapeKey]) {
+                    // Feedback utente (loadingDiv), oppure solo un return silenzioso
+                    loadingDiv.empty();
+                    loadingDiv.append('<p class="gisMapLoadingDivTextPar">Already on Map: <b>' + shapeKey.toLowerCase() + '</b><br><i class="fa fa-close" style="font-size: 30px"></i></p>');
+                    setTimeout(function () {
+                        loadingDiv.css("opacity", 0);
+                        setTimeout(function () {
+                            loadingDiv.remove();
+                        }, 350);
+                    }, 1000);
+                    return; // dont' add shape!
+                }
 
                 var parHeight = loadingText.height();
                 var parMarginTop = Math.floor((loadingDiv.height() - parHeight) / 2);
@@ -25898,7 +25939,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
                         if (altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
                             queryShape = query + "&valueName=geometry";
-                            query = query + "&valueName=" + bubbleSelectedMetric[descBim];
+                            query = query + "&valueName=" + metricKey;
                         }
                         query = "<?= $superServiceMapProxy ?>api/v1/iot-search/?" + query.split('?')[1];
                         queryShape = "<?= $superServiceMapProxy ?>api/v1/iot-search/?" + queryShape.split('?')[1];
@@ -25932,7 +25973,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }
 
 
-                getSmartCityAPIData = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
+                var getSmartCityAPIData = fetchAjax(apiUrl, null, "GET", 'json', true, 0);
                 // getShapeSmartCityAPIData = fetchAjax(shapeApiUrl, null, "GET", 'json', true, 0);
 
                 var geoJsonData = null;
@@ -26008,8 +26049,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 var maxValue = 0;
                                 var valueObj = {};
                                 if (fatherGeoJsonNode.features[i].properties.values != null) {
-                                    if (geoJsonData.features[i].properties.values.hasOwnProperty("geometry")) {
-                                        shapeJsonString = geoJsonData.features[i].properties.values["geometry"];
+                                    if (fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.hasOwnProperty("geometry")) {
+                                        shapeJsonString = fatherGeoJsonNode.features[i].properties.values["geometry"];
                                         if (shapeJsonString === "") {
                                             fatherGeoJsonNode.features.splice(i, 1);
                                             i--;
@@ -26022,44 +26063,54 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         }
                                             fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                         }
-                                    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(bubbleSelectedMetric[descBim])) {
-                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties.values[bubbleSelectedMetric[descBim]];
+                                    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(metricKey)) {
+                                        fatherGeoJsonNode.features[i].properties[metricKey] = fatherGeoJsonNode.features[i].properties.values[metricKey];
                                         //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
-                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]]))) {
+                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[metricKey]))) {
                                             if (shapeJson != null) {
                                                 fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
                                             } else {
                                                 countNullGeometry++;
+                                                fatherGeoJsonNode.features.splice(i, 1);
+                                                i--;
+                                                continue;
                                             }
                                             continue;
                                         } else {
-                                            if (fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] > maxValue) {
-                                                maxValue = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]];
+                                            if (fatherGeoJsonNode.features[i].properties[metricKey] > maxValue) {
+                                                maxValue = fatherGeoJsonNode.features[i].properties[metricKey];
                                             }
                                         }
                                     } else {
-                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                        fatherGeoJsonNode.features[i].properties[metricKey] = 0;
                                         //continue;
                                     }
                                 } else {
                                     if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
-                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")) {
-                                            if (shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"] != null) {
-                                                shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
-                                                if (IsJsonString(shapeJsonString)) {
-                                                    shapeJson = JSON.parse(shapeJsonString);
-                                                    fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
-                                                }
+                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes
+                                            && fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")
+                                            && geoJsonData.realtime && geoJsonData.realtime.results
+                                            && geoJsonData.realtime.results.bindings
+                                            && geoJsonData.realtime.results.bindings[0]
+                                            && geoJsonData.realtime.results.bindings[0]["geometry"]) {
+                                            var shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
+                                            if (IsJsonString(shapeJsonString)) {
+                                                var shapeJson = JSON.parse(shapeJsonString);
+                                                fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                             }
                                         }
-                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(bubbleSelectedMetric[descBim])) {
-                                            var key = bubbleSelectedMetric[descBim];
+                                        if (fatherGeoJsonNode.features[i].properties.realtimeAttributes
+                                            && fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(metricKey)
+                                            && geoJsonData.realtime && geoJsonData.realtime.results
+                                            && geoJsonData.realtime.results.bindings
+                                            && geoJsonData.realtime.results.bindings[0]
+                                            && geoJsonData.realtime.results.bindings[0][metricKey]) {
                                             var obj = {};
-                                            obj[key] = geoJsonData.realtime.results.bindings[0][bubbleSelectedMetric[descBim]].value;
+                                            obj[metricKey] = geoJsonData.realtime.results.bindings[0][metricKey].value;
                                             fatherGeoJsonNode.features[i].properties["lastValue"] = obj;
                                         }
                                     } else {
-                                        fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = 0;
+                                        fatherGeoJsonNode.features[i].properties[metricKey] = 0;
                                         //continue;
                                     }
                                 }
@@ -26070,10 +26121,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
                                 } else {
                                     countNullGeometry++;
+                                    fatherGeoJsonNode.features.splice(i, 1);
+                                    i--;
+                                    continue;
                                 }
 
                                 dataObj.eventType = "bimShapeEvent";
-                                dataObj.descBim = descBim;
+                                dataObj.descBim = metricKey;
                                 dataObj.query = passedData.query;
                                 dataObj.targets = passedData.targets;
                                 dataObj.eventGenerator = passedData.eventGenerator;
@@ -26102,18 +26156,28 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             }
                         }
 
+                        if (!fatherGeoJsonNode.features || fatherGeoJsonNode.features.length === 0) {
+                            loadingDiv.empty();
+                            loadingDiv.append('<p class="gisMapLoadingDivTextPar">no geometry found<br><i class="fa fa-info-circle" style="font-size: 30px"></i></p>');
+                            setTimeout(function () {
+                                loadingDiv.css("opacity", 0);
+                                setTimeout(function () { loadingDiv.remove(); }, 350);
+                            }, 1000);
+                            return;
+                        }
+
                         map.eventsOnMap.push(dataObj);
                         var colorBimMapName = "";
                         var legendBimFilePath = "";
 
                         if (passedData.floorNumber == null) {
                             if (fatherGeoJsonNode.features[0].properties.deviceModel === "buildingModelEnergy15Min" || fatherGeoJsonNode.features[0].properties.model === "buildingModelEnergy15Min") {
-                                colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1) + "_building";
+                                colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_building";
                             } else {
-                                colorBimMapName = "colormapshape" + bubbleSelectedMetric[descBim];
+                                colorBimMapName = "colormapshape" + metricKey;
                             }
                         } else {
-                            colorBimMapName = "colormap" + (bubbleSelectedMetric[descBim]).charAt(0).toUpperCase() + (bubbleSelectedMetric[descBim]).slice(1) + "_floor";
+                            colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_floor";
                         }
                         legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
 
@@ -26121,20 +26185,52 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         getColorMapData.done(function (colorScale) {
 
                             bimColorScale = colorScale;
-                            if (geoJsonLayerShape) {
+                            /*if (geoJsonLayerShape) {
                                 map.defaultMapRef.removeLayer(geoJsonLayerShape);
-                            }
+                            }*/
+
+                            var styleBimShapeBound = function(feature) {
+                                var color = "";
+                                if (feature.properties.values) {
+                                    color = getBimColor(feature.properties.values[metricKey]);
+                                } else if (feature.properties.lastValue) {
+                                    color = getBimColor(feature.properties.lastValue[metricKey]);
+                                }
+                                var borderColor = darkenColor(color, 0.2);
+                                return {
+                                    stroke: true,
+                                    color: borderColor,
+                                    weight: 1,
+                                    opacity: 1,
+                                    fillOpacity: 0.6,
+                                    fillColor: color
+                                };
+                            };
 
                             try {
-                                geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
-                                    //style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
+                            /*    geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
+                                    // style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
                                     style: styleBimShape,
-                                    onEachFeature: onMapEntityClick
+                                    // onEachFeature: onMapEntityClick
+                                    onEachFeature: function(feature, layer) {
+                                        onMapEntityClick(feature, layer, descBim);
+                                    }
+                                }); */
+                                geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
+                                    style: styleBimShapeBound,
+                                    onEachFeature: function(feature, layer) {
+                                        onMapEntityClick(feature, layer, localDesc);   // <-- passa la cattura locale
+                                    }
                                 });
                                 geoJsonLayerShape.addTo(map.defaultMapRef);
 
-                                if (passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice") {
-                                    map.defaultMapRef.setView([fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1], fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]], 18);
+                                if ((passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice")
+                                    && fatherGeoJsonNode.features && fatherGeoJsonNode.features.length > 0) {
+                                    map.defaultMapRef.setView(
+                                        [fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1],
+                                            fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]],
+                                        18
+                                    );
                                 }
 
                                 if (geoJsonLayerShape) {
@@ -26162,11 +26258,26 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     return div;
                                 };
 
-                                bimShapeLegendColors.addTo(map.defaultMapRef);
+                                // Check if legend already exists
+                                if (!map.bimLegendsOnMap[metricKey]) {
+                                    map.bimLegendsOnMap[metricKey] = bimShapeLegendColors;
+                                    bimShapeLegendColors.addTo(map.defaultMapRef);
+                                } else {
+                                    bimShapeLegendColors = map.bimLegendsOnMap[metricKey];
+                                    // If leggend already exists, don't add
+                                }
+                                
+                                //bimShapeLegendColors.addTo(map.defaultMapRef);
                                 //  map.eventsOnMap.push(heatmap);
 
                                 event.legendColors = bimShapeLegendColors;
-                                map.eventsOnMap.push(event);
+                                // map.eventsOnMap.push(event);
+                                // Store shape and legend for each entity (additive)    // ADDITIVE SHAPE GP
+                                map.bimShapesOnMap[shapeKey] = {
+                                    layer: geoJsonLayerShape,
+                                    legendColors: bimShapeLegendColors,
+                                    descBim: metricKey
+                                };
 
                                 loadingDiv.empty();
                                 loadingDiv.append(loadOkText);
@@ -26223,7 +26334,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         });
 
                     } else {
-                        gisLayersOnMap[event.descBim] = "loadError";
+                        gisLayersOnMap[event.passedData.desc] = "loadError";
 
                         loadingDiv.empty();
                         loadingDiv.append(loadKoText);
@@ -26259,7 +26370,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 });
 
                 getSmartCityAPIData.fail(function (errorData) {
-                    gisLayersOnMap[event.descBim] = "loadError";
+                    gisLayersOnMap[event.passedData.desc] = "loadError";
 
                     loadingDiv.empty();
                     loadingDiv.append(loadKoText);
@@ -26619,29 +26730,117 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     $(document).on('removeBimShape', function (event) {
 
-        function removeBimShape(resetPageFlag) {
+    /*    function removeBimShape(resetPageFlag) {
             if (geoJsonLayerShape !== null) {
                 map.defaultMapRef.removeLayer(geoJsonLayerShape);
             }
-        }
+        }*/
 
-        if (event.target === map.mapName) {
-            //    bimShapeOnMap = false;
-            //    animationFlag = false;
-            for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                if (map.eventsOnMap[i] && map.eventsOnMap[i].eventType && map.eventsOnMap[i].eventType === 'bimShapeEvent') {
-                    removeBimShape(true);
-                    map.eventsOnMap.splice(i, 1);
-                } else if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
-                    removeBimShapeColorLegend(i, true);
-                    map.eventsOnMap.splice(i, 1);
+        function removeBimShape(resetPageFlag, descBimToRemove, query) {
+            // combined key
+            var shapeEntityId = "";
+            if (query && query.indexOf("model=") !== -1) {
+                // Prendi tutto tra "model=" e "&" oppure fino a fine stringa
+                var modelStart = query.indexOf("model=") + "model=".length;
+                var modelEnd = query.indexOf("&", modelStart);
+                if (modelEnd !== -1) {
+                    shapeEntityId = query.substring(modelStart, modelEnd);
+                } else {
+                    shapeEntityId = query.substring(modelStart);
+                }
+            } else if (query && query.lastIndexOf("/") !== -1) {
+                shapeEntityId = query.substring(query.lastIndexOf("/") + 1);
+            } else {
+                shapeEntityId = query;
+            }
+            // combined key
+            var shapeKey = shapeEntityId + "_" + descBimToRemove;
+
+            if (shapeKey && map.bimShapesOnMap && map.bimShapesOnMap[shapeKey]) {
+                // Remove shape from map
+                map.defaultMapRef.removeLayer(map.bimShapesOnMap[shapeKey].layer);
+                // var descBim = map.bimShapesOnMap[shapeKey].descBim;
+                delete map.bimShapesOnMap[shapeKey];
+
+                // Check if there are other shapes with the same metric
+                var found = false;
+                for (var key in map.bimShapesOnMap) {
+                    if (map.bimShapesOnMap.hasOwnProperty(key)) {
+                        // Confronta con descBimToRemove (che è il bubbleSelectedMetric della shape rimossa)
+                        if (map.bimShapesOnMap[key].descBim === descBimToRemove) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                // If no more shapes are on map with the specific metric, remove legend
+                if (!found && map.bimLegendsOnMap && map.bimLegendsOnMap[descBimToRemove]) {
+                    map.defaultMapRef.removeControl(map.bimLegendsOnMap[descBimToRemove]);
+                    delete map.bimLegendsOnMap[descBimToRemove];
                 }
             }
         }
 
+        if (event.target === map.mapName) {
+            var passedData = event.passedData || {};
+            var descToRemove = passedData.bubbleSelectedMetric;
+            var queryToRemove = passedData.query;
+            if (descToRemove && queryToRemove) {
+                removeBimShape(true, descToRemove, queryToRemove);
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i] && map.eventsOnMap[i].eventType && map.eventsOnMap[i].eventType === 'bimShapeEvent' && map.eventsOnMap[i].descBim === descToRemove) {
+                        map.eventsOnMap.splice(i, 1);
+                    } else if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
+                        removeBimShapeColorLegend(i, true);
+                        map.eventsOnMap.splice(i, 1);
+                    }
+                }
+            }
+        }
     });
 
-    $(document).on('removeAlarm', function (event) {
+        $(document).on('removeAllBimShapes', function (event) {
+            if (event.target === map.mapName) {
+                // Remove Alla Shapes
+                if (map.bimShapesOnMap) {
+                    for (var key in map.bimShapesOnMap) {
+                        if (map.bimShapesOnMap.hasOwnProperty(key)) {
+                            // Rimuovi layer dalla mappa
+                            if (map.bimShapesOnMap[key].layer) {
+                                map.defaultMapRef.removeLayer(map.bimShapesOnMap[key].layer);
+                            }
+                        }
+                    }
+                    map.bimShapesOnMap = {};
+                }
+                // Remove all Legends
+                if (map.bimLegendsOnMap) {
+                    for (var lkey in map.bimLegendsOnMap) {
+                        if (map.bimLegendsOnMap.hasOwnProperty(lkey)) {
+                            if (map.bimLegendsOnMap[lkey]) {
+                                map.defaultMapRef.removeControl(map.bimLegendsOnMap[lkey]);
+                            }
+                        }
+                    }
+                    map.bimLegendsOnMap = {};
+                }
+                if (map.eventsOnMap && map.eventsOnMap.length > 0) {
+                    for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                        if (
+                            map.eventsOnMap[i] &&
+                            map.eventsOnMap[i].eventType &&
+                            map.eventsOnMap[i].eventType === 'bimShapeEvent'
+                        ) {
+                            map.eventsOnMap.splice(i, 1);
+                        }
+                    }
+                }
+            }
+        });
+
+
+        $(document).on('removeAlarm', function (event) {
         if (event.target === map.mapName) {
             let passedData = event.passedData;
 

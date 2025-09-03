@@ -1438,7 +1438,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                     $('.gisPinLink').each(function( index ) {
                                         if (sourceSelector == $(this).offsetParent()[0]) {
                                             if(JSON.parse(widgetProperties.param.parameters).queries[index-count].bubble && JSON.parse(widgetProperties.param.parameters).queries[index-count].bubble.includes("BimShape")) {
-                                                if ($(this).attr("data-onMap") === "true") {
+                                            /*    if ($(this).attr("data-onMap") === "true") {
                                                     $(this).attr("data-onMap", "false");
                                                     if ($(this).attr("data-symbolMode") === 'auto') {
                                                         if ($(this).attr("data-iconTextMode") == "icon" && $(this).parents("div.gisMapPtrContainer").find("div.poolIcon").children(0).attr("src") != null) {
@@ -1452,7 +1452,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                                                         $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconUp").css("height", "100%");
                                                         $(this).parents("div.gisMapPtrContainer").find("div.gisPinCustomIconDown").css("display", "none");
                                                     }
-                                                }
+                                                }*/
                                             }
                                         } else {
                                             count++;
@@ -1496,7 +1496,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
                                 $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("font-weight", "normal");
                                 $(this).parents('div.gisMapPtrContainer').siblings('div.gisQueryDescContainer').find('span.gisQueryDescPar').css("color", $(this).attr("data-fontColor"));
-                                removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-bubbleMode"));
+                                removeLayerFromTargetMaps($(this).attr("data-desc"), $(this).attr("data-query"), $(this).attr("data-color1"), $(this).attr("data-color2"), $(this).attr("data-targets"), $(this).attr("data-display"), $(this).attr("data-bubbleMode"), $(this).attr("data-bubbleSelectedMetric"));
                             }
                         }
 
@@ -1627,7 +1627,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             }
         }
 
-        function removeLayerFromTargetMaps(desc, query, color1, color2, targets, display, bubbleFlag) {
+        function removeLayerFromTargetMaps(desc, query, color1, color2, targets, display, bubbleFlag, bubbleSelectedMetric) {
             let coordsAndType = {};
 
             coordsAndType.desc = desc;
@@ -1636,6 +1636,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
             coordsAndType.color2 = color2;
             coordsAndType.targets = targets;
             coordsAndType.display = display;
+            coordsAndType.bubbleSelectedMetric = bubbleSelectedMetric;
 
             if (bubbleFlag != "Bubble") {
                 if (bubbleFlag == "BimShape" || bubbleFlag == "BimShapePopup") {
