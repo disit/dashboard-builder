@@ -1643,6 +1643,10 @@ $(document).on('click', '#modify_report', function () {
     var periods = $('#periods').val();
     var jobs = $('#job').val();
     var data_unique_name_id =  $('#data-unique_name_id').val();
+	var org = $('#organization').val();
+	var device_name = $('#iotDevice').val();
+	var complete_string = org+":"+data_unique_name_id+":"+device_name;
+	console.log ('complete string:'+complete_string);
     console.log ('activation: '+activation+' periods:'+periods);
     //
                 $.ajax({
@@ -1654,7 +1658,7 @@ $(document).on('click', '#modify_report', function () {
                         type: 'Devices',
                         activation: activation,
                         periods: periods,
-                        service: data_unique_name_id,
+                        service: complete_string,
                         jobs: jobs
                     },
                     success: function (data) {
@@ -2330,7 +2334,7 @@ $(document).on('click', '#modify_report', function () {
                             }
                             var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of IotApp")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
                             $('#list_kpi_dash').html(content);
-                            //console.log('ciao');
+
                         }
                     }
                 });
@@ -2408,7 +2412,7 @@ $(document).on('click', '#modify_report', function () {
                             }
                             var content = '<div class="dropdown"><button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown"><?=_("List of Iot Apps")?><span class="caret"></span></button><ul class="dropdown-menu">' + link_dash + '</ul></div>';
                             $('#list_kpi_dash').html(content);
-                            //console.log('ciao');
+
                         }
                     }
                 });
