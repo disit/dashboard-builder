@@ -6,5 +6,5 @@ if [ -f running-last-10m-iot.txt ]; then
 fi
 
 date > running-last-10m-iot.txt
-php IOT_Last10min_Feed_DashboardWizard.php > feed-iot-last10m.log 2>&1
+php -d memory_limit=3G IOT_Last10min_Feed_DashboardWizard.php > feed-iot-last10m.log 2>&1
 rm running-last-10m-iot.txt

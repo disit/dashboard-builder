@@ -298,3 +298,9 @@ while($open_search->isNotEmptyResult($results)) {
 
 
 }
+$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$end_scritp_time = $endTime->format('c');
+$end_scritp_time_string = explode("+", $end_scritp_time);
+$end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
+echo("End Synoptic_Update_DashboardWizard SCRIPT at: ".$end_time_ok);
+

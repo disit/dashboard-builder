@@ -6,5 +6,5 @@ if [ -f running-10min.txt ]; then
 fi
 
 date > running-10min.txt
-php HealthinessCheck_CarPark_Predictions.php > health-carpark-pred.log 2>&1
+php -d memory_limit=2G HealthinessCheck_CarPark_Predictions.php > health-carpark-pred.log 2>&1
 rm running-10min.txt

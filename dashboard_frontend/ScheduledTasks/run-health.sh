@@ -6,5 +6,5 @@ if [ -f running-health.txt ]; then
 fi
 
 date > running-health.txt
-php HealthinessCheck.php > health.log 2>&1
+php -d memory_limit=2G HealthinessCheck.php > health.log 2>&1
 rm running-health.txt

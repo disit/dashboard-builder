@@ -241,7 +241,7 @@ if ($rs) {
                                     $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                     $update_scritp_timeU = $updateTimeU->format('c');
                                     $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
-                                    echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
+                                    echo("             Updating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
                                     $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                     mysqli_query($link, $query_update);
                                 }
@@ -332,7 +332,7 @@ if ($rs) {
                                             $offset = $current_dateTimeZone->getOffset($updateTimeU);
                                             $update_scritp_timeU = $updateTimeU->format('c');
                                             $update_time_okU = str_replace("T", " ", $update_scritp_timeU);
-                                            echo("             Udpating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
+                                            echo("             Updating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
 
                                             $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances = '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                             mysqli_query($link, $query_update);
