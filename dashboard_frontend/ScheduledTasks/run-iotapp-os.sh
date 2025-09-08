@@ -7,7 +7,8 @@ fi
 
 date > running2-os.txt
 #php IOT_Sensor_Feed_DashboardWizard.php > feed-iot-new.log 2>&1
-php -d memory_limit=2G IOT_Device_FeedAndUpdate_DashboardWizard-OS.php > feed-iot-os.log 2>&1
+cp feed-iot-os.log feed-iot-os.log.old
+php -d memory_limit=5G IOT_Device_FeedAndUpdate_DashboardWizard-OS.php > feed-iot-os.log 2>&1
 #date >> running2.txt
 #php IOT_App_FeedDashboardWizard.php > feed-iot-app.log 2>&1 
 #date >> running2.txt
