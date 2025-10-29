@@ -10,5 +10,162 @@
     "value": "widgetDeviceTable",
     "update": "UPDATE `Widgets` SET `id_type_widget` = 'widgetDeviceTable', `source_php_widget` = 'widgetDeviceTable.php', `min_row` = 1, `max_row` = 80, `min_col` = 1, `max_col` = 200, `widgetType` = 'Series', `unique_metric` = ' ', `numeric_rangeOption` = 0, `number_metrics_widget` = 1, `color_widgetOption` = 1, `dimMap` = NULL, `widgetCategory` = 'dataViewer', `isNodeRedSender` = 'no', `domainType` = NULL, `defaultParameters` = '{}', `hasTimer` = 'yes', `hasChartColor` = 'no', `hasDataLabels` = 'no', `hasChartLabels` = 'no', `hasTimeRange` = 'no', `hasCartesianPlane` = 'no', `hasChangeMetric` = 'yes', `hasAddMode` = 'no', `isCollapsible` = 'no' WHERE `id_type_widget` = 'widgetDeviceTable';",
     "insert": "INSERT INTO `Widgets` (`id_type_widget`, `source_php_widget`, `min_row`, `max_row`, `min_col`, `max_col`, `widgetType`, `unique_metric`, `numeric_rangeOption`, `number_metrics_widget`, `color_widgetOption`, `dimMap`, `widgetCategory`, `isNodeRedSender`, `domainType`, `defaultParameters`, `hasTimer`, `hasChartColor`, `hasDataLabels`, `hasChartLabels`, `hasTimeRange`, `hasCartesianPlane`, `hasChangeMetric`, `hasAddMode`, `isCollapsible`) VALUES ('widgetDeviceTable', 'widgetDeviceTable.php', 1, 80, 1, 200, 'Series', ' ', 0, 1, 1, NULL, 'dataViewer', 'no', NULL, '{}', 'yes', 'no', 'no', 'no', 'no', 'no', 'yes', 'no', 'no');"
-  }
+  },
+  "AccessDefinitions": [
+    {
+      "column": "authname",
+      "value": "Python",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('Python', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "Rstudio",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('Rstudio', 'NULL', 1066);"
+    },
+    {
+      "column": "authname",
+      "value": "UserStats",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('UserStats', '*', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "DataIngestionTable",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('DataIngestionTable', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SnapAdvisor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'DISIT', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SnapAdvisor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'Firenze', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SnapAdvisor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'Careggi', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "3DLoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('3DLoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "TPLEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('TPLEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "BIMLoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('BIMLoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "ColorMapEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('ColorMapEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "ODMLoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('ODMLoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "VectorFieldLoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('VectorFieldLoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "HeatmapProducer",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('HeatmapProducer', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SynopticLoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SynopticLoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "CSBLEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('CSBLEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "DashboardExport",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('DashboardExport', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "DashboardImport",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('DashboardImport', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "GTFSEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('GTFSEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "POILoader",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('POILoader', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "PythonJupiterHub",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('PythonJupiterHub', '*', 10134);"
+    },
+    {
+      "column": "authname",
+      "value": "RouterTool",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('RouterTool', 'DISIT', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "ScenarioEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('ScenarioEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SimulationManager",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SimulationManager', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SumoSimulator",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SimulationManager', 'DISIT', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "SynopticTemplating",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SynopticTemplating', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "TLPEditor",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('TLPEditor', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "UserStats",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('UserStats', 'DISIT', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "UserStats",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('UserStats', 'Bari', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "WidgetExport",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('WidgetExport', 'NULL', NULL);"
+    },
+    {
+      "column": "authname",
+      "value": "WidgetImport",
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('WidgetImport', 'NULL', NULL);"
+    }
+  ]
 }

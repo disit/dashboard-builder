@@ -14,10 +14,27 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include('process-form.php');
+include('../management/ACLInternal.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 session_start();
 checkSession('Manager');
+error_reporting(E_ERROR);
+
+//ACL for reports
+$report_auth = ACLAPI_check_auth(["auth_name" =>"Report Manager",
+                    "preferred_username"=>$_SESSION["loggedUsername"]]);
+
+$report_authorized = (isset($report_auth['authorized']) && $report_auth['authorized'] === true);
+function debug_to_console($data, $label = 'Report ACL Debug') {
+    $labelJson = json_encode($label);
+    $dataJson  = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
+    echo "<script>console.log($labelJson, $dataJson);</script>";
+}
+debug_to_console($report_auth);
+debug_to_console($report_authorized);
+
+
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
@@ -670,6 +687,7 @@ $lastUsedColors = null;
     <iframe width="0" height="0" border="0" name="uploadframe" id="uploadframe" hidden></iframe>
     <!-- -->
     <script type='text/javascript'>
+    const reportAuthorized = <?php echo json_encode($report_authorized); ?>;
         if ($(window).width() < 1200) {
             $('#right').css('float', 'left');
         }
@@ -771,12 +789,13 @@ $lastUsedColors = null;
             if (role_session_active === 'RootAdmin') {
                 hour_option = '<option value="hourly"><?=_("Hourly")?></option>';
             }else{
-                hour_option = '';
+                hour_option = '<option value="hourly" disabled><?=_("Hourly")?></option>';
             }
             //$('#web').val();
             ////////////////////////
-            if (role_session_active === 'RootAdmin') {
-                  $('#admin_report_config').html('<div class="panel panel-default"><div class="panel-heading"><?= _("Define Report"); ?></div><div class="panel-body"><input type="text" id="job" style="display:none;"></input><label for="activation"><?=_("Activation:")?></label><input id="activation" type="checkbox"></br><label for="periods"><?= _("Periodicity:")?></label><select id="periods"><option value="undefined"></option><option value="monthly"><?= _("Monthly")?></option><option value="quarterly"><?= _("Quarterly")?></option>'+hour_option+'</select></div><div class="panel-footer"><button class="btn btn-primary" role="button" id="modify_report" style="margin-right: 10px;"><?= _("Confirm")?></button></div></div>');
+            
+            if (role_session_active === 'RootAdmin' || reportAuthorized) {
+                  $('#admin_report_config').html('<div class="panel panel-default"><div class="panel-heading"><?= _("Define Report"); ?></div><div class="panel-body"><input type="text" id="job" style="display:none;"></input><label for="activation"><?=_("Activation:")?></label><input id="activation" type="checkbox"></br><label for="periods"><?= _("Periodicity:")?></label><select id="periods"><option value="undefined" disabled></option><option value="monthly"><?= _("Monthly")?></option><option value="quarterly"><?= _("Quarterly")?></option>'+hour_option+'</select></div><div class="panel-footer"><button class="btn btn-primary" role="button" id="modify_report" style="margin-right: 10px;"><?= _("Confirm")?></button></div></div>');
              }else{
                  $('#admin_report_config').empty();
              }
@@ -1584,41 +1603,38 @@ $.ajax({
                         service: data_unique_name_id 
                     },
                     success: function (data) {
-                        console.log('SUCCESS');
+                        console.log('SUCCESS GETTING LIST');
+                        console.log('data unique:'+data_unique_name_id);
                         console.log('Status data:   '+data);
                         var value = JSON.parse(data);
-                        console.log(value.status);
-                        console.log(value.period);
-                        console.log(value.folder);
-                        console.log(value.link);
-                        console.log(value.job);
                         //
                         var link = value.link;
+                        var status = value.status;
                         //
-                        if (value.status === "Yes"){
+                        if (status === "Yes"){
 						//$('#report_link').html('<button type="button" id="button_link" class="btn btn-primary">Download Report</button>');
                                                 if (link !==""){
                                                      $('#report_link').html('<a class="btn btn-primary" href="'+link+'" role="button" target="_blank"><?=_("Download Report")?></a>');
+                                                }else{
+                                                    $('#report_link').html('<a class="btn btn-primary" href="" role="button" disabled><?=_("No download available yet")?></a>')
                                                 }
-                                                if (role_session_active === 'RootAdmin') {
+                                                if (role_session_active === 'RootAdmin' || reportAuthorized) {
                                                     $('#activation').prop('checked', true);
                                                     $('#job').val(value.job);
                                                 }
                                             }else{
-                                               $('#report_link').empty();
-                                                 if (role_session_active === 'RootAdmin') {
+                                                 if (role_session_active === 'RootAdmin' || reportAuthorized) {
                                                     $('#activation').prop('checked', false);
                                                 }
                                             }
-			if ((value.period === 'monthly')||(value.period === 'quarterly')){
-                            $('#periods').val(value.period);
-                        }
-                        //
-                        if (role_session_active === 'RootAdmin') {
-                         if (value.period === 'hourly'){
-                             $('#periods').val(value.period);
-                         }       
-                        }
+                                            if (role_session_active === 'RootAdmin' || reportAuthorized) {
+                                                if ((value.period === 'monthly')||(value.period === 'quarterly')){
+                                                                $('#periods').val(value.period);
+                                                            }
+                                                            }
+                                                if (role_session_active === 'RootAdmin' && value.period === 'hourly'){
+                                                            $('#periods').val(value.period);
+                                                }
                     }
                 });
 //////
@@ -1662,7 +1678,7 @@ $(document).on('click', '#modify_report', function () {
                         jobs: jobs
                     },
                     success: function (data) {
-                        console.log('SUCCESS');
+                        console.log('SUCCESS EDITING DEVICE:'+complete_string);
                         console.log('Status data:   '+data);
                         var value = JSON.parse(data);
                         var code = value.code;
@@ -1757,6 +1773,9 @@ $(document).on('click', '#modify_report', function () {
                 }, 1000);
                         //
                        
+                    },error: function(data){
+                        console.log(data)
+                        alert(data.responseText);
                     }
                 });
     //
@@ -2290,7 +2309,7 @@ $(document).on('click', '#modify_report', function () {
                         service: id_kpi
                     },
                     success: function (data) {
-                        console.log('SUCCESS');
+                        console.log('SUCCESS getkpilist');
                         var json_data = data.dashboards;
                         //console.log(data);
                         if (data !== 'null') {
@@ -2368,7 +2387,7 @@ $(document).on('click', '#modify_report', function () {
                         service: unique_id
                     },
                     success: function (data) {
-                        console.log('SUCCESS');
+                        console.log('SUCCESS getkpilist');
                         var json_data = data.dashboards;
                         //console.log(data);
                         if (data !== 'null') {
