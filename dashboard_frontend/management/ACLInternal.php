@@ -25,15 +25,34 @@
             or die("MySQL connect error: " . mysqli_error($link));
         return $link;
     }
+    function getLdapConn() {
+    global $ldapServer, $ldapPort, $ldapBaseDN, $ldapAdminDN, $ldapAdminPwd;
+    $conn = ldap_connect($ldapServer, $ldapPort)
+        or die("That LDAP-URI was not parseable");
+    ldap_set_option($conn, LDAP_OPT_PROTOCOL_VERSION, 3);
+    ldap_bind($conn, $ldapAdminDN, $ldapAdminPwd)
+        or die("ERROR IN BIND");
+    return $conn;
+    }
     /**
     * Handle authorization for the 'check_auth' endpoint by first
     * ensuring the user is authenticated, then delegating ACL checks.
     * FOR INTERNAL: EXPECTED $data: ["auth_name":"required", "organization": "optional", "preferred_username":"required", "ou"='unused for now' ]
     */
     function ACLAPI_check_auth($data = []) {
+    global $ldapBaseDN;
     $link = getDbLink();
+    $ldap = getLdapConn();
     $requested_name = trim($data['auth_name'] ?? '');
     $requested_org = trim($data['organization'] ?? '');
+    $user_orgs = checkLdapOrganizations($ldap, 'cn='.$data["preferred_username"].','.$ldapBaseDN, $ldapBaseDN);
+    if(!in_array($requested_org, $user_orgs)){
+        return ['error' => 'requested org is not in user orgs',
+                'baseDn' => $ldapBaseDN,
+                'userDn' => 'cn='.$data["preferred_username"].','.$ldapBaseDN,
+                'user_orgs' => $user_orgs,
+                'requested_org' => $requested_org];
+    }
     $claims = $data;
     /*$enc_username = encryptOSSL(
         strtolower($claims['preferred_username']),
@@ -152,7 +171,7 @@ function check_profile_access(mysqli $link, array $req, $enc_username): ?array {
         }
         mysqli_stmt_close($stmt);
 
-        //org check (return if org is not allowed)[since auth names are unique, there won't be another profile with another org and same auth name as requested]
+        //org check (return if org is not allowed)
         if (! allowed_orgs($req['requested_org'], $possibleOrgs)) {
             return ['authorized' => false , 'reason' => 'Organization not allowed'];
         }
@@ -338,6 +357,10 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     $monthEnd   = date('Y-m-t');      // last day of this month
     // check TOTAL so far
     if ($maxTotal !== null) {
+        if($maxTotal <= 0) {
+            mysqli_close($link2);
+            return false;
+        }
         $sql = "
           SELECT COALESCE(SUM(nAccessPerDay),0)
             FROM daily_dashboard_accesses
@@ -352,6 +375,10 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     }
     // check month
     if ($maxByMonth !== null) {
+        if($maxByMonth <= 0) {
+            mysqli_close($link2);
+            return false;
+        }
         $sql = "
           SELECT COALESCE(SUM(nAccessPerDay),0)
             FROM daily_dashboard_accesses
@@ -372,6 +399,10 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     }
     // check day
     if ($maxByDay !== null) {
+        if($maxByDay <= 0) {
+            mysqli_close($link2);
+            return false;
+        }
         $sql = "
           SELECT nAccessPerDay
             FROM daily_dashboard_accesses
@@ -479,7 +510,7 @@ function ACLAPI_check_dashboard($data = []): array {
         $hitAny = true;
         $debug[] = "Found AD row: defID={$defID}, maxByDay={$maxByDay}, maxByMonth={$maxByMonth}, maxTotal={$maxTotal}";
         //Direct ACL?
-        $debug[] = "→ Checking direct ACL for defID={$defID}";
+        $debug[] = "Checking direct ACL for defID={$defID}";
         $aclSql = "SELECT 1 FROM ACL WHERE `user` = ? AND defID = ? LIMIT 1";
         if (! $aclStmt = mysqli_prepare($link, $aclSql)) {
             $debug[] = "  ACL prepare failed: " . mysqli_error($link);
@@ -491,22 +522,32 @@ function ACLAPI_check_dashboard($data = []): array {
             $debug[] = "  ACL num_rows={$n}";
             if ($n > 0) {
                 $debug[] = "  → Direct ACL HIT";
-                if (check_userstats_accesses_dashboards(
-                        $enc_username, $dashID, $maxByDay, $maxByMonth, $maxTotal
-                    )) {
-                    mysqli_stmt_close($aclStmt);
-                    mysqli_stmt_close($adStmt);
+                if($maxByDay   !== null || $maxByMonth !== null || $maxTotal  !== null){
+                    if (check_userstats_accesses_dashboards(
+                            $enc_username, $dashID, $maxByDay, $maxByMonth, $maxTotal
+                        )) {
+                        mysqli_stmt_close($aclStmt);
+                        mysqli_stmt_close($adStmt);
+                        return [
+                            'authorized'    => true,
+                            'authorized_by' => 'Direct_ACL'
+                        ];
+                    }
+                    $debug[] = "Usage-limit FAILED (direct)";
+                } else {
+                    $debug[] = "No usage limits detected, authorizing.";
                     return [
                         'authorized'    => true,
-                        'authorized_by' => 'Direct_ACL'
+                        'authorized_by' => 'Direct_ACL',
+                        //'debug'      => $debug
                     ];
-                }
-                $debug[] = "  → Usage-limit FAILED (direct)";
+                    
+            }
             }
             mysqli_stmt_close($aclStmt);
         }
         //Profile-based ACL?
-        $debug[] = "→ Checking profile ACLs";
+        $debug[] = "Checking profile ACLs";
         $paSql = "SELECT profileID FROM ACLProfilesAssignment WHERE `user` = ?";
         if (! $paStmt = mysqli_prepare($link, $paSql)) {
             $debug[] = "  PA prepare failed: " . mysqli_error($link);
@@ -518,22 +559,23 @@ function ACLAPI_check_dashboard($data = []): array {
             $foundProfile = false;
             while (mysqli_stmt_fetch($paStmt)) {
                 $foundProfile = true;
-                $debug[] = "  Profile assignment: profileID={$profileID}";
+                $debug[] = "Profile assignment: profileID={$profileID}";
                 $pSql = "SELECT authIDs, profilename FROM ACLProfiles WHERE ID = ?";
                 if (! $pStmt = mysqli_prepare($link, $pSql)) {
-                    $debug[] = "    Profile prepare failed: " . mysqli_error($link);
+                    $debug[] = "Profile prepare failed: " . mysqli_error($link);
                     continue;
                 }
                 mysqli_stmt_bind_param($pStmt, 'i', $profileID);
                 mysqli_stmt_execute($pStmt);
                 mysqli_stmt_bind_result($pStmt, $rawAuthIDs, $profileName);
                 if (mysqli_stmt_fetch($pStmt)) {
-                    $debug[] = "    Loaded profile='{$profileName}', authIDs='{$rawAuthIDs}'";
+                    $debug[] = "Loaded profile='{$profileName}', authIDs='{$rawAuthIDs}'";
                     $ids = array_map('intval',
                         array_filter(array_map('trim', explode(',', $rawAuthIDs)))
                     );
                     if (in_array($defID, $ids, true)) {
                         $debug[] = "    → Profile '{$profileName}' includes defID={$defID}";
+                        if($maxByDay   !== null || $maxByMonth !== null || $maxTotal  !== null){
                         if (check_userstats_accesses_dashboards(
                                 $enc_username, $dashID, $maxByDay, $maxByMonth, $maxTotal
                             )) {
@@ -545,24 +587,36 @@ function ACLAPI_check_dashboard($data = []): array {
                                 'authorized_by' => $profileName
                             ];
                         }
-                        $debug[] = "    → Usage-limit FAILED (profile)";
+                        $debug[] = "Usage-limit FAILED (profile)";
+                    } else{
+                        $debug[] = "No usage limits detected, authorizing.";
+                        return [
+                                'authorized'    => true,
+                                'authorized_by' => $profileName,
+                                'debug'      => $debug
+                            ];
+                    }
                     } else {
-                        $debug[] = "    Profile does NOT include defID={$defID}";
+                        $debug[] = "Profile does NOT include defID={$defID}";
                     }
                 } else {
-                    $debug[] = "    No ACLProfiles row for ID={$profileID}";
+                    $debug[] = "No ACLProfiles row for ID={$profileID}";
                 }
                 mysqli_stmt_close($pStmt);
             }
             if (! $foundProfile) {
-                $debug[] = "  No profiles assigned to user";
+                $debug[] = "No profiles assigned to user";
             }
             mysqli_stmt_close($paStmt);
         }
     }
     mysqli_stmt_close($adStmt);
     if (! $hitAny) {
-        $debug[] = "→ No AccessDefinition matched dashboardID";
+        $debug[] = "No AccessDefinition matched dashboardID";
+        return [
+        'authorized' => true,
+        'debug'      => $debug
+    ];
     }
     return [
         'authorized' => false,
@@ -718,6 +772,10 @@ function ACLAPI_check_collection($data = []): array {
     mysqli_stmt_close($adStmt);
     if (! $hitAny) {
         $debug[] = "→ No AccessDefinition matched collectionID";
+        return [
+        'authorized' => true,
+        'debug'      => $debug
+    ];
     }
     return [
         'authorized' => false,

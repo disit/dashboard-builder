@@ -14,6 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
     include '../config.php';
+    include 'ACLInternal.php';
     require '../sso/autoload.php';
     use Jumbojett\OpenIDConnectClient;
    
@@ -234,12 +235,25 @@
            $authorOrigin = '';
         }
 
+        $auth_result = ACLAPI_check_dashboard([ 'dashboard_id'=> $dashboardId, 'preferred_username'=> $_SESSION['loggedUsername'] ?? '']);
+        $allowedByACL = $auth_result['authorized'];
+
         switch($visibility)
         {
             //Ok
             case "public":
-                $response["dashboardParams"] = getDashboardParams($link);
-                $response["dashboardWidgets"] = getDashboardWidgets($link);
+                if($allowedByACL)
+                {
+                    $response["detail"] = "Ok";
+                    $response["context"] = "View";
+                    $response["dashboardParams"] = getDashboardParams($link);
+                    $response["dashboardWidgets"] = getDashboardWidgets($link);
+                }
+                else
+                {
+                    $response["detail"] = "Ko";
+                    error_log("Access to dashboard Id ".$dashboardId." denied by ACL for public visibility.");
+                }
                 break;
 
             //VISIBILITA' RISTRETTA 
@@ -402,8 +416,7 @@
                                     $proceed = false;
                                 }
                            }
-                       }
-                       
+                       }                       
                        
                    }
                    //Utente NON collegato all'applicazione
@@ -414,16 +427,24 @@
                        
                    }//Fine else utente NON collegato all'applicazione
                    
-                   if($proceed)
+                   if($proceed && $allowedByACL)
                    {
-                       $response["detail"] = "Ok";
-                       $response["context"] = "View";
-                       $response["dashboardParams"] = getDashboardParams($link);
-                       $response["dashboardWidgets"] = getDashboardWidgets($link);
+                        $response["detail"] = "Ok";
+                        $response["context"] = "View";
+                        $response["dashboardParams"] = getDashboardParams($link);
+                        $response["dashboardWidgets"] = getDashboardWidgets($link);
                    }
                    else
                    {
                        $response["detail"] = "Ko";
+                       if(!$proceed)
+                       {
+                           error_log("Access to dashboard Id ".$dashboardId." denied: not author nor delegated user.");
+                       }
+                       else
+                       {
+                           error_log("Access to dashboard Id ".$dashboardId." denied by ACL for restricted visibility, reason: " . json_encode($auth_result['debug']));
+                       }
                    }
                }
         } 
