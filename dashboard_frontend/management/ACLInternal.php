@@ -61,7 +61,6 @@
         $GLOBALS['encryptionMethod']
     );*/
     if ($requested_name === '') {
-        http_response_code(400);
         return ['error' => 'auth_name parameter is required'];
     }
     $sql = "SELECT ID FROM AccessDefinitions WHERE authname = ? LIMIT 1";
@@ -76,7 +75,7 @@
     if (! mysqli_stmt_fetch($stmt)) {
         // no such authname
         mysqli_stmt_close($stmt);
-        return ['authorized' => false, 'reason' => 'Unknown authname', 'requested_auth' => $requested_name];
+        return ['authorized' => false, 'error' => 'Unknown authname', 'requested_auth' => $requested_name];
     }
     mysqli_stmt_close($stmt);
 
@@ -173,7 +172,7 @@ function check_profile_access(mysqli $link, array $req, $enc_username): ?array {
 
         //org check (return if org is not allowed)
         if (! allowed_orgs($req['requested_org'], $possibleOrgs)) {
-            return ['authorized' => false , 'reason' => 'Organization not allowed'];
+            return ['authorized' => false , 'error' => 'Organization not allowed'];
         }
         //convert dash b64 ID to int IF it's not an int already
         $dashID = null;
@@ -264,7 +263,7 @@ function check_db($link, $req) {
         mysqli_stmt_close($stmt);
         //org check
         if (! allowed_orgs($requested_org, $possible_orgs)){
-            return ['authorized' => false , 'reason' => 'Organization not allowed'];
+            return ['authorized' => false , 'error' => 'Organization not allowed'];
         }
         //check se dash id è già int o un base64
         $raw = $dashID;
@@ -308,13 +307,13 @@ function check_db($link, $req) {
             }
             else{
                 mysqli_stmt_close($stmt);
-                return ['authorized' => false , 'reason' => 'Limit reached'];
+                return ['authorized' => false , 'error' => 'Limit reached'];
             }
         }
     }
     mysqli_stmt_close($stmt);
     return ['authorized' => false ,
-     'reason' => 'User does not have ACL or does not exist',
+     'error' => 'User does not have ACL or does not exist',
      'requested_auth'=> $requested_auth,
      'requested_by'=> $req['preferred_username']
     ];
@@ -441,21 +440,13 @@ function ACLAPI_check_dashboard($data = []): array {
     $debug[] = "Requested internal user={$username}";
     $debug[] = "Raw dashboard_id param='{$dashboardParam}'";
     if ($dashboardParam === '') {
-        http_response_code(400);
         return [
             'authorized' => false,
             'debug'      => $debug,
             'error'      => 'dashboard_id parameter is required'
         ];
     }
-    if ($username === '') {
-        http_response_code(400);
-        return [
-            'authorized' => false,
-            'debug'      => $debug,
-            'error'      => 'preferred_username parameter is required'
-        ];
-    }
+
     //Normalize into int / b64 / raw
     $intParam = $b64Param = null;
     $dashID   = null;
@@ -475,6 +466,57 @@ function ACLAPI_check_dashboard($data = []): array {
     else {
         $debug[] = "Invalid format: neither INT nor valid INT-B64";
         return ['authorized'=>false, 'debug'=>$debug];
+    }
+
+    if ($username === '') {
+        $debug[] = "No username provided, checking AccessDefinitions for dashboard";
+        //no usr checks if dashboard has an AD - if present = false, else truke 
+        $adCheckSql = "
+          SELECT 1
+            FROM AccessDefinitions
+           WHERE dashboardID = ?
+              OR dashboardID = ?
+              OR CAST(dashboardID AS UNSIGNED) = ?
+           LIMIT 1
+        ";
+        if (! $adCheckStmt = mysqli_prepare($link, $adCheckSql)) {
+            $debug[] = "AD check prepare failed: " . mysqli_error($link);
+            return [
+                'authorized' => false,
+                'debug'      => $debug,
+                'error'      => 'preferred_username parameter is required'
+            ];
+        }
+
+        mysqli_stmt_bind_param($adCheckStmt, 'ssi', $intParam, $b64Param, $dashID);
+        if (! mysqli_stmt_execute($adCheckStmt)) {
+            $debug[] = "AD check execute failed: " . mysqli_stmt_error($adCheckStmt);
+            mysqli_stmt_close($adCheckStmt);
+            return [
+                'authorized' => false,
+                'debug'      => $debug,
+                'error'      => 'preferred_username parameter is required'
+            ];
+        }
+
+        mysqli_stmt_store_result($adCheckStmt);
+        $hasAd = mysqli_stmt_num_rows($adCheckStmt) > 0;
+        mysqli_stmt_close($adCheckStmt);
+
+        if ($hasAd) {
+            $debug[] = "AccessDefinition exists for dashboard, username required";
+            return [
+                'authorized' => false,
+                'debug'      => $debug,
+                'error'      => 'username required for this dashboard'
+            ];
+        }
+
+        $debug[] = "No AccessDefinition for dashboard, allowing anonymous access";
+        return [
+            'authorized' => true,
+            'debug'      => $debug
+        ];
     }
     global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
     $enc_username = encryptOSSL(
@@ -620,6 +662,7 @@ function ACLAPI_check_dashboard($data = []): array {
     }
     return [
         'authorized' => false,
+        'error'      => 'No ACL found for user',
         'debug'      => $debug
     ];
 }
@@ -634,7 +677,6 @@ function ACLAPI_check_collection($data = []): array {
     $debug[] = "Requested internal user={$username}";
     $debug[] = "Raw collection_id param='{$collectionParam}'";
     if ($collectionParam === '') {
-        http_response_code(400);
         return [
             'authorized' => false,
             'debug'      => $debug,
@@ -642,7 +684,6 @@ function ACLAPI_check_collection($data = []): array {
         ];
     }
     if ($username === '') {
-        http_response_code(400);
         return [
             'authorized' => false,
             'debug'      => $debug,
@@ -779,6 +820,7 @@ function ACLAPI_check_collection($data = []): array {
     }
     return [
         'authorized' => false,
+        'error'      => 'No ACL found for user',
         'debug'      => $debug
     ];
 }
@@ -789,7 +831,6 @@ function ACLAPI_check_menuIDs($data = []): array {
     $link = getDbLink();
     $username = $data['preferred_username'] ?? '';
     if ($username === '') {
-        http_response_code(400);
         return [
             'authorized' => false,
             'error'      => 'preferred_username parameter is required'

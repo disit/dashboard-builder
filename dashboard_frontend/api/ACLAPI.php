@@ -45,19 +45,27 @@
             switch ($action) {
                 case 'check_auth': //EXPECTED $data: ["auth_name":"required", "organization": "optional", "preferred_username":"required", "ou"='unused for now' ]
                     header('Content-Type: application/json');
-                    echo json_encode(ACLAPI_check_auth($data));
+                    $res = ACLAPI_check_auth($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
                     exit;
                 case 'check_dashboard':
                     header('Content-Type: application/json');
-                    echo json_encode(ACLAPI_check_dashboard($data));
+                    $res = ACLAPI_check_dashboard($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
                     exit;
                 case 'check_collection':
                     header('Content-Type: application/json');
-                    echo json_encode(ACLAPI_check_collection($data));
+                    $res = ACLAPI_check_collection($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
                     exit;
                 case 'get_user_menuIDs':
                     header('Content-Type: application/json');
-                    echo json_encode(ACLAPI_check_menuIDs($data));
+                    $res = ACLAPI_check_menuIDs($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
                     exit;
                 default:
                     http_response_code(400);
