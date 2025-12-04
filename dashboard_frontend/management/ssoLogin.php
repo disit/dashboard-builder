@@ -72,7 +72,7 @@ $oidc->setRedirectURL($appUrl . '/management/ssoLogin.php?redirect='.urlencode($
 try {
   $oidc->authenticate();
 } catch(Exception $ex) {
-  echo "Autentication problems.<br><a href='logout.php'>Logout</a>";
+  echo $ex->getMessage()." Autentication problems.<br><a href='logout.php'>Logout</a>";
   //header("location: ".$appUrl . "/management/ssoLogin.php?");
   exit; 
 }
@@ -85,16 +85,19 @@ if($ldapAdminDN)
 else
   $bind = ldap_bind($ds);
 
-$organizations = checkLdapOrganizations($ds, $ldapUsername, $ldapBaseDN);
-$organization = $organizations[0];
-$groups = checkLdapGroup($ds, $ldapUsername, $ldapBaseDN, $organization);
-if (is_null($organization)) {
-    $organization = "Other";
-} else if ($organization == "") {
-    $organization = "Other";
-}
-
 if ($ds && $bind) {
+  if(isset($ssoPreLdapExtension)) {
+    include "ssoPreLdapExtension.php";
+  }
+  $organizations = checkLdapOrganizations($ds, $ldapUsername, $ldapBaseDN);
+  $organization = $organizations[0];
+  $groups = checkLdapGroup($ds, $ldapUsername, $ldapBaseDN, $organization);
+  if (is_null($organization)) {
+    $organization = "Other";
+  } else if ($organization == "") {
+    $organization = "Other";
+  }
+
   if (checkLdapMembership($ds, $ldapUsername, $ldapToolName, $ldapBaseDN)) {
     if (checkLdapRole($ds, $ldapUsername, "RootAdmin", $ldapBaseDN)) {
       $ldapRole = "RootAdmin";
@@ -127,13 +130,24 @@ if ($ds && $bind) {
     } 
   } else {
     $_SESSION['refreshToken'] = $oidc->getRefreshToken();
-    echo "user $usernameD cannot use this tool, please wait for administrator approval.<br><a href='logout.php'>Logout</a>";
-    exit;
+    if(isset($ssoExtension)) {
+      include "ssoExtension.php";
+    } else {
+      echo "user $usernameD cannot use this tool, please wait for administrator approval.<br><a href='logout.php'>Logout</a>";
+      exit;
+    }
   }
 } else {
     echo "cannot bind to LDAP, try later.<br><a href='logout.php'>Logout</a>";
     exit;
 }
+if(isset($ldapSetOrganization) && $ldapSetOrganization=='yes' && ($organization=='DISIT' || $organization=='Other')) {
+    $add_org = ldap_mod_add($ds, "ou=" . $ldapDefaultOrganization . "," . $ldapBaseDN . "", array('l' => $ldapUsername));
+    if ($add_org == 1) {
+        $organization = $ldapDefaultOrganization;
+    }
+}
+
 $stopFlag = 1;
 $userLevel = checkUserLevel($usernameD, $sql_host_pd, $usrDb, $pwdDb);
 if ($ldapOk) {
@@ -205,5 +219,5 @@ if ($ldapOk) {
   session_destroy();
 
   $tkn = $oidc->refreshToken($refreshToken);
-  $oidc->signOut($tkn->access_token, $appUrl . "/management/ssoLogin.php");
+  $oidc->signOut($tkn->id_token, $appUrl . "/management/ssoLogin.php");
 }

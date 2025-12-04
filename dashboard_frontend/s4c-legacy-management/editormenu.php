@@ -586,6 +586,7 @@ $lastUsedColors = null;
                         <input class="form-check-input rol_sel" type="checkbox" value="ToolAdmin" id="tooladmin"><span>ToolAdmin</span><br />
                         <input class="form-check-input rol_sel" type="checkbox" value="AreaManager" id="areamanager"><span>AreaManager</span><br />
                         <input class="form-check-input rol_sel" type="checkbox" value="Manager" id="manager"><span>Manager</span><br />
+                        <input class="form-check-input rol_sel" type="checkbox" value="Observer" id="observer"><span>Observer</span><br />
                         <input class="form-check-input rol_sel" type="checkbox" value="Public" id="public"><span>Public</span><br />
                     </div>
                     <br /> <div class="input-group"><span ><b>Organization: </b></span>
@@ -681,6 +682,7 @@ $lastUsedColors = null;
                         <input class="form-check-input rol_sel_c" type="checkbox" value="ToolAdmin" id="tooladmin_e"><span>ToolAdmin</span><br />
                         <input class="form-check-input rol_sel_c" type="checkbox" value="AreaManager" id="areamanager_e"><span>AreaManager</span><br />
                         <input class="form-check-input rol_sel_c" type="checkbox" value="Manager" id="manager_e"><span>Manager</span><br />
+                        <input class="form-check-input rol_sel_c" type="checkbox" value="Observer" id="observer_e"><span>Observer</span><br />
                         <input class="form-check-input rol_sel_c" type="checkbox" value="Public" id="public_e"><span>Public</span><br />
                     </div>
                     <br /><div class="input-group"><span ><b>Organization: </b></span>
@@ -851,6 +853,7 @@ $lastUsedColors = null;
                         <input class="form-check-input rol_sel_add" type="checkbox" value="ToolAdmin" id="tooladmin"><span>ToolAdmin</span><br />
                         <input class="form-check-input rol_sel_add" type="checkbox" value="AreaManager" id="areamanager"><span>AreaManager</span><br />
                         <input class="form-check-input rol_sel_add" type="checkbox" value="Manager" id="manager"><span>Manager</span><br />
+                        <input class="form-check-input rol_sel_add" type="checkbox" value="Observer" id="observer"><span>Observer</span><br />
                         <input class="form-check-input rol_sel_add" type="checkbox" value="Public" id="public"><span>Public</span><br />
                     </div>
                     <br /> <div class="input-group"><span ><b>Organization: </b></span>

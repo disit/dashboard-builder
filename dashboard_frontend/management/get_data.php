@@ -34,7 +34,7 @@ $link = mysqli_connect($host, $username, $password) or die("failed to connect to
 mysqli_select_db($link, $dbname);
 
 //Altrimenti restituisce in output le warning
-error_reporting(E_ERROR | E_NOTICE);
+error_reporting(E_ERROR);
 
 function canEditDashboard()
 {
@@ -735,7 +735,7 @@ else
                     break;
                 
                 //Altri utenti: vedono proprie, quelle con delega, public, editano e cancellano solo le proprie
-                case "Manager": case "AreaManager": case "ToolAdmin": 
+                case "Manager": case "AreaManager": case "ToolAdmin": case "Observer":
                     if(isset($_SESSION['refreshToken'])) 
                     {
 
@@ -861,7 +861,10 @@ else
                             $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
 
                             $delegatedDashboards = json_decode($delegatedDashboardsJson);
-
+                            if(!is_array($delegatedDashboards)) {
+                                 //errore
+                                 $delegatedDashboards = array();
+                            }
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if ($delegatedDashboards[$i]->elementType == 'DashboardID') {
                                     array_push($dashIds, $delegatedDashboards[$i]->elementId);
@@ -908,7 +911,8 @@ else
 
                         //4) Scrittura ed esecuzione query
                         $dashIdsForQuery = implode(",", $dashIds);
-                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.Id IN(" . $dashIdsForQuery . ") AND dashboards.deleted = 'no' ORDER BY dashboards.name_dashboard ASC";
+                        $orgFilter = strpos($orgFlag , 'My org') !== false ? " AND dashboards.organizations = '".$_SESSION['loggedOrganization']."'" : "";
+                        $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.Id IN(" . $dashIdsForQuery . ") AND dashboards.deleted = 'no'".$orgFilter." ORDER BY dashboards.name_dashboard ASC";
                         
                         $result = mysqli_query($link, $query);
                         $dashboard_list = array();

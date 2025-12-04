@@ -107,7 +107,7 @@ else
         <link href="../css/dashboard.css?v=<?php echo time(); ?>" rel="stylesheet">
         <link href="../css/dashboardList.css?v=<?php echo time(); ?>" rel="stylesheet">
         <link href="../css/dashboardView.css?v=<?php echo time(); ?>" rel="stylesheet">
-    <?php if(isset($_SESSION['loggedRole']) && ($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager')) { ?>
+    <?php if(isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
         <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time(); ?>" rel="stylesheet">
     <?php } else { ?>
         <link href="../css/addWidgetWizard.css?v=<?php echo time(); ?>" rel="stylesheet">
@@ -442,7 +442,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                     </div>
                                                 </div>
                                             </div>
-                                            <?php if (!$_SESSION['isPublic']) : ?>
+                                            <?php if (!$_SESSION['isPublic'] && $_SESSION['loggedRole'] != 'Observer') : ?>
                                                 <div id="dashboardListsNewDashboard" class="col-xs-12 col-sm-12 col-md-2 dashboardsListMenuItem">
                                                     <!--<div class="dashboardsListMenuItemTitle centerWithFlex col-xs-4">
                                                         New<br>dashboard
@@ -499,7 +499,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                         <div class="modalHeader centerWithFlex">
                             Wizard
                         </div>
-
+                        <div class="centerWithFlex" style="background-color: rgba(51, 64, 69, 1);color: white;font-size: 1.3em;font-weight: 500;">Org: <?php echo $_SESSION['loggedOrganization']; ?></div>
                         <div id="addWidgetWizardLabelBody" class="modal-body modalBody">
     <?php /* include "addWidgetWizardInclusionCode.php" */ ?>
                         </div>
@@ -1412,8 +1412,8 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
 <?php if (!$_SESSION['isPublic']) : ?>
                 if (editLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard"><?php echo _("Edit"); ?></button>';
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCardNew"><?php echo _("Edit-N"); ?></button>';
+                //    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard"><?php echo _("Edit"); ?></button>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCardNew"><?php echo _("Edit (New)"); ?></button>';
                 }
 
                 switch (managementLbl)
@@ -2724,7 +2724,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             }
 
                         });
-                        $(this).find('.editDashBtnCard').off('click');
+                    /*    $(this).find('.editDashBtnCard').off('click');
                         $(this).find('.editDashBtnCard').click(function ()
                         {
                             var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
@@ -2766,12 +2766,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     console.log(errorData);
                                 }
                             });
-                        });
+                        });*/
 
                         $('.editDashBtnCardNew').hover(
                             function () {
                                 const popup = $('<div></div>')
-                                    .html('Edit with New<br> Opensearch Wizard (BETA)')
+                                    .html('Edit with New<br> Opensearch Wizard')
                                     .css({
                                         'position': 'absolute',
                                         'background-color': '#ffffff',
@@ -3432,7 +3432,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
         //Apertura nuova dashboard quando appena creata
 <?php
 if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['newDashTitle'])) {
-    echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . urlencode(filter_input(INPUT_GET, 'newDashId', FILTER_SANITIZE_NUMBER_INT)) . '&dashboardAuthorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardEditorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardTitle=' . urlencode(filter_input(INPUT_GET, 'newDashTitle', FILTER_SANITIZE_STRING)) . '");';
+    echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . urlencode(filter_input(INPUT_GET, 'newDashId', FILTER_SANITIZE_NUMBER_INT)) . '&dashboardAuthorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardEditorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardTitle=' . urlencode(filter_input(INPUT_GET, 'newDashTitle', FILTER_SANITIZE_STRING)) . '&editNewWizard=true");';
     echo 'history.replaceState(null, null, "dashboards.php");';
 }
 ?>
@@ -3526,9 +3526,9 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         });
 
         //   function loadWizardModal (allDashboardsList) {
-<?php if (!$_SESSION['isPublic']) : ?>
+<?php if (!$_SESSION['isPublic'] && $_SESSION['loggedRole'] !== "Observer"): ?>
             //$("#addWidgetWizardLabelBody").load("addWidgetWizardInclusionCode.php", function () {
-            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
+            $("#addWidgetWizardLabelBody").load("<?php if(isset($useOpenSearch) && $useOpenSearch == "yes") echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
 
                 if (!allDashboardsList) {
                     getAllGlobalDashboards();
@@ -3586,6 +3586,12 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                         $('#addWidgetWizardNextBtn').addClass('disabled');
                     }
                 });
+
+                $(".modalAddDashboardWizardChoiceCnt").on("click", () => {
+                    $('#inputTitleDashboard').trigger("input")
+                })
+
+                
             });
 <?php endif; ?>
         //    }

@@ -22,7 +22,7 @@ error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
 session_start();
-
+checkSession('Manager', '../management/dashboards.php');
 $response = [];
 
 if(!isset($_REQUEST['id'])) {
@@ -46,6 +46,7 @@ if (isset($_SESSION['refreshToken'])) {
     $response['result'] = $json['result'];
   } else {
     $response['detail'] = 'Ko';
+    $response['token'] = $accessToken;
     $response['error'] = $json['result'];
   }
 } else {

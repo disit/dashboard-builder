@@ -22,12 +22,13 @@ error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
 session_start();
-
+checkSession('Manager', '../management/dashboards.php');
 $response = [];
 
 $name = filter_input(INPUT_GET, 'name');
 if($name===NULL) {
-  exit;
+  http_response_code(400);
+  exit('missing name');
 }
 
 $type = filter_input(INPUT_GET, 'type', FILTER_SANITIZE_STRING);
@@ -55,6 +56,7 @@ if (isset($_SESSION['refreshToken'])) {
     $response['result'] = $json['result'];
   } else {
     $response['detail'] = 'Ko';
+    $response['token'] = $accessToken;
     if (isset($json['result']["error"]["error"])) {
       $response['error'] = $json['result']["error"]["error"];
     } else {

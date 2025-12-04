@@ -33,7 +33,9 @@
     if (isset($_GET['param'])) {
         if ($_GET['param'] == "AllOrgs") {
             $filterOrgQuery = "";
-        }
+        }else{
+			$filterOrgQuery = " AND organizations REGEXP '".$_SESSION['loggedOrganization']."' ";
+		}
     }
 
     if (isset($_GET['role'])) {
@@ -73,11 +75,14 @@
 	
 	$natSnats = json_decode(file_get_contents($synTplNatSnatSrc),true)["content"];	
 	
-    if ($_GET['role'] != "RootAdmin") {
-        $q = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Synoptic' $filterOrgQuery ORDER BY sub_nature ASC";
-    } else {
-        $q = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Synoptic' ORDER BY sub_nature ASC";
-    }
+	
+	
+	$q = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Synoptic' $filterOrgQuery ORDER BY sub_nature ASC";
+    // if ($_GET['role'] != "RootAdmin") {
+    //     $q = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Synoptic' $filterOrgQuery ORDER BY sub_nature ASC";
+    // } else {
+    //     $q = "SELECT * FROM DashboardWizard WHERE high_level_type = 'Synoptic' ORDER BY sub_nature ASC";
+    // }
 	
     $r = mysqli_query($link, $q);
 

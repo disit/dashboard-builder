@@ -116,7 +116,7 @@ else
         <!-- Bootstrap Core CSS -->
         <link href="../css/s4c-css/bootstrap/bootstrap.css" rel="stylesheet">
         <link href="../css/s4c-css/bootstrap/bootstrap-colorpicker.min.css" rel="stylesheet">
-	<?php if(isset($_SESSION['loggedRole']) && ($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager')) { ?>
+	<?php if(isset($useOpenSearch) && $useOpenSearch == "yes") { ?>
         <link href="../css/addWidgetWizardOS-W.css?v=<?php echo time(); ?>" rel="stylesheet">
     <?php } else { ?>
         <link href="../css/addWidgetWizard.css?v=<?php echo time(); ?>" rel="stylesheet">
@@ -353,20 +353,22 @@ if (isset($_GET['pageTitle'])) {
                                 <div class="col-xs-12 mainContentCellCnt">
                                   <div class="filterListBar">
                                     <?php if (!$_SESSION['isPublic']) : ?>
-                                      <?php if ($_SESSION['loggedRole'] === 'RootAdmin') { ?>
-                                        <div id="dashboardListImportDashboard" class="dashboardsListMenuTime">
-                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                        <!--    <input type="file" id="jsonFile" />
-                                            <input type="text" id="dashboardName" placeholder="Nome Dashboard" />   -->
-                                                <button id="importButton" class="btn btn-new-dash">Import Dashboard</button>
+                                        <?php if ($_SESSION['loggedRole'] === 'RootAdmin') { ?>
+                                            <div id="dashboardListImportDashboard" class="dashboardsListMenuTime">
+                                                <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                            <!--    <input type="file" id="jsonFile" />
+                                                <input type="text" id="dashboardName" placeholder="Nome Dashboard" />   -->
+                                                    <button id="importButton" class="btn btn-new-dash">Import Dashboard</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                      <?php } ?>
-                                    <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
-                                      <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
-                                        <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
-                                      </div>
-                                    </div>
+                                        <?php } ?>
+                                        <?php if ($_SESSION['loggedRole'] != 'Observer') {?>
+                                            <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
+                                            <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
+                                                <button id="link_start_wizard" type="button" class="btn btn-new-dash"><?= _("New dashboard")?></button>
+                                            </div>
+                                            </div>
+                                        <?php }?>
                                     <?php else : ?>
                                     <div id="dashboardListsNewDashboard" class="dashboardsListMenuItem">
                                       <div class="dashboardsListMenuItemContent centerWithFlex col-xs-12">
@@ -506,7 +508,7 @@ if (isset($_GET['pageTitle'])) {
                         <div class="modalHeader centerWithFlex">
                             Wizard
                         </div>
-
+                        <div class="modalHeader centerWithFlex" style="font-size: 1.3em;font-weight: 500;padding: 0;border-radius: unset;">Org: <?php echo $_SESSION['loggedOrganization']; ?></div>
                         <div id="addWidgetWizardLabelBody" class="modal-body modalBody">
     <?php /* include "addWidgetWizardInclusionCode.php" */ ?>
                         </div>
@@ -1423,8 +1425,8 @@ if (isset($_GET['pageTitle'])) {
 <?php if (!$_SESSION['isPublic']) : ?>
                 if (editLbl === 'show')
                 {
-                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit"); ?>"><button type="button" class="dashBtnCard editDashBtnCard"><i class="fa-solid fa-pen"></i></button></span>';
-                    cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit with New Opensearch Wizard (BETA)"); ?>"><button type="button" class="dashBtnCard editDashBtnCardNew"><i class="fa-solid fa-pen-to-square"></i></button></span>';
+                    // cardDiv = cardDiv + '<span tooltip="<?php echo _("Edit"); ?>"><button type="button" class="dashBtnCard editDashBtnCard"><i class="fa-solid fa-pen"></i></button></span>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCardNew"><i class="fa-solid fa-pen-to-square"></i></button></span>';
                 }
 
                 switch (managementLbl)
@@ -2752,7 +2754,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                             }
                         });
 
-                        $(this).find('.editDashBtnCard').off('click');
+                    /*    $(this).find('.editDashBtnCard').off('click');
                         $(this).find('.editDashBtnCard').click(function ()
                         {
                             var dashboardId = $(this).parents('div.dashboardsListCardDiv').attr('data-uniqueid');
@@ -2794,12 +2796,12 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                     console.log(errorData);
                                 }
                             });
-                        });
+                        });*/
 
                         $('.editDashBtnCardNew').hover(
                             function () {
                                 const popup = $('<div></div>')
-                                    .html('Edit with New<br> Opensearch Wizard (BETA)')
+                                    .html('Edit with New<br> Opensearch Wizard')
                                     .css({
                                         'position': 'absolute',
                                         'background-color': '#ffffff',
@@ -3460,7 +3462,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
         //Apertura nuova dashboard quando appena creata
 <?php
 if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['newDashTitle'])) {
-    echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . urlencode(filter_input(INPUT_GET, 'newDashId', FILTER_SANITIZE_NUMBER_INT)) . '&dashboardAuthorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardEditorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardTitle=' . urlencode(filter_input(INPUT_GET, 'newDashTitle', FILTER_SANITIZE_STRING)) . '");';
+    echo 'window.open("../management/dashboard_configdash.php?dashboardId=' . urlencode(filter_input(INPUT_GET, 'newDashId', FILTER_SANITIZE_NUMBER_INT)) . '&dashboardAuthorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardEditorName=' . urlencode(filter_input(INPUT_GET, 'newDashAuthor', FILTER_SANITIZE_STRING)) . '&dashboardTitle=' . urlencode(filter_input(INPUT_GET, 'newDashTitle', FILTER_SANITIZE_STRING)) . '&editNewWizard=true");';
     echo 'history.replaceState(null, null, "dashboards.php");';
 }
 ?>
@@ -3554,8 +3556,8 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
         });
 
         //   function loadWizardModal (allDashboardsList) {
-<?php if (!$_SESSION['isPublic']) : ?>
-            $("#addWidgetWizardLabelBody").load("<?php if($_SESSION['loggedRole'] == 'RootAdmin' || $_SESSION['loggedRole'] == 'AreaManager') echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
+<?php if (!$_SESSION['isPublic'] && $_SESSION['loggedRole'] !== "Observer") : ?>
+            $("#addWidgetWizardLabelBody").load("<?php if(isset($useOpenSearch) && $useOpenSearch == "yes") echo('addWidgetWizardInclusionCodeOS.php'); else echo('addWidgetWizardInclusionCode.php'); ?>", function () {
 
                 if (!allDashboardsList) {
                     getAllGlobalDashboards();
@@ -3613,6 +3615,10 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                         $('#addWidgetWizardNextBtn').addClass('disabled');
                     }
                 });
+
+                $(".modalAddDashboardWizardChoiceCnt").on("click", () => {
+                    $('#inputTitleDashboard').trigger("input")
+                })
             });
 <?php endif; ?>
         //    }

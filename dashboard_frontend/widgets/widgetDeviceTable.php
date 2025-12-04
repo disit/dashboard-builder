@@ -16,6 +16,23 @@
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 include('../config.php');
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
+
+if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
+	$device_table_rows[$_REQUEST['name_w']] = $_COOKIE["device_table_rows_".$_REQUEST['name_w']];
+}else{
+	if (PHP_VERSION_ID < 70300) { 
+		setcookie("device_table_rows_".$_REQUEST['name_w'], 5, time() + (30 * 24 * 60 * 60), "/" . "; samesite='Strict'", $cookieDomain, false); 
+	} else { 
+		setcookie("device_table_rows_".$_REQUEST['name_w'], 5, [ 'expires' => time() + (30 * 24 * 60 * 60), // Set the cookie for 30 days 
+			'path' => '/', 
+			'domain' => $cookieDomain, 
+			'secure' => true, //NALDI -> in microx set to false
+			'samesite' => 'Strict'
+		]); 
+	}
+	$device_table_rows[$_REQUEST['name_w']] = 5;
+}
+
 ?>
 <script src="../js/DataTables/datatables.min.js" type="text/javascript"></script>
 <script src="../js/DataTables/datatables.js" type="text/javascript"></script>
@@ -46,6 +63,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 	var order_column = '';
 	var order_column_n = 0;
 	var total_result = 0;
+	//NALDI -> init the row number select
+	$('#n_rows_<?= $_REQUEST['name_w'] ?>').val(<?php echo $device_table_rows[$_REQUEST['name_w']] ?>);
 	var n_rows_<?= $_REQUEST['name_w'] ?> = $('#n_rows_<?= $_REQUEST['name_w'] ?>').val();
 	//
 	$('#start_value_<?= $_REQUEST['name_w'] ?>').val(0);
@@ -192,10 +211,20 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 					$('.paginate_button.active').removeClass('active');
 					$('#page_<?= $_REQUEST['name_w'] ?>0').addClass('active');
 					current_page_<?= $_REQUEST['name_w'] ?> = 0;
-					
-				});
-				
-			
+
+					// NALDI -> save new value in cookie
+					const value = parseInt($('#n_rows_<?= $_REQUEST['name_w'] ?>').val());
+					const days = 30;
+  					const expires = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toUTCString();
+  					const cookieDomain = "<?php echo $cookieDomain; ?>";
+  					document.cookie =
+  					  	`device_table_rows_<?= $_REQUEST['name_w'] ?>=${value}; ` +
+  					  	`expires=${expires}; ` +
+  					  	`path=/; ` +
+  					  	`domain=${cookieDomain}; ` + 
+					  	`Secure; ` + //NALDI -> in microx comment this
+					  	`samesite=Strict`;
+			});	
 		
 
         function createTable() {
@@ -248,8 +277,8 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 							}
 						}
 				}
-				
-				arr_col_<?= $_REQUEST['name_w'] ?>.push({
+				if(!(Object.keys(dt_actions_<?= $_REQUEST['name_w'] ?>).length === 1 && "pin" in  dt_actions_<?= $_REQUEST['name_w'] ?> && dt_actions_<?= $_REQUEST['name_w'] ?>["pin"] === "hidden")){
+					arr_col_<?= $_REQUEST['name_w'] ?>.push({
                         "data": "actions", className: "all dt-center", orderable: false, title: title_act,
                         "render": function (data, type, row, meta) {
                             var body = "";
@@ -265,6 +294,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                             return body;
                         }
                     });
+				}
 
 				//
 				var order_column_n_<?= $_REQUEST['name_w'] ?> = parseInt($('#num_column_<?= $_REQUEST['name_w'] ?>').val());
@@ -665,7 +695,9 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 			var query_corrected = query_filtered.replace(/&maxResults=[^&]*/g, '');
 			query_filtered = query_corrected +ordering_data+filter_start+filter_max+filter_text;
 			console.log(query_filtered);
-			
+
+			//ADDITIONAL HEADERS 
+			var additional_headers = newValue_<?= $_REQUEST['name_w'] ?>.additionalHeaders || {}
 			
 			//
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
@@ -676,6 +708,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
                         async: false,
                         timeout: 0,
                         dataType: 'json',
+						headers: additional_headers,
                         success: function (data) {
 							//
 							var features = data.features;

@@ -29,7 +29,12 @@
                                                         if(count($_SESSION['loggedOrganizations'])==1)
                                                             echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
                                                         else {
-                                                            $orgsHtml = "<select id='org' onchange=\"document.location.href = '?setOrg=' + this.value\">";
+
+                                                            if(isset($_GET['setOrg'])) {
+                                                                //TBD check is valid organization of logged user
+                                                                $_SESSION['loggedOrganization'] = $_GET['setOrg'];
+                                                            }
+                                                            $orgsHtml = "<select id='org'  onchange=\"document.location.href = select_org(this.value)\">";
 
                                                             foreach($_SESSION['loggedOrganizations'] as $o) {
                                                                 $selected="";
@@ -43,7 +48,7 @@
                                                  }?>
 					  </div>
 					  <div id="mainMenuUsrDetCnt">
-						  <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none'?: ", Level: " . $_SESSION['loggedUserLevel']); ?>
+						  <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none'?"": ", Level: " . $_SESSION['loggedUserLevel']); ?>
 					  </div>
 					<!--  <div class="col-md-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
 						  Logout<br/>
@@ -102,6 +107,12 @@ $('#mainMenuSelectLanguageBtn').click(function () {
 
     //
 });
+
+function select_org(org) {
+    if(document.location.href.includes('setOrg='))
+        return document.location.href.replace(/(setOrg=)[^\&]+/, '$1' + org);
+    return document.location.href + (document.location.href.includes('?')?'&':'?') + "setOrg="+org;
+}
 
 function select_lang(lang, role){
     //$(".select_lang").prop("checked", false);

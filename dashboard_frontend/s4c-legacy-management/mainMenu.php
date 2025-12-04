@@ -93,7 +93,7 @@
                         }?>
                     </div>
                     <div class="col-md-12" id="mainMenuUsrDetCnt">
-                        <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none' ?: ", Level: " . $_SESSION['loggedUserLevel']); ?>
+                        <?php echo "Role: " . $_SESSION['loggedRole'] . ($_SESSION['loggedUserLevel']=='none' ?"": ", Level: " . $_SESSION['loggedUserLevel']); ?>
                     </div>
                   <!--  <div class="col-md-12 centerWithFlex" id="mainMenuUsrLogoutCnt">
                         Logout<br/>

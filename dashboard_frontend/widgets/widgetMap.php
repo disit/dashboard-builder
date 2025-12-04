@@ -1819,6 +1819,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         //Naldi 07/05/2025 -> adding a variable to toggle triggers functionality
         var disabledTriggers = []
+        //Naldi 09/10/2025 -> adding variables for addMeasurement trigger
+        let MAP_SCALE = 1;
+        let drawLayer; //layer of drawing
+        let deleteHandler; //deletion handler 
+        let currentDrawer; //drawing tool
+        let textBoxes; //textbox layer
+        const tempLabels = []; //measures while drawing
+        let currentTool;
 
         //Definizioni di funzione
 
@@ -10618,11 +10626,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             const mapCenter = map.defaultMapRef.getCenter();
             const mapCenterLat = mapCenter.lat.toFixed(4);
             const mapCenterLon = mapCenter.lng.toFixed(4);
-            var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
+            var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=10000&values=status;dateObserved"; 
             if (currentStatus == 'All'){
-                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";;
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&maxResults=10000&aggregate=false&fromTime=2023-07-02T00:00:00&values=status;dateObserved";;
             }  else{
-                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=1000&aggregate=false&fromTime=2023-07-02T00:00:00";
+                url = "<?= $mainsuperservicemap; ?>" + "/iot-search/time-range/?selection=" + mapCenterLat + ";" + mapCenterLon + "&maxDists=1000&model=TFRS-Model&valueFilters=status:"+currentStatus+"&maxResults=10000&aggregate=false&fromTime=2023-07-02T00:00:00&values=status;dateObserved";
             }
             // var url = "<?= $mainsuperservicemap; ?>" + "/iot-search/?selection=43.769;11.25&maxDists=1000&model=TFRS-Model&maxResults=1000"; 
             // if (currentStatus == 'All'){
@@ -26707,7 +26715,1363 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
         }
     });
-
+    //Naldi 09/10/2025 -> do measurement on map
+    $(document).on('addMeasurement', function(event){
+        if(event.target === map.mapName){
+            //handle load
+            function handleLoad() {
+                $.event.trigger({type: "removeMeasurements", target: map.mapName});
+                init();
+                const data = event.passedData.data;
+                const layerMap = new Map();
+                data.shapes.features.forEach(f => {
+                    const { geometry, properties } = f;
+                    const coords = geometry.coordinates;
+                    let layer;
+                    let latlngs
+                    // === POLYLINE ===
+                    if (properties.type === "Polyline") {
+                        latlngs = coords.map(c => L.latLng(c[1], c[0]));
+                        layer  = L.polyline(latlngs, {
+                            color: properties.color,
+                            weight: properties.weight,
+                            dashArray: properties.dashArray || null
+                        }).addTo(drawLayer);
+                    }
+                    // === POLYGON ===
+                    else if (properties.type === "Polygon") {
+                        latlngs = coords[0].map(c => L.latLng(c[1], c[0]));
+                        layer  = L.polygon(latlngs, {
+                            color: properties.color,
+                            weight: properties.weight,
+                            fillColor: properties.fillColor,
+                            fillOpacity: properties.fillOpacity,
+                            dashArray: properties.dashArray || null
+                        }).addTo(drawLayer);
+                    }
+                    // === RECTANGLE ===
+                    else if (properties.type === "Rectangle") {
+                        const latlngs = coords[0].map(c => L.latLng(c[1], c[0]));
+                        layer  = L.rectangle(latlngs, {
+                            color: properties.color,
+                            weight: properties.weight,
+                            fillColor: properties.fillColor,
+                            fillOpacity: properties.fillOpacity,
+                            dashArray: properties.dashArray || null
+                        }).addTo(drawLayer);
+                    }
+                    // === CIRCLE ===
+                    else if (properties.type === "Circle") {
+                        layer  = L.circle([coords[1], coords[0]], {
+                            radius: parseFloat(properties.radius),
+                            color: properties.color,
+                            weight: properties.weight,
+                            fillColor: properties.fillColor,
+                            fillOpacity: properties.fillOpacity,
+                            dashArray: properties.dashArray || null
+                        }).addTo(drawLayer);
+                    }
+                    // === TEXTBOX ===
+                    else if (properties.type === "Textbox") {
+                        const textEl = document.createElement("div");
+                        textEl.className = "leaflet-textbox-editable";
+                        textEl.classList.add('zoom-scaled');
+                        textEl.contentEditable = true;
+                        textEl.textContent = properties.text || "";
+                        textEl.style.cssText = `color: ${properties.color};font-size: ${properties.fontSize}px;font-family: ${properties.fontFamily};width: ${properties.width}px;height: ${properties.height}px;`;
+                        const marker = L.marker([coords[1], coords[0]], {
+                            draggable: false,
+                            autoPan: true,
+                            icon: L.divIcon({
+                                html: "",
+                                className: "",
+                                iconSize: null
+                            })
+                        }).addTo(textBoxes);
+                        marker.getElement().appendChild(textEl);
+                        wireTextboxHover(marker, textEl);
+                        addTextboxListeners(textEl, marker);
+                    }
+                    if (layer) {
+                        layer._measureLabels = [];
+                        if (properties.id) layer._id = properties.id;
+                        layerMap.set(properties.id, layer);
+                        if(latlngs){
+                            latlngs.forEach((latlng) => {
+                            const marker = L.circleMarker(latlng, {
+                                radius: parseInt(layer.options.weight) /2 + 1,
+                                color: layer.options.color,
+                                fillColor: layer.options.color,
+                                fillOpacity: 1,
+                                interactive: false
+                            }).addTo(map.defaultMapRef);
+                            layer._measureLabels.push(marker);
+                        });
+                        }
+                    }
+                });
+                data.shapes.features.filter(f=>f.properties.type === "Measure").forEach(f => {
+                    const { geometry, properties } = f;
+                    const coords = geometry.coordinates;
+                    const linkedLayer = layerMap.get(properties.linkedTo);
+                    if (!linkedLayer) {
+                        console.warn(`Measure label linked to unknown id: ${properties.linkedTo}`);
+                        return;
+                    }
+                    const html = `<div class="measure-label-container" style="color:${properties.labelColor}"><span class="measure-value">${properties.measure}</span><span class="measure-unit">${properties.unit}</span></div>`;
+                    const center = L.latLng(coords[1], coords[0])
+                    const labelMarker = L.marker(center, {
+                        icon: L.divIcon({
+                            html,
+                            className: "",
+                            iconSize: [null, null],
+                            labelColor: properties.labelColor
+                        }),
+                        interactive: true,
+                        bubblingMouseEvents: false,
+                        pane: linkedLayer.options.pane
+                    }).addTo(drawLayer);
+                    linkedLayer._measureLabels.push(labelMarker);
+                    registerZoomFont(labelMarker);
+                });
+                map.defaultMapRef.fire('zoom');
+            }
+            //handle save
+            function handleSave(){
+                const data = event.passedData.data;
+                const features = [];
+                features.push(...saveDrawings());
+                // Return as GeoJSON FeatureCollection
+                const returnTrigger = data.returnTrigger;
+                if(returnTrigger)
+                    sendToEditor(returnTrigger, {action:"save", data:{
+                        type: "FeatureCollection",
+                        features: features
+                    }})
+            }
+            function addMeasurementToMap(){
+                const data = event.passedData.data;
+                if (!map.defaultMapRef){
+                    console.error("Mappa o layer non inizializzati"); 
+                    return null;
+                }
+                //clear deletion handler
+                if (deleteHandler) {
+                    deleteHandler.disable();
+                    deleteHandler = null;
+                    //deactivate delete listener
+                    map.defaultMapRef.off('click', handleMeasurementDeletion);
+                }
+                //no tool selected
+                if (!(data && data.tool)) {
+                    currentTool = undefined;
+                    if(tempLabels.length > 0)
+                        clearTempLabel();
+                    if (currentDrawer) {
+                        try {
+                            currentDrawer.disable();
+                        } catch (e) {
+                            console.warn("Error disabling current drawer:", e);
+                        }
+                        currentDrawer = undefined;
+                    }
+                    enableMapInteraction();
+                    return;
+                }
+                if(currentTool !== undefined){
+                    if(tempLabels.length > 0)
+                        clearTempLabel();
+                    //disable all L.Draw handlers
+                    if (currentDrawer) {
+                        try {
+                            currentDrawer.disable();
+                        } catch (e) {
+                            console.warn("Error disabling current drawer:", e);
+                        }
+                        currentDrawer = undefined;
+                    }
+                    map.defaultMapRef.off(L.Draw.Event.DRAWSTART);
+                    map.defaultMapRef.off(L.Draw.Event.DRAWSTOP);
+                }
+                //map.defaultMapRef in navigation mode
+                disableMapInteraction();
+                // delete
+                if (data.tool === 'delete') {
+                    deleteHandler = new L.EditToolbar.Delete(map.defaultMapRef, { featureGroup: drawLayer });
+                    map.defaultMapRef.on('click', handleMeasurementDeletion);
+                    deleteHandler.enable();
+                    return;
+                }
+                // Textbox
+                if (data.tool === 'freetext') {
+                    createTextBox(data);
+                    const returnTrigger = data.returnTrigger;
+                    if(returnTrigger)
+                        sendToEditor(returnTrigger, {action:'endDrawing'})
+                    return;
+                }
+                // shape style
+                const shapeOptions = {
+                    color: data.lineColor,
+                    weight: data.lineWidth,
+                    opacity: 1,
+                    fillColor: data.areaColor,
+                    fillOpacity: (1 - (data.areaTransparency / 100)),
+                    dashArray: data.lineStyle === 'dashed' ? '10,5' : (data.lineStyle === 'dotted' ? '2,5' : null),
+                    labelColor: data.labelColor
+                };
+                if(currentTool === data.tool){
+                    currentDrawer.options.shapeOptions = shapeOptions;
+                    currentDrawer._poly.setStyle(shapeOptions);
+                }else{
+                    currentTool = data.tool
+                    // create drawer
+                    switch (data.tool) {
+                        case 'rectangle': currentDrawer = new L.Draw.Rectangle(map.defaultMapRef, { shapeOptions }); break;
+                        case 'polyline':  currentDrawer = new L.Draw.Polyline(map.defaultMapRef, { shapeOptions }); break;
+                        case 'polygon':   currentDrawer = new L.Draw.Polygon(map.defaultMapRef, { shapeOptions }); break;
+                        case 'circle':    currentDrawer = new L.Draw.Circle(map.defaultMapRef, { shapeOptions }); break;
+                        default:
+                            console.warn("Unknown tool:", data.tool);
+                            enableMapInteraction();
+                            return;
+                    }
+                    // tool start
+                    currentDrawer.enable();
+                }
+            }
+            function init(){
+                const scaleLine = document.querySelector('.leaflet-control-scale-line');
+                const distanceText = scaleLine.innerText; 
+                const widthPx = scaleLine.offsetWidth; 
+                const distanceMeters = parseFloat(distanceText);
+                MAP_SCALE = distanceMeters / widthPx;
+                console.log("METERS PER PIXEL", MAP_SCALE);
+                //setup scale listeners
+                setupZoomFontScaling();
+                enableZoomScaledUi(map.defaultMapRef.getZoom());
+                //init measure function
+                setupScaledMeasurements();
+                //add draw layer over map.defaultMapRef
+                drawLayer = new L.FeatureGroup();
+                map.defaultMapRef.addLayer(drawLayer);
+                textBoxes = new L.FeatureGroup();
+                textBoxes.addTo(drawLayer);
+                drawLayer.on('layerremove', function(e) {
+                    // remove measures on figure remove
+                    const layer = e.layer;
+                    if (layer._measureLabels) {
+                        layer._measureLabels.forEach(label => map.defaultMapRef.removeLayer(label));
+                        layer._measureLabels = [];
+                    }
+                });
+                //on geom added
+                map.defaultMapRef.on(L.Draw.Event.CREATED, function(e) {
+                    clearTempLabel();
+                    //add labels
+                    const layer = e.layer;
+                    drawLayer.addLayer(layer);
+                    updateMeasurementDisplay(layer);
+                    const returnTrigger = event.passedData.data.returnTrigger;
+                    if(returnTrigger)
+                        sendToEditor(returnTrigger, {action:'endDrawing'})
+                });
+                //add tooltips
+                interceptAllDrawTooltips();
+                //append css
+                const style = document.createElement("style");
+                style.textContent = `
+                    /*map scale*/
+                    .map-scale-control {
+                    background: rgba(255, 255, 255, 0.9);
+                    border: 1px solid #ccc;
+                    border-radius: 6px;
+                    padding: 6px 10px;
+                    font: 12px/1.2 Arial, sans-serif;
+                    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+                    }
+                    .map-scale-control .map-scale-caption {
+                    margin-top: 2px;
+                    opacity: .85;
+                    }
+                    /*zoom*/
+                    .zoom-font {
+                    transform: none !important;
+                    }
+                    /*tooltip*/
+                    .leaflet-draw-tooltip {
+                    display: block !important;
+                    border-radius: 4px;
+                    min-width: 120px;
+                    padding: 4px 8px;
+                    background-color: #fff !important;
+                    }
+                    .leaflet-draw-tooltip span:nth-of-type(2){
+                    display: none !important;
+                    }
+                    .leaflet-draw-tooltip-subtext {
+                    display: block;
+                    font-size: 13px;
+                    color: #333;
+                    text-align: center;
+                    white-space: nowrap;
+                    padding: 4px;
+                    }
+                    .leaflet-draw-tooltip-single,
+                    .leaflet-draw-tooltip:before {
+                    display: none !important;
+                    }
+                    /*textbox*/
+                    .leaflet-textbox-editable {
+                    min-width: 60px;
+                    min-height: 47px;
+                    padding: 8px;
+                    border: 1px solid rgba(0,0,0,0.2);
+                    border-radius: 4px;
+                    background: transparent !important;
+                    resize: none;
+                    outline: none;
+                    overflow: hidden;
+                    word-break: break-word;
+                    white-space: pre-wrap;
+                    user-select: none;
+                    pointer-events: auto !important;
+                    transition: all 0.2s ease-out;
+                    cursor: grab;
+                    }
+                    .leaflet-textbox-editable:focus {
+                    border: 1px dashed #fff !important;
+                    }
+                    /*measures label*/
+                    .measure-label-container {
+                    display: flex;
+                    line-height: 1.2;
+                    font-family: Arial, sans-serif;
+                    }
+                    /*measure unit*/
+                    .measure-unit {
+                    margin-left: 4px;
+                    }
+                    /*on editing points*/
+                    .leaflet-draw-guide-dash {
+                    position: absolute;
+                    z-index: 6500 !important;
+                    width: 4px !important;
+                    height: 4px !important;
+                    border-radius: 50% !important;
+                    opacity: 0.95 !important;
+                    box-shadow: 0 0 2px #fff;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            function saveDrawings(){
+                const features = [];
+                let i = 0;
+                drawLayer.eachLayer(function (layer) {
+                    const id = "shape_"+i;
+                    i++;
+                    if (layer instanceof L.FeatureGroup)
+                        if (layer === textBoxes){
+                            features.push(...saveTextBox(id))
+                            return;
+                        }
+                    let geojson;
+                    // Convert circles manually since Leaflet's toGeoJSON() doesn't preserve radius
+                    if (layer instanceof L.Circle) {
+                        geojson = {
+                            type: "Feature",
+                            geometry: {
+                                type: "Point",
+                                coordinates: [
+                                    layer.getLatLng().lng,
+                                    layer.getLatLng().lat
+                                ]
+                            }
+                        };
+                    } else {
+                        geojson = layer.toGeoJSON();
+                    }
+                    let properties = {};
+                    if (layer instanceof L.Polygon && !(layer instanceof L.Rectangle)) {
+                        properties = {
+                            color: layer.options.color,
+                            dashArray: layer.options.dashArray,
+                            weight: layer.options.weight,
+                            fillColor: layer.options.fillColor,
+                            fillOpacity: layer.options.fillOpacity,
+                            type: "Polygon",
+                            id:id
+                        }
+                    } else if (layer instanceof L.Circle) {
+                        properties = {
+                            radius: layer.getRadius().toFixed(2),
+                            unit: "m",
+                            color: layer.options.color,
+                            dashArray: layer.options.dashArray,
+                            weight: layer.options.weight,
+                            fillColor: layer.options.fillColor,
+                            fillOpacity: layer.options.fillOpacity,
+                            type: "Circle",
+                            id:id
+                        }
+                    } else if (layer instanceof L.Rectangle) {
+                        properties = {
+                            color: layer.options.color,
+                            dashArray: layer.options.dashArray,
+                            weight: layer.options.weight,
+                            fillColor: layer.options.fillColor,
+                            fillOpacity: layer.options.fillOpacity,
+                            type: "Rectangle",
+                            id:id
+                        }
+                    } else if (layer instanceof L.Polyline && !(layer instanceof L.Polygon)) {
+                        properties = {
+                            color: layer.options.color,
+                            dashArray: layer.options.dashArray,
+                            weight: layer.options.weight,
+                            type: "Polyline",
+                            id:id
+                        }
+                    }
+                    // If the result is a FeatureCollection, flatten it
+                    if (geojson.type === "FeatureCollection") {
+                        geojson.features.forEach(f => {
+                            f.properties = properties;
+                            features.push(f);
+                        });
+                    } else {
+                        geojson.properties = properties;
+                        features.push(geojson);
+                    }
+                
+                    if (Array.isArray(layer._measureLabels)) {
+                        let j = 0;
+                        layer._measureLabels.forEach(labelMarker => {
+                            const lid = "measure_"+j;
+                            j++;
+                            const latlng = labelMarker.getLatLng();
+                            // Extract text from its inner HTML safely
+                            let labelText = "";
+                            try {
+                                const div = document.createElement("div");
+                                div.innerHTML = labelMarker.options.icon.options.html;
+                                const valueEl = div.querySelector(".measure-value");
+                                const unitEl = div.querySelector(".measure-unit");
+                                const value = valueEl ? valueEl.textContent.trim() : "";
+                                const unit = unitEl ? unitEl.textContent.trim() : "";
+                                // Add as GeoJSON Feature (Point)
+                                features.push({
+                                    type: "Feature",
+                                    properties: {
+                                        type: "Measure",
+                                        measure: value,
+                                        unit: unit,
+                                        labelColor: labelMarker.options.icon.options.labelColor,
+                                        linkedTo:id,
+                                        id:lid
+                                    },
+                                    geometry: {
+                                        type: "Point",
+                                        coordinates: [latlng.lng, latlng.lat]
+                                    }
+                                });
+                            } catch (err) {
+                                //the points of lines
+                            }
+                        });
+                    }
+                });
+                return features;
+            }
+            function saveTextBox(id){
+                const features = [];
+                textBoxes.eachLayer(marker => {
+                    const div = marker.getElement().querySelector(".leaflet-textbox-editable");
+                    const colorToHex = (color) => {
+                        // Create a temporary element to let the browser parse the color
+                        const temp = document.createElement("div");
+                        temp.style.color = color;
+                        document.body.appendChild(temp);
+                    
+                        // Get the computed color in RGB format
+                        const rgb = getComputedStyle(temp).color;
+                        document.body.removeChild(temp);
+                    
+                        // Parse "rgb(r, g, b)" or "rgba(r, g, b, a)"
+                        const match = rgb.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+                        if (!match) return null;
+                    
+                        const r = parseInt(match[1]).toString(16).padStart(2, "0");
+                        const g = parseInt(match[2]).toString(16).padStart(2, "0");
+                        const b = parseInt(match[3]).toString(16).padStart(2, "0");
+                    
+                        return `#${r}${g}${b}`.toUpperCase();
+                    }        
+                    // Convert marker position to GeoJSON-compatible coordinates
+                    const latlng = marker.getLatLng();
+                    // Push as a GeoJSON Feature
+                    features.push({
+                        type: "Feature",
+                        properties: {
+                            type: "Textbox",
+                            text: div.textContent.trim(),
+                            color: colorToHex(div.style.color),
+                            fontSize: parseFloat(div.style.fontSize),
+                            fontFamily: div.style.fontFamily,
+                            width: parseFloat(div.style.width),
+                            height: parseFloat(div.style.height),
+                            id:id
+                        },
+                        geometry: {
+                            type: "Point",
+                            coordinates: [latlng.lng, latlng.lat]
+                        }
+                    });
+                });
+                return features;
+            }
+            function createTextBox(data) {
+                if (!map.defaultMapRef || !textBoxes) {
+                    return;
+                }
+                //create html node
+                const options = {
+                    text: data.text || '',
+                    color: data.fontColor,
+                    size: data.fontSize,
+                    family: data.fontFamily,
+                    position: map.defaultMapRef.getCenter(),
+                    noAutoFocus: false
+                };
+                const textEl = document.createElement('div');
+                textEl.className = 'leaflet-textbox-editable';
+                textEl.classList.add('zoom-scaled');
+                textEl.contentEditable = true;
+                textEl.style.cssText = `color: ${options.color};font-size: ${options.size}px;font-family: ${options.family};`;
+                //create leaflet element
+                const marker = L.marker(options.position, {
+                    draggable: false,
+                    autoPan: true,
+                    icon: L.divIcon({
+                        html: "",
+                        className: '',
+                        iconSize: null
+                    })
+                }).addTo(textBoxes);
+                marker.getElement().appendChild(textEl);
+                //bind onHover/onOut listeners
+                wireTextboxHover(marker, textEl);
+                //init
+                textEl.style.width = '150px';
+                textEl.style.height = '60px';
+                addTextboxListeners(textEl, marker);
+                textEl.focus();
+            }
+            function addTextboxListeners(textEl, marker){
+                // focus/blur
+                textEl.addEventListener('focus', function() {
+                    this.style.border = '1px dashed #0078d7';
+                    this.style.boxShadow = '0 0 0 2px rgba(0, 120, 215, 0.2)';
+                });
+                textEl.addEventListener('blur', function() {
+                    this.style.border = 'none';
+                    this.style.boxShadow = 'none';
+                });
+                //drag
+                let isDragging = false;
+                let startPoint = null;
+                let startLatLng = null;
+                textEl.addEventListener('mousedown', function(e) {
+                    //resize eveny
+                    const onRightEdge = e.offsetX > this.offsetWidth - 5;
+                    const onBottomEdge = e.offsetY > this.offsetHeight - 5;
+                    if (onRightEdge || onBottomEdge){
+                        return;
+                    }
+                    textEl.focus();
+                    //caret position
+                    let range;
+                    if (document.caretRangeFromPoint) {
+                        // Chrome, Safari, Edge
+                        range = document.caretRangeFromPoint(e.clientX, e.clientY);
+                    } else if (document.caretPositionFromPoint) {
+                        // Firefox
+                        const pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+                        range = document.createRange();
+                        range.setStart(pos.offsetNode, pos.offset);
+                    }
+                    if (range) {
+                        const sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(range);
+                    }
+                    isDragging = true;
+                    startPoint = map.defaultMapRef.mouseEventToContainerPoint(e);
+                    startLatLng = marker.getLatLng();
+                    textEl.style.userSelect = 'none';
+                    textEl.style.cursor = 'grabbing';
+                });
+                // mousemove → update position if dragging
+                map.defaultMapRef.on('mousemove', function(e) {
+                    if (!isDragging)
+                        return;
+                    const currentPoint = e.containerPoint;
+                    const dx = currentPoint.x - startPoint.x;
+                    const dy = currentPoint.y - startPoint.y;
+                    const newPoint = map.defaultMapRef.latLngToContainerPoint(startLatLng).add([dx, dy]);
+                    const newLatLng = map.defaultMapRef.containerPointToLatLng(newPoint);
+                    marker.setLatLng(newLatLng);
+                });
+                // mouseup → stop dragging
+                map.defaultMapRef.on('mouseup', function() {
+                    if (!isDragging) 
+                      return;
+                    isDragging = false;
+                    textEl.style.userSelect = 'auto';
+                    textEl.style.cursor = 'text';
+                });
+                //mouse aspect
+                textEl.addEventListener('mousemove', function(e) {
+                    const onRightEdge = e.offsetX > this.offsetWidth - 5;
+                    const onBottomEdge = e.offsetY > this.offsetHeight - 5;
+                    if (onRightEdge && onBottomEdge) {
+                        this.style.cursor = 'se-resize';
+                    } else if (onRightEdge) {
+                        this.style.cursor = 'ew-resize';
+                    } else if (onBottomEdge) {
+                        this.style.cursor = 'ns-resize';
+                    } else if (!isDragging) {
+                        this.style.cursor = 'text';
+                    }
+                });
+                //resizing
+                let resizingRight = false;
+                let resizingBottom = false;
+                let startX, startY, startWidth, startHeight;
+                const style = window.getComputedStyle(textEl);
+                const minWidth = parseInt(style.minWidth);
+                const minHeight = parseInt(style.minHeight);
+                textEl.addEventListener('mousedown', function(e) {
+                    const onRightEdge = e.offsetX > this.offsetWidth - 5;
+                    const onBottomEdge = e.offsetY > this.offsetHeight - 5;
+                    if (onRightEdge || onBottomEdge) {
+                        isResizing = true;
+                        startX = e.clientX;
+                        startY = e.clientY;
+                        startWidth = this.offsetWidth;
+                        startHeight = this.offsetHeight;
+                        resizingRight = onRightEdge;
+                        resizingBottom = onBottomEdge;
+                        if (marker.dragging) 
+                            marker.dragging.disable();
+                        document.addEventListener('mousemove', handleResize);
+                        document.addEventListener('mouseup', stopResize);
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } else {
+                        // drag mode
+                        marker.dragging.enable();
+                    }
+                });
+                function handleResize(e) {
+                    if (resizingRight) {
+                        const newWidth = Math.max(minWidth, startWidth + (e.clientX - startX));
+                        textEl.style.width = newWidth + 'px';
+                    }
+                    if (resizingBottom) {
+                        const newHeight = Math.max(minHeight, startHeight + (e.clientY - startY));
+                        textEl.style.height = newHeight + 'px';
+                    }
+                    marker.update();
+                }
+                function stopResize() {
+                    document.removeEventListener('mousemove', handleResize);
+                    document.removeEventListener('mouseup', stopResize);
+                    resizingRight = false;
+                    resizingBottom = false;
+                }
+                //resize on input
+                textEl.addEventListener('input', function() {
+                    if (this.scrollHeight > this.offsetHeight) {
+                        this.style.height = 'auto';
+                        this.style.height = (this.scrollHeight) + 'px';
+                        marker.update();
+                    }
+                });
+                // delete
+                marker.on('click', function(e) {
+                    if (deleteHandler && deleteHandler.enabled()) {
+                        textBoxes.removeLayer(marker);
+                        L.DomEvent.stop(e);
+                    }
+                });
+            }
+            function wireTextboxHover(marker, textEl) {
+                function onOver() {
+                    const isDelete = (deleteHandler && deleteHandler.enabled());
+                    textEl.style.border = isDelete ? '1px dashed #ff3333' : '1px dashed #1978c8';
+                    textEl.style.cursor = 'pointer';
+                }
+                function onOut() {
+                    textEl.style.border = '1px solid transparent';
+                    textEl.style.cursor = 'text';
+                }
+                marker.on('mouseover', onOver);
+                marker.on('mouseout',  onOut);
+            }
+            function sendToEditor(triggerName, data){
+                $('body').trigger({
+                    type: triggerName,
+                    target: map.mapName,
+                    passedData: data
+                });
+            }
+            function setupZoomFontScaling(baseZoom = map.defaultMapRef.getZoom()) {
+                const apply = () => {
+                    const s = map.defaultMapRef.getZoomScale(map.defaultMapRef.getZoom(), baseZoom);
+                    document.querySelectorAll('.zoom-font').forEach(node => {
+                        const baseFontSize = 12;
+                        const maxFontSize = 24;
+                        const minFontSize = 12;
+                        const fontSize = Math.max(minFontSize, Math.min( baseFontSize * s, maxFontSize)) + 'px';
+                        node.style.fontSize = fontSize;
+                    });
+                };
+                map.defaultMapRef.on('zoom zoomend', apply);
+                apply();
+            }
+            function enableZoomScaledUi(baseZoom) {
+                const _baseZoom = (typeof baseZoom === 'number') ? baseZoom : map.defaultMapRef.getZoom();
+                const applyScale = () => {
+                    const z = map.defaultMapRef.getZoom();
+                    // fattore di scala relativo al baseZoom
+                    const s = map.defaultMapRef.getZoomScale(z, _baseZoom);
+                    // scala: textbox, etichette misure, e qualsiasi cosa marchiata zoom-scaled
+                    const nodes = document.querySelectorAll(
+                        '.zoom-scaled, ' +
+                        '.leaflet-tooltip.zoom-scaled, .leaflet-popup .zoom-scaled'
+                    );
+                    nodes.forEach(el => {
+                        el.style.transform = `scale(${s})`;
+                        el.style.transformOrigin = 'top left';
+                    });
+                };
+                map.defaultMapRef.on('zoom', applyScale);
+                map.defaultMapRef.on('zoomend', applyScale);
+                applyScale();
+            }
+            function setupScaledMeasurements() {
+                // Salva la funzione originale
+                const originalDistance = L.GeometryUtil.length;
+                // Sovrascrivi con la versione scalata
+                L.GeometryUtil.length = function(latlngs) {
+                    const originalLength = originalDistance.call(this, latlngs);
+                    return originalLength * MAP_SCALE;
+                };
+            }
+            function clearTempLabel(){
+                //clear temp labels
+                tempLabels.forEach((tempLabel)=>map.defaultMapRef.removeLayer(tempLabel))
+                tempLabels.length = 0;
+            }
+            function updateMeasurementDisplay(layer) {
+                if (!layer)
+                    return;
+                layer._measureLabels = [];
+                let content = '';
+                if (layer instanceof L.Rectangle) 
+                    content = handleRectangle(layer);
+                else if (layer instanceof L.Circle) 
+                    content = handleCircle(layer);
+                else if (layer instanceof L.Polyline) 
+                    content = handlePolylineOrPolygon(layer);
+                map.defaultMapRef.fire('zoom');
+                layer.bindPopup(content, { autoClose: false, closeOnClick: false });
+                layer.openPopup();
+            }
+            function handleRectangle(layer) {
+                const bounds = layer.getBounds();
+                const latlngs = [
+                    bounds.getSouthWest(),
+                    bounds.getSouthEast(),
+                    bounds.getNorthEast(),
+                    bounds.getNorthWest(),
+                ];
+                const latlngsCopy = [...latlngs, latlngs[0]];
+                const measurements = calculatePolygonMeasurements(latlngsCopy, true);
+                let content = `
+                    Width: ${formatMeasurement(measurements.segments[0])}<br>
+                    Height: ${formatMeasurement(measurements.segments[1])}<br>
+                    Perimeter: ${formatMeasurement(measurements.perimeter)}<br>
+                    Area: ${formatMeasurement(measurements.area, true)}
+                `;
+                // side label
+                for (let i = 0; i < 4; i++) {
+                    const start = latlngs[i], end = latlngs[(i + 1) % 4];
+                    const midPoint = L.latLng((start.lat + end.lat) / 2, (start.lng + end.lng) / 2);
+                    createLabel(layer, midPoint, `${formatMeasurement(measurements.segments[i])}`, 'leaflet-measure-label');
+                }
+                //area label
+                const center = bounds.getCenter();
+                const areaPos = L.latLng(center.lat, center.lng);
+                createLabel(layer, areaPos, `Area: ${formatMeasurement(measurements.area, true)}`, 'leaflet-area-label');
+                return content;
+            }
+            function handleCircle(layer) {
+                const radius = layer.getRadius();
+                const area = Math.PI * radius * radius;
+                const circumference = 2 * Math.PI * radius;
+                let content = `
+                    Radius: ${formatMeasurement(radius)}<br>
+                    Circumference: ${formatMeasurement(circumference)}<br>
+                    Area: ${formatMeasurement(area, true)}
+                `;
+                const center = layer.getLatLng();
+                // radius label
+                function offsetLatLng(latlng, distanceMeters, bearingDegrees) {
+                    const R = 6378137; // Earth radius in meters
+                    const d = distanceMeters / R; // angular distance in radians
+                    const bearing = bearingDegrees * Math.PI / 180; // convert to radians
+                    const lat1 = latlng.lat * Math.PI / 180; // convert latitude to radians
+                    const lon1 = latlng.lng * Math.PI / 180; // convert longitude to radians
+                    const lat2 = Math.asin(
+                      Math.sin(lat1) * Math.cos(d) +
+                      Math.cos(lat1) * Math.sin(d) * Math.cos(bearing)
+                    );
+                    const lon2 = lon1 + Math.atan2(
+                      Math.sin(bearing) * Math.sin(d) * Math.cos(lat1),
+                      Math.cos(d) - Math.sin(lat1) * Math.sin(lat2)
+                    );
+                    return L.latLng(lat2 * 180 / Math.PI, lon2 * 180 / Math.PI); // convert back to degrees
+                }
+                
+                // Example: move 1 radius at 135° (southeast)
+                const radiusPos = offsetLatLng(center, layer.getRadius(), 135);
+                createLabel(layer, radiusPos, `Radius: ${formatMeasurement(radius)}`, 'leaflet-measure-label');
+                //area label
+                const areaPos = L.latLng(center.lat, center.lng);
+                createLabel(layer, areaPos, `Area: ${formatMeasurement(area, true)}`);
+                return content;
+            }
+            function handlePolylineOrPolygon(layer) {
+                let latlngs = layer.getLatLngs();
+                if (latlngs.length > 0 && Array.isArray(latlngs[0])) 
+                    latlngs = latlngs[0];
+                const isPolygon = layer instanceof L.Polygon;
+                const coords = [...latlngs];
+                if (isPolygon) 
+                    coords.push(latlngs[0]);
+                latlngs.forEach((latlng) => {
+                    const marker = L.circleMarker(latlng, {
+                        radius: parseInt(layer.options.weight) /2 + 1,
+                        color: layer.options.color,
+                        fillColor: layer.options.color,
+                        fillOpacity: 1,
+                        interactive: false
+                    }).addTo(map.defaultMapRef);
+                    layer._measureLabels.push(marker);
+                });
+                //measurements
+                const measurements = calculatePolygonMeasurements(coords, isPolygon);
+                let content = '';
+                const vertecesCount = latlngs.length;
+                const segmentsCount = isPolygon ? measurements.segments.length - 1 : measurements.segments.length;
+                for (let i = 0; i < segmentsCount; i++) {
+                    content += `Segment ${i+1} length: ${formatMeasurement(measurements.segments[i])}<br>`;
+                    const start = latlngs[i], end = latlngs[(i + 1) % vertecesCount];
+                    const midPoint = L.latLng((start.lat + end.lat) / 2, (start.lng + end.lng) / 2);
+                    createLabel(layer, midPoint, `${formatMeasurement(measurements.segments[i])}`, 'leaflet-measure-label');
+                }
+                if (!isPolygon) {
+                    content += `Total length: ${formatMeasurement(measurements.segments.reduce((s, v) => s + v, 0))}`;
+                } else {
+                    content += `
+                        Perimeter: ${formatMeasurement(measurements.perimeter)}<br>
+                        Area: ${formatMeasurement(measurements.area, true)}
+                    `;
+                    const center = layer.getBounds().getCenter();
+                    const areaPos = L.latLng(center.lat, center.lng);
+                    createLabel(layer, areaPos, `Area: ${formatMeasurement(measurements.area, true)}`);
+                }
+                return content;
+            }
+            //add zoom-font
+            function registerZoomFont(marker) {
+                const root = marker.getElement();
+                const target = root.querySelector('.measure-label-container');
+                target.classList.add('zoom-font');
+            }
+            //create label
+            function createLabel(layer, position, html, className = '') {
+                const label = L.marker(position, {
+                    icon: L.divIcon({
+                        html: `<div class="measure-label-container measure-deletable" style="color:${layer.options.labelColor}">${html}</div>`,
+                        className,
+                        iconSize: [null, null],
+                        labelColor: layer.options.labelColor
+                    }),
+                    interactive: true,
+                    bubblingMouseEvents: false
+                }).addTo(map.defaultMapRef);
+            
+                layer._measureLabels.push(label);
+                registerZoomFont(label);
+            }
+            function calculatePolygonMeasurements(latlngs, isClosed) {
+                const measurements = {
+                    segments: [],
+                    perimeter: 0,
+                    area: 0
+                };
+                if (Array.isArray(latlngs[0]) && !(latlngs[0] instanceof L.LatLng)) {
+                    latlngs = latlngs[0];
+                }
+                const first = L.latLng(latlngs[0]);
+                const last = L.latLng(latlngs[latlngs.length-1]);
+                //sides
+                const segmentCount = isClosed ? latlngs.length   : latlngs.length - 1;
+                for (let i = 0; i < segmentCount; i++) {
+                    const nextIdx = (i + 1) % latlngs.length;
+                    const segmentLength = calculateSegmentLength(latlngs[i], latlngs[nextIdx]);
+                    measurements.segments.push(segmentLength);
+                    measurements.perimeter += segmentLength;
+                }
+                //area
+                if (isClosed) {
+                    measurements.area = L.GeometryUtil.geodesicArea(latlngs);
+                }
+                return measurements;
+            }
+            function calculateSegmentLength(latLng1, latLng2) {
+                return latLng1.distanceTo(latLng2)
+            }
+            function formatMeasurement(value, isArea = false) {
+                const roundedValue = Math.round(value * 100) / 100;
+                const unit = isArea ? 'm²' : 'm';
+                return `<span class="measure-value">${roundedValue}</span><span class="measure-unit">${unit}</span>`;
+            }
+            //tootips
+            function interceptAllDrawTooltips() {
+                if (!L.Draw)
+                    return;
+                const fmtLen = (meters) => (meters).toFixed(2) + ' m';
+                const sumDist = (map, pts) => {
+                    let tot = 0;
+                    for (let i = 1; i < pts.length; i++) 
+                        tot += map.distance(pts[i - 1], pts[i]);
+                    return tot;
+                };
+               /* ------------------------- CERCHIO ------------------------- */
+                if (L.Draw.Circle) {
+                    const _origOnMouseMove = L.Draw.Circle.prototype._onMouseMove; 
+                    L.Draw.Circle.prototype._onMouseMove = function (e) {           
+                        if (_origOnMouseMove) 
+                            _origOnMouseMove.call(this, e);
+                        if (!this._tooltip)
+                            this._createTooltip();
+                        const start = this._startLatLng;
+                        const curr  = (e && e.latlng) || this._currentLatLng || (this._mouseMarker && this._mouseMarker.getLatLng());
+                        if (start && curr) {
+                            const r = this._map.distance(start, curr);     // raggio NON SCALATO
+                            const text = L.drawLocal?.draw?.handlers?.circle?.tooltip?.start || ''; 
+                            const subtext = 'Radius: ' + fmtLen(r);        // << SCALATO
+                            this._tooltip.updateContent({ text, subtext }); 
+                            this._tooltip.updatePosition(curr);
+                        }
+                    };
+                }
+                /* ------------------------ POLYLINE ------------------------ */
+                if (L.Draw.Polyline) {
+                    L.Draw.Polyline.prototype._getTooltipText = function () {
+                        const tip = { text: L.drawLocal.draw.handlers.polyline.tooltip.start, subtext: '' };
+                        const markers = this._markers || [];
+                        let pts = markers.map(m => m.getLatLng());
+                        if (this._currentLatLng) 
+                            pts = pts.concat(this._currentLatLng);
+                        if (pts.length > 1) {
+                            // per calcolare le lunghezze dei segmenti
+                            const segLens = [];
+                            for (let i = 1; i < pts.length; i++)
+                                segLens.push(this._map.distance(pts[i - 1], pts[i]));
+                            const total = segLens.reduce((a, b) => a + b, 0);
+                            tip.subtext = `Current total: ${fmtLen(total)}`;
+                        }
+                        return tip;
+                    };
+                    const origOnMouseMove = L.Draw.Polyline.prototype._onMouseMove;
+                    L.Draw.Polyline.prototype._onMouseMove = function (e) {
+                        origOnMouseMove.call(this, e);
+                        updateTempLinearMeasurementDisplay(this._poly, this._currentLatLng);
+                    };
+                }
+                /* ------------------------- POLIGONO------------------------- */
+                if (L.Draw.Polygon) {
+                    L.Draw.Polygon.prototype._getTooltipText = function () {
+                        const tip = { text: L.drawLocal.draw.handlers.polygon.tooltip.start, subtext: '' };
+                        // punti già disegnati + punto corrente
+                        let pts = this._markers.map(m => m.getLatLng());
+                        if (this._currentLatLng) pts = pts.concat(this._currentLatLng);
+                        if (pts.length > 1) {
+                            // lunghezze lato per lato
+                            const segLens = [];
+                            for (let i = 1; i < pts.length; i++) {
+                                segLens.push(this._map.distance(pts[i - 1], pts[i]));
+                            }
+                            const perim = segLens.reduce((a, b) => a + b, 0);
+                            tip.subtext = `Perimeter: ${fmtLen(perim)}`;
+                        }
+                        return tip;
+                    };
+                    const origOnMouseMove = L.Draw.Polygon.prototype._onMouseMove;
+                    L.Draw.Polygon.prototype._onMouseMove = function (e) {
+                        origOnMouseMove.call(this, e);
+                        updateTempLinearMeasurementDisplay(this._poly, this._currentLatLng);
+                    };
+                }
+                /* ------------------------ RETTANGOLO------------------------ */
+                if (L.Draw.Rectangle) {
+                    L.Draw.Rectangle.prototype._getTooltipText = function () {
+                        const tip = { text: L.drawLocal.draw.handlers.rectangle.tooltip.start, subtext: '' };
+                        if (this._shape) {
+                            const b = this._shape.getBounds();
+                            const w = this._map.distance(
+                                L.latLng(b.getNorth(), b.getWest()),
+                                L.latLng(b.getNorth(), b.getEast())
+                            );
+                            const h = this._map.distance(
+                                L.latLng(b.getNorth(), b.getWest()),
+                                L.latLng(b.getSouth(), b.getWest())
+                            );
+                            tip.subtext = 'Sides: ' + fmtLen(w) + ' x ' + fmtLen(h);
+                        }
+                        return tip;
+                    };
+                }
+            }
+            //draw measurement label while drawing lines
+            function updateTempLinearMeasurementDisplay(layer, currentMousePosition) {
+                if (!layer)
+                    return;
+                if (layer instanceof L.Polyline){
+                    let latlngs = layer.getLatLngs();
+                    if(latlngs.length > 0){
+                        const start = latlngs[latlngs.length-1], end = currentMousePosition;
+                        const midPoint = L.latLng((start.lat + end.lat) / 2, (start.lng + end.lng) / 2);
+                        let tempLabel = tempLabels[latlngs.length-1];
+                        if (!tempLabel) {
+                            // create once
+                            tempLabel = L.marker(midPoint, {
+                                icon: L.divIcon({
+                                    html: `<div class="measure-label-container" style="color:${layer.options.labelColor}">${formatMeasurement(calculateSegmentLength(start, end))}</div>`,
+                                    className: '',
+                                    iconSize: [null, null]
+                                }),
+                                interactive: true,
+                                bubblingMouseEvents: false
+                            }).addTo(map.defaultMapRef);
+                            tempLabels.push(tempLabel);
+                        } else {
+                            // update existing marker
+                            tempLabel.setLatLng(midPoint);
+                            tempLabel.setIcon(L.divIcon({
+                                html: `<div class="measure-label-container" style="color:${layer.options.labelColor}">${formatMeasurement(calculateSegmentLength(start, end))}</div>`,
+                                className: '',
+                                iconSize: [null, null]
+                            }));
+                        }
+                    }
+                }
+            }
+            function disableMapInteraction() {
+                if(!map.defaultMapRef) 
+                    return;
+                map.defaultMapRef.dragging.disable();
+                map.defaultMapRef.touchZoom.disable();
+                map.defaultMapRef.scrollWheelZoom.disable();
+            }
+            function enableMapInteraction() {
+                if(!map.defaultMapRef) 
+                    return;
+                map.defaultMapRef.off('click', handleMeasurementDeletion);
+                map.defaultMapRef.dragging.enable();
+                map.defaultMapRef.touchZoom.enable();
+                map.defaultMapRef.scrollWheelZoom.enable();
+            }
+            function handleMeasurementDeletion(e) {
+                const clickedLabelEl = e.originalEvent.target.closest('.measure-deletable');
+                if (!clickedLabelEl) 
+                    return;
+                // Find the corresponding marker
+                const marker = Object.values(map.defaultMapRef._layers).find(
+                    layer => layer instanceof L.Marker && layer._icon && layer._icon.contains(clickedLabelEl)
+                );
+                if (!marker) 
+                    return;
+                // Find the shape layer that contains this marker
+                const shapeLayer = drawLayer.getLayers().find(
+                    layer => Array.isArray(layer._measureLabels) && layer._measureLabels.includes(marker)
+                );
+                if (!shapeLayer)
+                    return;
+                // Remove the shape layer (triggers 'layerremove')
+                drawLayer.removeLayer(shapeLayer);
+                L.DomEvent.stop(e);
+            }
+            if (addMode === 'additive') {
+                performAction();
+            }
+            function performAction(){
+                const passedData = event.passedData;
+                if(passedData.action==="init"){
+                    init()
+                }else if(passedData.action === "tool"){
+                    addMeasurementToMap()
+                }else if(passedData.action === "save"){
+                    handleSave();
+                }else if(passedData.action === "load"){
+                    handleLoad()
+                }
+            }
+            if (addMode === 'exclusive') {
+                for (let i = map.defaultMapRef.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.defaultMapRef.eventsOnMap[i].type !== 'addMeasurementEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.defaultMapRef.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                //Remove WidgetAlarm active pins
+                $.event.trigger({
+                    type: "removeAlarmPin",
+                });
+                //Remove WidgetEvacuationPlans active pins
+                $.event.trigger({
+                    type: "removeEvacuationPlanPin",
+                });
+                //Remove WidgetSelector active pins
+                $.event.trigger({
+                    type: "removeSelectorEventPin",
+                });
+                //Remove WidgetEvents active pins
+                $.event.trigger({
+                    type: "removeEventFIPin",
+                });
+                //Remove WidgetResources active pins
+                $.event.trigger({
+                    type: "removeResourcePin",
+                });
+                //Remove WidgetOperatorEvents active pins
+                $.event.trigger({
+                    type: "removeOperatorEventPin",
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+                performAction();
+            }
+        }
+    });
+    //Naldi 09/10/2025 -> remove addMeasurement functionalities
+    $(document).on('removeMeasurements', function (event) {
+        if (event.target === map.mapName) {
+            MAP_SCALE = 1;
+            if (drawLayer && map.defaultMapRef.hasLayer(drawLayer)) {
+                if (typeof drawLayer.eachLayer === 'function') {
+                    drawLayer.eachLayer(layer => {
+                        drawLayer.fire('layerremove', { layer });
+                    });
+                }
+                map.defaultMapRef.removeLayer(drawLayer);
+            }
+            drawLayer = undefined;
+            if (deleteHandler && typeof deleteHandler.disable === 'function') {
+                deleteHandler.disable();
+            }
+            deleteHandler = null;
+            if (currentDrawer && typeof currentDrawer.disable === 'function') {
+                currentDrawer.disable();
+            }
+            currentDrawer = undefined;
+            if (textBoxes) {
+                if (Array.isArray(textBoxes)) {
+                    textBoxes.forEach(tb => {
+                        if (map.defaultMapRef.hasLayer(tb)) 
+                            map.defaultMapRef.removeLayer(tb);
+                    });
+                } else if (map.defaultMapRef.hasLayer(textBoxes)) {
+                    map.defaultMapRef.removeLayer(textBoxes);
+                }
+            }
+            textBoxes = undefined;
+            tempLabels.length = 0;
+            currentTool = undefined;
+        }
+    });
+    //Naldi 09/10/2025 -> add scale panel
+    let scaleControl;
+    $(document).on('addMapScale', function(event){
+        if(event.target === map.mapName){
+            function addMapScaleToMap(){
+                if(scaleControl)
+                    return;
+                const passedData = event.passedData;
+                //add map.defaultMapRef scale control
+                L.control.scale({
+                    position: passedData.position,
+                    metric: true,
+                    imperial: false
+                }).addTo(map.defaultMapRef);
+            }
+            if (addMode === 'additive') {
+                addMapScaleToMap();
+            }
+            if (addMode === 'exclusive') {
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].type !== 'mapScaleEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                //Remove WidgetAlarm active pins
+                $.event.trigger({
+                    type: "removeAlarmPin",
+                });
+                //Remove WidgetEvacuationPlans active pins
+                $.event.trigger({
+                    type: "removeEvacuationPlanPin",
+                });
+                //Remove WidgetSelector active pins
+                $.event.trigger({
+                    type: "removeSelectorEventPin",
+                });
+                //Remove WidgetEvents active pins
+                $.event.trigger({
+                    type: "removeEventFIPin",
+                });
+                //Remove WidgetResources active pins
+                $.event.trigger({
+                    type: "removeResourcePin",
+                });
+                //Remove WidgetOperatorEvents active pins
+                $.event.trigger({
+                    type: "removeOperatorEventPin",
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+                addMapScaleToMap();
+            }
+        }
+    });
+    //Naldi 09/10/2025 -> remove scale panel
+    $(document).on('removeMapScale', function (event) {
+        if (event.target === map.mapName) {
+            if(!scaleControl)
+                return;
+            scaleControl.remove();
+            scaleControl = undefined;
+        }
+    });
+    //Naldi 09/10/2025 -> add cursor coords panel
+    let coordsControl;
+    $(document).on('addCursorPosition', function(event){
+        if(event.target === map.mapName){
+            function addCursorPositionToMap(){
+                if(coordsControl)
+                    return;
+                const passedData = event.passedData;
+                //add panel to display coords
+                coordsControl = L.control({ position: passedData.position }); 
+                coordsControl.onAdd = function (map) {
+                    this._div = L.DomUtil.create('div', 'coords-control');
+                    this._div.style.padding = '5px';
+                    this._div.style.background = 'rgba(255, 255, 255, 0.8)';
+                    this._div.style.borderRadius = '4px';
+                    this._div.style.color = passedData.color;
+                    this.update();
+                    return this._div;
+                };
+                // Method to update control
+                coordsControl.update = function (latlng) {
+                    if (latlng)
+                        this._div.innerHTML = `Lat: ${latlng.lat.toFixed(passedData.precision)}<br>Lng: ${latlng.lng.toFixed(passedData.precision)}`;
+                };
+                // Add the control to the map
+                coordsControl.addTo(map.defaultMapRef);
+                // Update control on mouse move
+                map.defaultMapRef.on('mousemove', function (e) {
+                    coordsControl.update(e.latlng);
+                });
+                // Optional: clear coordinates when mouse leaves the map
+                map.defaultMapRef.on('mouseout', function () {
+                    coordsControl.update();
+                });
+            }
+            if (addMode === 'additive') {
+                addCursorPositionToMap();
+            }
+            if (addMode === 'exclusive') {
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].type !== 'cursorPositionEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                //Remove WidgetAlarm active pins
+                $.event.trigger({
+                    type: "removeAlarmPin",
+                });
+                //Remove WidgetEvacuationPlans active pins
+                $.event.trigger({
+                    type: "removeEvacuationPlanPin",
+                });
+                //Remove WidgetSelector active pins
+                $.event.trigger({
+                    type: "removeSelectorEventPin",
+                });
+                //Remove WidgetEvents active pins
+                $.event.trigger({
+                    type: "removeEventFIPin",
+                });
+                //Remove WidgetResources active pins
+                $.event.trigger({
+                    type: "removeResourcePin",
+                });
+                //Remove WidgetOperatorEvents active pins
+                $.event.trigger({
+                    type: "removeOperatorEventPin",
+                });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+                addCursorPositionToMap();
+            }
+        }
+    });
+    //Naldi 09/10/2025 -> Remove cursor coords panel
+    $(document).on('removeCursorPosition', function (event) {
+        if (event.target === map.mapName) {
+            if(!coordsControl)
+                return;
+            coordsControl.remove();
+            coordsControl = undefined;
+        }
+    });
     //Naldi 07/05/2025 -> add new trigger to toggle other triggers
     $(document).on('toggleTriggers', function(event){
         if(event.target === map.mapName){
@@ -31354,11 +32718,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     }
 
     /* CSS FIX MENTINA */
-    #mainOdDiv *:is(select, button, input) {
+    #mainOdDiv *:is(select, button, input, option) {
         color: black;
     }
 
-    #mainOdDiv *:not(input, button, select) {
+    #mainOdDiv *:not(input, button, select, option) {
         color: var(--text-color);
     }
     #scenarioContent-div, .scenaryDiv:not(.extraInfo) > * {

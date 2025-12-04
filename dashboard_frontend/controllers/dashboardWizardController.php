@@ -108,15 +108,15 @@ if (isset($_REQUEST["globalSqlFilter"])) {
         }
     }
 
-    if ($_SESSION['loggedRole'] !== "RootAdmin") {
-        if ($whereString === "") {
-            //   $whereString = " WHERE organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
-            $whereString = " organizations REGEXP '" . $orgFilter . "'";
-        } else {
-            //   $whereString = " AND organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
-            $whereString = $whereString . " AND organizations REGEXP '" . $orgFilter . "'";
-        }
+    if ($whereString === "") {
+        //   $whereString = " WHERE organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+        $whereString = " organizations REGEXP '" . $orgFilter . "'";
+    } else {
+        //   $whereString = " AND organizations REGEXP '" + $orgFilter + "' OR $ownership = 'private'";
+        $whereString = $whereString . " AND organizations REGEXP '" . $orgFilter . "'";
     }
+    // if ($_SESSION['loggedRole'] !== "RootAdmin") {
+    // }
   
     $sql_distinct_field = $_REQUEST['distinctField'];
     if ($sql_distinct_field != "high_level_type" && $sql_distinct_field != "nature" && $sql_distinct_field != "sub_nature" && $sql_distinct_field != "low_level_type" && $sql_distinct_field != "unit" && $sql_distinct_field != "unique_name_id" && $sql_distinct_field != "healthiness" && $sql_distinct_field != "ownership" && $sql_distinct_field != "value_unit" && $sql_distinct_field != "broker_name" && $sql_distinct_field != "value_name" && $sql_distinct_field != "value_type") {

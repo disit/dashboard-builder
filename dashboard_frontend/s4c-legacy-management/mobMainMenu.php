@@ -39,7 +39,7 @@
     <div id="mobMainMenuPortraitCnt">
         <div class="row">
 <?php if(!$_SESSION['isPublic']) : ?>
-            <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrCnt">
+            <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrCnt" style="flex-direction: column">
                 <?php if (($_SESSION['loggedOrganization'] == 'None' || $_SESSION['loggedOrganization'] == 'none')) {
                     if ($_SESSION['loggedUsername'] == 'roottooladmin1') {
                         echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
@@ -47,7 +47,25 @@
                         echo "User: " . $_SESSION['loggedUsername'] . ", Org: None";
                     }
                 } else {
-                    echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
+                    // echo "User: " . $_SESSION['loggedUsername'] . ", Org: " . $_SESSION['loggedOrganization'];
+                    if(count($_SESSION['loggedOrganizations'])==1)
+                        echo "User: " . $_SESSION['loggedUsername'] . "<br> Org: " . $_SESSION['loggedOrganization'];
+                    else {
+                        if(isset($_GET['setOrg'])) {
+                            //TBD check is valid organization of logged user
+                            $_SESSION['loggedOrganization'] = $_GET['setOrg'];
+                        }
+                        $orgsHtml = "<select style='color:black' id='org' onchange=\"document.location.href = select_org(this.value)\">";
+                        
+                        foreach($_SESSION['loggedOrganizations'] as $o) {
+                            $selected="";
+                            if($o==$_SESSION['loggedOrganization'])
+                                $selected = "selected";
+                            $orgsHtml .= "<option $selected>$o</option>";
+                        }
+                        $orgsHtml .= "</select>";
+                        echo "<span>User: " . $_SESSION['loggedUsername'] . "</span><span>Org: ". $orgsHtml."</span>";
+                    }
                 }?>
             </div>
             <div class="col-xs-12 centerWithFlex" id="mobMainMenuUsrDetCnt">

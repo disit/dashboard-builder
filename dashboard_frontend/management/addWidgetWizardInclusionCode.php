@@ -3001,7 +3001,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                             $(this).css('border', 'none');
                         });
                         $(this).attr('data-selected', 'true');
-                        $(this).css('border', '1px solid rgba(0, 162, 211, 1)');
+                        $(this).css('border', '2px solid rgba(0, 130, 255, 1)');
                         
                         if($(this).attr('data-widgetCategory') === 'actuator')
                         {

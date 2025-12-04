@@ -494,6 +494,10 @@ div#heatmapLegend, div#trafficHeatmapLegend, div#vectorFieldLegend{
     background: var(--dash-bg-color)!important;
 }
 
+div#mainOdDiv, .scenarioDiv, .whatifDiv{
+    background: var(--dash-bg-color)!important;
+}
+
 div#heatmapLegend input[type=button], div#trafficHeatmapLegend input[type=button], div#vectorFieldLegend input[type=button]{
     border: none!important;
     border-radius: 5px;

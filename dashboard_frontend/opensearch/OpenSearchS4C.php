@@ -503,33 +503,34 @@ class OpenSearchS4C
                     ],
                     [
                         'bool' => [
-                            'should' => [
+                            'must' => [
+                                [
+                                    'wildcard' => [
+                                        'organizations' => '*' . $organizations . '*'
+                                    ]
+                                ],
                                 [
                                     'bool' => [
-                                        'must' => [
-                                            [
-                                                'wildcard' => [
-                                                    'organizations' => '*' . $organizations . '*'
-                                                ]
-                                            ],
+                                        'should' => [
                                             [
                                                 'term' => [
                                                     'ownership' => $ownership
                                                 ]
+                                            ],
+                                            [
+                                                'wildcard' => [
+                                                    'ownerHash' => '*' . $ownerHash . '*'
+                                                ]
+                                            ],
+                                            [
+                                                'wildcard' => [
+                                                    'delegatedHash' => '*' . $delegatedHash . '*'
+                                                ]
                                             ]
                                         ]
                                     ]
-                                ],
-                                [
-                                    'wildcard' => [
-                                        'ownerHash' => '*' . $ownerHash . '*'
-                                    ]
-                                ],
-                                [
-                                    'wildcard' => [
-                                        'delegatedHash' => '*' . $delegatedHash . '*'
-                                    ]
                                 ]
+                                
                             ]
                         ]
                     ]
@@ -560,6 +561,11 @@ class OpenSearchS4C
                                     ]
                                 ]
                             ]
+                        ]
+                    ],
+                    [
+                        'wildcard' => [
+                            'organizations' => '*' . $organizations . '*'
                         ]
                     ]
                 ]
