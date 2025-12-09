@@ -911,7 +911,8 @@ else
 
                         //4) Scrittura ed esecuzione query
                         $dashIdsForQuery = implode(",", $dashIds);
-                        $orgFilter = strpos($orgFlag , 'My org') !== false ? " AND dashboards.organizations = '".$_SESSION['loggedOrganization']."'" : "";
+                    //    $orgFilter = strpos($orgFlag , 'My org') !== false ? " AND dashboards.organizations = '".$_SESSION['loggedOrganization']."'" : "";
+                        $orgFilter = "";
                         $query = "SELECT * FROM Dashboard.Config_dashboard AS dashboards LEFT JOIN (SELECT * FROM Dashboard.IdDashDailyAccess WHERE date = '$today') AS accesses ON dashboards.Id = accesses.IdDashboard WHERE dashboards.Id IN(" . $dashIdsForQuery . ") AND dashboards.deleted = 'no'".$orgFilter." ORDER BY dashboards.name_dashboard ASC";
                         
                         $result = mysqli_query($link, $query);
