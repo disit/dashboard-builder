@@ -300,7 +300,7 @@ if (($hide_menu != "hide")) {
 								            	if (stripos($col, 'internalurl') !== false) {
                 									$value = '<a class="url-link" href="' . $value . '" target="_blank">Follow internal url</a>';
             									} elseif (stripos($col, 'externalurl') !== false) {
-                									$value = '<a class="url-link" href="' . $basepath.$value . '" target="_blank">Follow external url</a>';
+                									$value = '<a class="url-link" href="' . $basepath.$apiManagerPath.$value . '" target="_blank">Follow external url</a>';
             									} elseif (stripos($col, 'edit') !== false) {
                 									$value = "<button class='editDashBtn editbuttonmodal' data-toggle='modal' data-target='#modalfourth' data-id=".$row['idapi']." data-name='".$row['apiname']."' data-kind='".$row['apikind']."' data-info='".$row['apiinfo']."' data-apiinternalurl='".$row['apiinternalurl']."' data-apiexternalurl='".$row['apiexternalurl']."' data-status='".$row['apistatus']."' data-additional='".htmlspecialchars($row['apiadditionalinfo'], ENT_QUOTES, 'UTF-8')."'>edit</button>";
             									} elseif (stripos($col, 'delete') !== false) {
@@ -515,6 +515,15 @@ if (($hide_menu != "hide")) {
 								
 								<div class="row" id="createRuleDivSecond">
                                 </div>
+
+								
+								<div class="row">
+                                    <div class="col-xs-12 col-md-12 modalCell">
+                                        <input type="text" class="modalInputTxt" name="addRuleOriginSourceField" id="addRuleOriginSourceField" pattern="^(((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.){3}((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))(?>\/((?:3[0-2])|(?:[12]\d)|[1-9]))?" placeholder="a.b.c.d/e">
+                                        <div class="modalFieldLabelCnt">Allowed origin source, accepts ipv4 with a mask (1 to 32, 32 means only that ip), or ipv4 without mask (exact ip only), or empty string for no enforcing</div>
+                                        <div id="addRuleOriginSourceFieldMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
+                                </div>
                                 
                             </div>
 
@@ -554,6 +563,7 @@ if (($hide_menu != "hide")) {
                             <!-- Info tab -->
                             <div id="addInfoTabRuleSecond" class="tab-pane fade in active">
                                 <div class="row">
+									<input type="hidden" name="editRuleUserFieldOG" id="editRuleUserFieldOG">
                                     <div class="col-xs-12 col-md-6 modalCell">
                                         <input type="text" class="modalInputTxt" name="editRuleUserField" id="editRuleUserField" placeholder="anonymous">
                                         <div class="modalFieldLabelCnt">Select User ('anonymous' will skip authentication)</div>
@@ -592,6 +602,14 @@ if (($hide_menu != "hide")) {
                                 </div>
 								
 								<div class="row" id="editRuleDiv">
+                                </div>
+
+								<div class="row">
+                                    <div class="col-xs-12 col-md-12 modalCell">
+                                        <input type="text" class="modalInputTxt" name="editRuleOriginSourceField" id="editRuleOriginSourceField" pattern="^(((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.){3}((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))(?>\/((?:3[0-2])|(?:[12]\d)|[1-9]))?" placeholder="a.b.c.d/e">
+                                        <div class="modalFieldLabelCnt">Allowed origin source, accepts ipv4 with a mask (1 to 32, 32 means only that ip), or ipv4 without mask (exact ip only), or empty string for no enforcing</div>
+                                        <div id="editRuleOriginSourceFieldMsg" class="modalFieldMsgCnt">&nbsp;</div>
+                                    </div>
                                 </div>
                                 
                             </div>
@@ -890,7 +908,7 @@ if (($hide_menu != "hide")) {
 				const thead = document.createElement("thead");
 				const tbody = document.createElement("tbody");
 
-				const columns = ["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules", "Delete", "View Accesses", "Edit"];
+				const columns = ["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules", "Valid Source IP", "Delete", "View Accesses", "Edit"];
 
 				const headerRow = document.createElement("tr");
 				columns.forEach(key => {
@@ -901,7 +919,7 @@ if (($hide_menu != "hide")) {
 				thead.appendChild(headerRow);
 				data.results.forEach(item => {
 					const row = document.createElement("tr");
-					["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules"].forEach(key => {
+					["Resource name", "User", "Kind of rule", "Valid from", "Valid to", "Details of rules", "Valid Source IP"].forEach(key => {
 						const cell = document.createElement("td");
 						cell.textContent = item[key];
 						row.appendChild(cell);
@@ -939,6 +957,7 @@ if (($hide_menu != "hide")) {
 					editButton.setAttribute('data-view-validfrom',item['Valid from']);
 					editButton.setAttribute('data-view-validto',item['Valid to']);
 					editButton.setAttribute('data-view-details',item['Details of rules']);
+					editButton.setAttribute('data-view-ip',item['Valid Source IP']);
 					editButton.setAttribute('data-toggle',"modal");
 					editButton.setAttribute('data-target',"#modaleditrule");
 					editButton.setAttribute('data-dismiss',"modal");
@@ -1052,7 +1071,7 @@ if (($hide_menu != "hide")) {
 				values[element.name || element.id] = value;
 
 				// Check for "invalid" or empty values
-				if (value === "invalid" || value === "") {
+				if ((value === "invalid" || value === "") && element.name != "editRuleOriginSourceField") {
 					hasInvalidOrEmpty = true;
 				}
 			});
@@ -1269,10 +1288,12 @@ if (($hide_menu != "hide")) {
 		
 		function editRuleForm(evt) {
 			document.getElementById("editRuleUserField").value=evt.currentTarget.dataset.viewUser;
+			document.getElementById("editRuleUserFieldOG").value=evt.currentTarget.dataset.viewUser;
 			document.getElementById("editRuleResourceField").value=value=evt.currentTarget.dataset.viewId;
 			document.getElementById("editRuleStartingOfValidity").value=evt.currentTarget.dataset.viewValidfrom;
 			document.getElementById("editRuleEndingOfValidity").value=evt.currentTarget.dataset.viewValidto;
 			document.getElementById("editRuleKind").value=evt.currentTarget.dataset.viewRulekind;
+			document.getElementById("editRuleOriginSourceField").value=evt.currentTarget.dataset.viewIp;
 			var a = document.getElementById('editRuleKind');
 			document.getElementById('editRuleDiv').innerHTML = "";
 			if (a.value == 'ContemporaryAccess') {
@@ -1285,7 +1306,7 @@ if (($hide_menu != "hide")) {
 					<div id="inputRule1Msg" class="modalFieldMsgCnt">&nbsp;</div>
 				</div>
 				`;
-				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount.toString();
 			} else if (a.value == 'AccessesOverTime') {
 				document.getElementById('editRuleDiv').innerHTML = `
 				<div class="col-xs-12 col-md-6 modalCell">
@@ -1309,8 +1330,8 @@ if (($hide_menu != "hide")) {
 					<div id="editSelectRuleTimePeriodMsg" class="modalFieldMsgCnt">&nbsp;</div>
 				</div>
 				`;
-				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
-				document.getElementById('editSelectRuleTimePeriod').value=JSON.parse(evt.currentTarget.dataset.viewDetails).period;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount.toString();
+				document.getElementById('editSelectRuleTimePeriod').value=JSON.parse(evt.currentTarget.dataset.viewDetails).period.toString();
 			} else if (a.value == "TotalAccesses") {
 				document.getElementById('editRuleDiv').innerHTML = `
 				<div class="col-xs-12 col-md-12 modalCell">
@@ -1321,7 +1342,7 @@ if (($hide_menu != "hide")) {
 					<div id="editRuleAmountMsg" class="modalFieldMsgCnt">&nbsp;</div>
 				</div>
 				`;
-				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount;
+				document.getElementById('editRuleAmount').value=JSON.parse(evt.currentTarget.dataset.viewDetails).amount.toString();
 			} else if (a.value == "invalid") {
 				return;
 			} else { alert("invalid choice for limit");}
@@ -1486,7 +1507,7 @@ if (($hide_menu != "hide")) {
 				values[element.name || element.id] = value;
 
 				// Check for "invalid" or empty values
-				if (value === "invalid" || value === "") {
+				if ((value === "invalid" || value === "") && element.name != "addRuleOriginSourceField") {
 					hasInvalidOrEmpty = true;
 				}
 			});

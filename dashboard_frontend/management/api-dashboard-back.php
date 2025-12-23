@@ -124,7 +124,7 @@ switch ($choice){
 			exit();
 		}
 
-		$sql = "SELECT b.apiname as 'Resource name', a.user as 'User', a.kind_of_limit as 'Kind of rule', a.additional_info as 'Details of rules', a.resource as 'Resource id', a.timebegin as 'Valid from', a.timeend as 'Valid to' FROM ratelimit as a join apitable as b on a.resource=b.idapi where a.resource=?";
+		$sql = "SELECT b.apiname as 'Resource name', a.user as 'User', a.kind_of_limit as 'Kind of rule', a.additional_info as 'Details of rules', a.resource as 'Resource id', a.timebegin as 'Valid from', a.timeend as 'Valid to', a.ip as 'Valid Source IP' FROM ratelimit as a join apitable as b on a.resource=b.idapi where a.resource=?";
 		$stmt = mysqli_prepare($link, $sql);
 
 		if ($stmt) {
@@ -207,7 +207,7 @@ switch ($choice){
 	case "getAccesses":
 		$resource = isset($input['resource']) ? $input['resource'] : '';
 		$user = isset($input['user']) ? $input['user'] : '';
-		$sql = "SELECT a.user as User, b.apiname as 'Api Name', a.beginaccess as 'Begin Access', c.endaccess as 'End Access' FROM timedaccess as a join apitable as b on a.resource = b.idapi join requests as c on a.extracted_id = c.extracted_id where a.user=? and a.resource=?;";
+		$sql = "SELECT c.result as 'Request', a.result as 'Result', a.beginaccess as 'Begin Access', c.endaccess as 'End Access' FROM timedaccess as a join apitable as b on a.resource = b.idapi join requests as c on a.extracted_id = c.extracted_id where a.user=? and a.resource=?;";
 		$stmt = mysqli_prepare($link, $sql);
 
 		if ($stmt) {
@@ -466,9 +466,24 @@ switch ($choice){
 		$ruleKind = isset($input['editRuleKind']) ? $input['editRuleKind'] : '';
 		$resourceID = isset($input['editRuleResourceField']) ? $input['editRuleResourceField'] : '';
 		$user = isset($input['editRuleUserField']) ? $input['editRuleUserField'] : '';
+		$userOG = isset($input['editRuleUserFieldOG']) ? $input['editRuleUserFieldOG'] : '';
 		$validFrom = isset($input['editRuleStartingOfValidity']) ? $input['editRuleStartingOfValidity'] : '';
 		$validTo = isset($input['editRuleEndingOfValidity']) ? $input['editRuleEndingOfValidity'] : '';
 		$editRuleAmount = isset($input['editRuleAmount']) ? $input['editRuleAmount'] : '';
+		$sourceIpMask = isset($input['editRuleOriginSourceField']) ? $input['editRuleOriginSourceField'] : '';
+
+		if ($sourceIpMask != '') { // if it's not '', then some ip are not okay, and the value must be valid
+			// this regex is for an ipv4 address with a following "\" and a following number from 8 to 31 (included); below 0 doesn't make sense, 0 to 7 are not valid subnets, 32 or above doesn't make sense
+			$ip_re = '/^(((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d)))\/((?:3[0-2])|(?:[12]\d)|[1-9]]$)/m';
+			if (preg_match($ip_re, $sourceIpMask)) {
+				$accessToken = $matches[1];
+			} else {
+				http_response_code(400);
+				echo json_encode(["error" => "Invalid subnet"]);
+				exit();
+			}
+		}
+
 		if ($user != "anonymous") {
 			//begin check user
 			$ldap_host = "ldap://".$ldapServer;
@@ -549,20 +564,20 @@ switch ($choice){
 			echo json_encode(["error" => "Invalid kind of rule"]);
 			exit();
 		}
-		$sql = "UPDATE `apimanager`.`ratelimit` SET `user` = ?, `kind_of_limit` = ?, `additional_info` = ?, `timebegin` = ?, `timeend` = ? WHERE (`user` = ?) and (`resource` = ?);";
+		$sql = "UPDATE `apimanager`.`ratelimit` SET `user` = ?, `kind_of_limit` = ?, `additional_info` = ?, `timebegin` = ?, `timeend` = ?, `ip` = ? WHERE (`user` = ?) and (`resource` = ?);";
 		$stmt = mysqli_prepare($link, $sql);
 		
 		if (!$stmt) {
 			throw new Exception("Prepare failed for UPDATE: " . mysqli_error($link));
 		}
 		
-		mysqli_stmt_bind_param($stmt, "sssssss", $user, $ruleKind, $preparedjson, $validFrom, $validTo, $user, $resourceID);
+		mysqli_stmt_bind_param($stmt, "ssssssss", $user, $ruleKind, $preparedjson, $validFrom, $validTo, $sourceIpMask, $userOG, $resourceID);
 		
 		
 		if (!mysqli_stmt_execute($stmt)) {
 			throw new Exception("Execute failed for UPDATE: " . mysqli_stmt_error($stmt));
 		}
-		mysqli_stmt_close($stmt_1);
+		mysqli_stmt_close($stmt);
 		echo json_encode(["results" => "Rule edited"]);
 		mysqli_close($link);
 		exit();
@@ -683,6 +698,7 @@ switch ($choice){
 			}
 			$json_data = json_decode($service_curl_response, true);
 			if (!isset($json_data['id'])) {
+				http_response_code(500);
 				echo json_encode(["error" => "ID of route not found in Kong response, unable to link ClearML plugin. Route and service are not deleted. API not registered in DB, expect incosistencies: ".$service_curl_response]);
 				exit();
 			}
@@ -715,11 +731,12 @@ switch ($choice){
 				exit();
 			}
 			curl_close($curl_plugin_create);
-			$extraparam = "{'ClearMLValue':'".$extraparam."','KongPluginID':'".$json_data_plugin_response['id']."'}";
+			//$extraparam = "{'ClearMLValue':'".$extraparam."','KongPluginID':'".$json_data_plugin_response['id']."'}";
+            		$extraparam = json_encode(["ClearMLValue" => $extraparam, "KongPluginID" => $json_data_plugin_response['id']]);
 			$stringforpreparedstatement = "ssssss";
 			$sql = "INSERT INTO `apitable` (`apiname`, `apikind`, `apiinternalurl`, `apiexternalurl`, `apiinfo`, `apiadditionalinfo`) VALUES (?,?,?,?,?,?)";
 		}
-		if ($selectAPIkind == "ClearMLSporadic") {
+		else if ($selectAPIkind == "ClearMLSporadic") {
 			$extraparam = isset($input['createAPICMLData']) ? $input['createAPICMLData'] : '';
 			if (empty($extraparam)) {
 				http_response_code(500);
@@ -761,7 +778,7 @@ switch ($choice){
 				exit();
 			}
 			curl_close($curl_plugin_create);
-			$extraparam = "{'ClearMLValue':'".$extraparam."','KongPluginID':'".$json_data_plugin_response['id']."'}";
+            		$extraparam = json_encode(["ClearMLValue" => $extraparam, "KongPluginID" => $json_data_plugin_response['id']]);
 			$stringforpreparedstatement = "ssssss";
 			$sql = "INSERT INTO `apitable` (`apiname`, `apikind`, `apiinternalurl`, `apiexternalurl`, `apiinfo`, `apiadditionalinfo`) VALUES (?,?,?,?,?,?)";
 		}
@@ -786,12 +803,21 @@ switch ($choice){
 
 		if ($stmt) {
 			if ($selectAPIkind == "ClearMLStable" || $selectAPIkind == "ClearMLSporadic" || $selectAPIkind == "Other") {
-				mysqli_stmt_bind_param($stmt, "ssssss", $inputNameAPI, $selectAPIkind, $inputInternalAPIUrl, $inputExternalAPIUrl, $inputAPIInfo, $extraparam);
+				// mysqli_stmt_bind_param($stmt, "ssssss", $inputNameAPI, $selectAPIkind, $inputInternalAPIUrl, $inputExternalAPIUrl, $inputAPIInfo, $extraparam);
+                		if (!mysqli_stmt_bind_param($stmt, "ssssss", $inputNameAPI, $selectAPIkind, $inputInternalAPIUrl, $inputExternalAPIUrl, $inputAPIInfo, $extraparam)) {
+                    			echo json_encode(["error" => "Bind failed: " . mysqli_stmt_error($stmt) . ", extraparam: " . $extraparam]);
+                    			exit;
+                		}
 			}
 			else {
 				mysqli_stmt_bind_param($stmt, "sssss", $inputNameAPI, $selectAPIkind, $inputInternalAPIUrl, $inputExternalAPIUrl, $inputAPIInfo);
 			}
-			mysqli_stmt_execute($stmt);
+			//mysqli_stmt_execute($stmt);
+            		if (!mysqli_stmt_execute($stmt)) {
+                		echo json_encode(["error" => "Execute failed: " . mysqli_stmt_error($stmt)]);
+                		mysqli_stmt_close($stmt);
+                		exit;
+            		}
 			$result = mysqli_stmt_get_result($stmt);
 			
 			$data = [];
@@ -940,7 +966,19 @@ switch ($choice){
 		$selectUserRule = isset($input['addRuleUserFieldSecond']) ? $input['addRuleUserFieldSecond'] : '';
 		$selectAddRuleStartingOfValidity = isset($input['addRuleStartingOfValidity']) ? $input['addRuleStartingOfValidity'] : '';
 		$selectAddRuleEndingOfValidity = isset($input['addRuleEndingOfValidity']) ? $input['addRuleEndingOfValidity'] : '';
-		
+		$selectSourceIpMask = isset($input['addRuleOriginSourceField']) ? $input['addRuleOriginSourceField'] : '';
+
+		if ($selectSourceIpMask != '') { // if it's not '', then some ip are not okay, and the value must be valid
+			// this regex is for an ipv4 address with and, optionally, "\" and a following number from 1 to 31 (included); below 1 and 32 or above doesn't make sense
+			$ip_re = '/^(((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d))\.((?:25[0-5])|(?:2[0-4]\d)|(?:1\d\d)|(?:\d\d)|(?:\d)))\/((?:3[0-2])|(?:[12]\d)|[1-9]]$)/m';
+			if (preg_match($ip_re, $selectSourceIpMask)) {
+				$accessToken = $matches[1];
+			} else {
+				http_response_code(400);
+				echo json_encode(["error" => "Invalid subnet"]);
+				exit();
+			}
+		}
 		
 		if (empty($createRuleAmount) || empty($selectRuleKind) || empty($selectRuleResource) || empty($selectUserRule) || empty($selectAddRuleEndingOfValidity) || empty($selectAddRuleStartingOfValidity)) {
 			http_response_code(400);
@@ -1044,11 +1082,11 @@ switch ($choice){
 				exit();
 			}
 			
-			$sql = "INSERT INTO `ratelimit` (`user`, `resource`, `kind_of_limit`, `additional_info`, `timebegin`, `timeend`) VALUES (?, ?, ?, ?, ?, ?);";
+			$sql = "INSERT INTO `ratelimit` (`user`, `resource`, `kind_of_limit`, `additional_info`, `timebegin`, `timeend`, `ip`) VALUES (?, ?, ?, ?, ?, ?, ?);";
 			$stmt = mysqli_prepare($link, $sql);
 
 			if ($stmt) {
-				mysqli_stmt_bind_param($stmt, "sissss", strtolower($user), $selectRuleResource, $selectRuleKind, $preparedjson, $selectAddRuleStartingOfValidity, $selectAddRuleEndingOfValidity);  # lowercase to prevent issues
+				mysqli_stmt_bind_param($stmt, "sisssss", strtolower($user), $selectRuleResource, $selectRuleKind, $preparedjson, $selectAddRuleStartingOfValidity, $selectAddRuleEndingOfValidity, $selectSourceIpMask);  # lowercase to prevent issues
 				//review this return!!!
 				if (mysqli_stmt_execute($stmt)) {
 					$result = mysqli_stmt_get_result($stmt);
@@ -1080,7 +1118,7 @@ switch ($choice){
 		if (count($errorsToBeReturned) > 0) {
 			http_response_code(500);
 			// Join all elements of $errorsToBeReturned with ", " and add it as the value for the "errors" key
-			$output['errors'] = implode(", ", $errorsToBeReturned);
+			$output['error'] = implode(", ", $errorsToBeReturned);
 		}
 
 		// Output the JSON result
@@ -1092,7 +1130,6 @@ switch ($choice){
 		break;
 
 	case "deleteAPI":
-		//todo delete service and route in kong (plugin is automatically deleted)
 		$apiID = isset($input['apiID']) ? $input['apiID'] : '';
 		if (empty($apiID)) {
 			http_response_code(500);
