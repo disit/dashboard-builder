@@ -4868,7 +4868,7 @@
                                     $('#modalEditDashboard #currentDashboardTitle').val($("#dashboardTitle span").html());
                                     $('#modal-add-widget #currentDashboardTitle').val($("#dashboardTitle span").html());
                                     $('#modal-modify-widget #currentDashboardTitle').val($("#dashboardTitle span").html());
-                                    history.replaceState(null, null, 'dashboard_configdash.php?dashboardId=<?= escapeForJS($_REQUEST['dashboardId']) ?>&dashboardAuthorName=<?= $dashboardAuthorName ?>&dashboardEditorName=<?= $dashboardEditorName ?>&dashboardTitle=' + encodeURI($('#dashboardTitle span').html()));
+                                    history.replaceState(null, null, 'dashboard_configdash.php?dashboardId=<?= escapeForJS($_REQUEST['dashboardId']) ?>&dashboardAuthorName=<?= $dashboardAuthorName ?>&dashboardEditorName=<?= $dashboardEditorName ?>&dashboardTitle=' + encodeURI($('#dashboardTitle span').html()) + (((<?php echo json_encode($_GET['editNewWizard'] ?? ''); ?> === "true") && (<?php echo json_encode($useOpenSearch ?? ''); ?> === "yes")) ? "&editNewWizard=true": ""));
                                     setTimeout(function(){
                                         $('#dashboardTitle span').attr('data-underEdit', 'false');
                                         $('#dashboardTitle span').attr('contenteditable', false);
@@ -39081,7 +39081,7 @@
                     }, 50);
                     
 <?php endif; ?>                    
-        changeMetricTable = $('#changeMetricTable').DataTable({
+    /*    changeMetricTable = $('#changeMetricTable').DataTable({
             "bLengthChange": false,
             "bInfo": false,
             "language": {search: ""},
@@ -39131,17 +39131,7 @@
                 
                 $(document).off('changeMetricMenuOpen');
                 $(document).on('changeMetricMenuOpen', function(event) {
-                    /*  var checkChangeMetricSelectedRows = $('#' + event.generator).attr('data-wizardrowids');
-                      if (checkChangeMetricSelectedRows)
-                      {
-                          changeMetricSelectedRows = JSON.parse($('#' + event.generator).attr('data-wizardrowids'));
-                      }   */
-                    /*    $('#changeMetricTable tbody td').each(function (i) {
-                            $('#changeMetricTable tbody tr').each(function (i) {
-                                $(this).removeClass('selected');
-                                $(this).attr("data-selected", "false");
-                            });
-                        });*/
+
                     //   $('#changeMetricTable tbody tr').removeClass('selected');
                     //    changeMetricTable.rows().deselect();
                     //   changeMetricTable.clear().draw();
@@ -39198,22 +39188,11 @@
                 //    changeMetricTable.clear().draw();
                     changeMetricSelectedRowsTable.clear().draw();
                     
-                 /*   for(var key in changeMetricSelectedRows)
-                    {
-                        changeMetricSelectedRowsTable.row.add([
-                            changeMetricSelectedRows[key].low_level_type,
-                            changeMetricSelectedRows[key].unique_name_id,
-                            changeMetricSelectedRows[key].unit,
-                            changeMetricSelectedRows[key].last_value,
-                        //    "DEL",
-                       //     firstRowId
-                        //    $(this).attr('data-rowid')
-                        ]).draw(false);
-                    }   */
+
                     changeMetricTableAlreadyLoaded = 1;
                 });
             }
-        });
+        });*/
         
         changeMetricSelectedRowsTable = $('#changeMetricSelectedRowsTable').DataTable({
             "bLengthChange": false,
