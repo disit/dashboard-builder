@@ -31,9 +31,6 @@ $_SESSION['refreshToken'] = $tkn->refresh_token;
 
 error_reporting(E_ERROR);
 $link = mysqli_connect($host, $username, $password);
-//error_reporting(E_ALL);
-//ini_set('display_errors', 1);
-//error_reporting(-1);
 mysqli_select_db($link, $dbname);
 
 
@@ -53,7 +50,7 @@ if (isset($_SESSION['loggedRole'])) {
         $password = $report_password;
 
         $action = $_REQUEST['action'];
-        // TLDR: ACTION = list: get all jobs from jasperserver (/rest_v2/jobs), find the one for the device, get periodicity/report link, echo info back
+        // TLDR: ACTION = LIST: get all jobs from jasperserver (/rest_v2/jobs), find the one for the device, get periodicity/report link, echo info back
         // example output: {"status":"Yes","period":"monthly","folder":"\/Report_device_monthly","link":"","job":"87"}
         if ($action === 'list') {
             $service = $_REQUEST['service'];
@@ -223,7 +220,7 @@ if (isset($_SESSION['loggedRole'])) {
                 $httpcode = '';
                 $report['activation'] = ($activation);
                 $report['period'] = ($periods);
-                $date001 = date("Y-m-d", strtotime('01-' . date('m', strtotime('+1 month')) . '-' . date('Y') . ' 00:00:00'));
+                $date001 = date('Y-m-01 00:00:00', strtotime('first day of next month'));
                 $report['service'] = ($service);
                 $iterval = $monthly_recurrenceInterval;
                 $baseout = $monthly_baseOutputFilename;
@@ -232,7 +229,7 @@ if (isset($_SESSION['loggedRole'])) {
                     $iterval = $monthly_recurrenceInterval;
                     $recurrenceIntervalUnit = $monthly_recurrenceIntervalUnit;
                     $baseout = $monthly_baseOutputFilename;
-                    $date001 = date("Y-m-d", strtotime('01-' . date('m', strtotime('+1 month')) . '-' . date('Y') . ' 00:00:00'));
+                    $date001 = date('Y-m-01 00:00:00', strtotime('first day of next month'));
                     $array_months = array("1", "10", "11", "12", "2", "3", "4", "5", "6", "7", "8", "9");
                     $report_s = $monthly_report_model;
                 $folder_uri_output =$monthly_folder_uri;
@@ -240,7 +237,7 @@ if (isset($_SESSION['loggedRole'])) {
                     $iterval = $quarterly_recurrenceInterval;
                     $baseout = $quarterly_baseOutputFilename;
                     $recurrenceIntervalUnit = $quarterly_recurrenceIntervalUnit;
-                    $date001 = date("Y-m-d", strtotime('01-' . date('m', strtotime('+1 month')) . '-' . date('Y') . ' 00:00:00'));
+                    $date001 = date('Y-m-01 00:00:00', strtotime('first day of next month'));
                     $array_months = array("1", "10", "4", "7");
                     $report_s = $quarterly_report_model;
                     $folder_uri_output = $quarterly_folder_uri;
@@ -266,7 +263,7 @@ if (isset($_SESSION['loggedRole'])) {
                     $iterval = $monthly_recurrenceInterval;
                     $baseout = $monthly_baseOutputFilename;
                     $recurrenceIntervalUnit = $monthly_recurrenceIntervalUnit;
-                    $date001 = date("Y-m-d", strtotime('01-' . date('m', strtotime('+1 month')) . '-' . date('Y') . ' 00:00:00'));
+                    $date001 = date('Y-m-01 00:00:00', strtotime('first day of next month'));
                     $array_months = array("1", "10", "11", "12", "2", "3", "4", "5", "6", "7", "8", "9");
                     $report_s = $monthly_report_model;
                     $folder_uri_output = $folder_uri;

@@ -23,7 +23,8 @@ error_reporting(E_ERROR);
 
 //ACL for reports
 $report_auth = ACLAPI_check_auth(["auth_name" =>"Report Manager",
-                    "preferred_username"=>$_SESSION["loggedUsername"]]);
+                    "preferred_username"=>$_SESSION["loggedUsername"],
+                    "organization"=>$_SESSION["loggedOrganization"]]);
 
 $report_authorized = (isset($report_auth['authorized']) && $report_auth['authorized'] === true);
 function debug_to_console($data, $label = 'Report ACL Debug') {
@@ -31,6 +32,7 @@ function debug_to_console($data, $label = 'Report ACL Debug') {
     $dataJson  = json_encode($data, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
     echo "<script>console.log($labelJson, $dataJson);</script>";
 }
+debug_to_console($_SESSION["loggedOrganization"],"Requested ACL org:");
 debug_to_console($report_auth);
 debug_to_console($report_authorized);
 

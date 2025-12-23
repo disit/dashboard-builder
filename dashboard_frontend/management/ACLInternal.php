@@ -45,14 +45,16 @@
     $ldap = getLdapConn();
     $requested_name = trim($data['auth_name'] ?? '');
     $requested_org = trim($data['organization'] ?? '');
+    if($requested_org == 'None'){$requested_org = '';}
     $user_orgs = checkLdapOrganizations($ldap, 'cn='.$data["preferred_username"].','.$ldapBaseDN, $ldapBaseDN);
-    if(!in_array($requested_org, $user_orgs)){
-        return ['error' => 'requested org is not in user orgs',
-                'baseDn' => $ldapBaseDN,
-                'userDn' => 'cn='.$data["preferred_username"].','.$ldapBaseDN,
-                'user_orgs' => $user_orgs,
-                'requested_org' => $requested_org];
-    }
+    if($requested_org != ''){
+        if(!in_array($requested_org, $user_orgs)){
+            return ['error' => 'requested org is not in user orgs',
+                    'baseDn' => $ldapBaseDN,
+                    'userDn' => 'cn='.$data["preferred_username"].','.$ldapBaseDN,
+                    'user_orgs' => $user_orgs,
+                    'requested_org' => $requested_org];
+        }}
     $claims = $data;
     /*$enc_username = encryptOSSL(
         strtolower($claims['preferred_username']),
