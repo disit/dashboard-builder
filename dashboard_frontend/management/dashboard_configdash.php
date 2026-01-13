@@ -36098,7 +36098,8 @@
 
                                                     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                                                         attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
-                                                        maxZoom: 18
+                                                        maxZoom: 23,
+                                                        maxNativeZoom: 19
                                                     }).addTo(gisTargetCenterMapDivRefM);
                                                     gisTargetCenterMapDivRefM.attributionControl.setPrefix('');
 
