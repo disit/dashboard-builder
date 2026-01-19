@@ -251,7 +251,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         /* if($search_value !==""){
                 $url = $url.'&text='.$search_value;
         }*/
-        $url = $url . '&text=' . $search_value;
+        $url = $url . '&text=' . rawurlencode($search_value);
 
         if (isset($_GET['showed_elements'])) {
             $url = $url . '&maxResults=' . $showed_elements;
@@ -703,6 +703,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                         '","type":"string"},"dateObserved":{"value":"' .
                         $date_observed_new .
                         '","type":"string"}}';
+                    //Naldi 15/09/2025 -> sub insert_value with patch
+                    $old_insert = false;
+                    if($old_insert == true){
                     $value_array1 = [
                         "action" => "Insert_Value",
                         "id" => $device_id,
@@ -790,6 +793,42 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     echo json_encode($message_output);
                     exit();
                     /////////////////
+                    }else{
+                        sleep(2);
+                        $curl_insert = curl_init();
+                        curl_setopt($curl_insert, CURLOPT_URL, "{$patch_url_filemanager}{$iot_contextbroker}/v2/entities/{$device_id}/attrs?elementid={$device_id}&type=File");
+                        curl_setopt($curl_insert, CURLOPT_RETURNTRANSFER, 1);
+                        curl_setopt($curl_insert, CURLOPT_CUSTOMREQUEST, "PATCH");
+                        curl_setopt($curl_insert, CURLOPT_HTTPHEADER, [
+                            "Content-Type: application/json",
+                            "Authorization: Bearer " . $accessToken,
+                        ]);
+                        curl_setopt($curl_insert, CURLOPT_POSTFIELDS, $new_attributes);
+                        $deviceCallInsert = curl_exec($curl_insert);
+                        if ($deviceCallInsert === false) {
+                            $message_output["code"] = "500";
+                            $message_output["message"] = "cURL Error: " . curl_error($curl_insert);
+                            $message_output["curl_errno"] = curl_errno($curl_insert);
+                            echo json_encode($message_output);
+                            curl_close($curl_insert);
+                            exit();
+                        }
+                        $http_status_insert = curl_getinfo($curl_insert, CURLINFO_HTTP_CODE);
+                        if (in_array($http_status_insert, [200, 204])) {
+                            $message_output["code"] = "200";
+                            $message_output["message"] = "Device attributes successfully inserted";
+                            $message_output["result"] = [
+                                "fileid" => $new_fileid,
+                                "filetype" => $filetype,
+                                "device_id" => $device_id
+                            ];
+                        } else {
+                            $message_output["code"] = "500";
+                            $message_output["message"] = "Error during device attributes creation by API";
+                            $message_output["http_status"] = $http_status_insert;
+                            $message_output["api_response"] = $deviceCallInsert;
+                        }
+                    }
                 } else {
                     $message_output["code"] = "500";
                     $message_output["message"] = "Error during device creation by api";
@@ -1094,6 +1133,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                 '","type":"string"},"newfileid":{"value":"' .
                 $newfileid .
                 '","type":"string"}}';
+            //Naldi 15/09/2025 -> sub insert_value with patch
+            $old_insert = false;
+            if($old_insert == true){
             $value_array = [
                 "action" => "Insert_Value",
                 "id" => $id,
@@ -1122,6 +1164,28 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $valueResponse = json_decode($valueCall, true);
             $message_output["code"] = "200";
             $message_output["message"] = "Device successfully modified";
+            }else{
+            $curl_insert = curl_init();
+            curl_setopt($curl_insert, CURLOPT_URL, "{$patch_url_filemanager}{$iot_contextbroker}/v2/entities/{$id}/attrs?elementid={$id}&type=File");
+            curl_setopt($curl_insert, CURLOPT_RETURNTRANSFER, 1);
+            curl_setopt($curl_insert, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt($curl_insert, CURLOPT_HTTPHEADER, [
+                "Content-Type: application/json",
+                "Authorization: Bearer " . $accessToken,
+            ]);
+            curl_setopt($curl_insert, CURLOPT_POSTFIELDS, $new_attributes);
+            $deviceCallInsert = curl_exec($curl_insert);
+            $http_status_insert = curl_getinfo($curl_insert, CURLINFO_HTTP_CODE);
+            if (in_array($http_status_insert, [200, 204])) {
+                $message_output["code"] = "200";
+                $message_output["message"] = "Device successfully modified";
+            } else {
+                $message_output["code"] = "500";
+                $message_output["message"] = "Error during device attributes creation by API";
+                $message_output["http_status"] = $http_status_insert;
+                $message_output["api_response"] = $deviceCallInsert;
+            }
+            }
         } else {
             $message_output["code"] = "500";
             $message_output["message"] = "Error during editing device by API";

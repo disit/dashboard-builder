@@ -240,6 +240,12 @@ if($result1)
                                  //    $newQueryFields = $newQueryFields . ", " . $key;
                                      $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
                                  } else if ($key == "code") {
+                                    //in php one backslash is always eaten. So i duplicate before save it maintaing always one 
+                                    if($value !== null){
+                                        if(strpos($value, '\\') !== false){
+                                            $value = str_replace('\\', '\\\\', $value);
+                                        }
+                                    }
                                      $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(addcslashes($value, "'"));
                                  } else {
                                  //    $newQueryFields = $newQueryFields . ", " . $key;
@@ -278,6 +284,12 @@ if($result1)
                              "WHERE id_dashboard = $clonedDashId";
 
                          $updParamsR = mysqli_query($link, $updParamsQ);
+
+                         $updCodeQ = "UPDATE Dashboard.Config_widget_dashboard " .
+                             "SET code = REPLACE(code, '$originalW', '$clonedW') " .
+                             "WHERE id_dashboard = $clonedDashId";
+
+                         $updCodeR = mysqli_query($link, $updCodeQ);
                      }
 
                      mysqli_commit($link);
