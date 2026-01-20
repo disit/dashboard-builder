@@ -126,16 +126,25 @@ foreach ($tableRecordUpdateMap as $table => $queries) {
         $value = $queryDetails['value'];
         $updateQuery = $queryDetails['update'];
         $insertQuery = $queryDetails['insert'];
-
-        if ($conn->query($updateQuery) === TRUE) {
-            echo "Update query info: " . $conn->info . $NL;  // Debug information
-            if (strpos($conn->info, 'Rows matched: 1') !== false) {
-                if (strpos($conn->info, 'Changed: 1') !== false) {
-                    echo "Record in table '$table' has been successfully updated." . $NL;
-                } else if (strpos($conn->info, 'Changed: 0') !== false) {
-                    echo "Record in table '$table' was already updated and has not been modified." . $NL;
+        $updated = false;
+        if ($updateQuery) {
+            if ($conn->query($updateQuery) === TRUE) {
+                echo "Update query info: " . $conn->info . $NL;  // Debug information
+                if (strpos($conn->info, 'Rows matched: 1') !== false) {
+                     $updated = true;
+                     if (strpos($conn->info, 'Changed: 1') !== false) {
+                         echo "Record in table '$table' has been successfully updated." . $NL;
+                     } else if (strpos($conn->info, 'Changed: 0') !== false) {
+                         echo "Record in table '$table' was already updated and has not been modified." . $NL;
+                     }
+                } else {
+                    $updated = false;
                 }
             } else {
+                echo "Error in updating record in table '$table': " . $conn->error . $NL;
+            }
+        }
+        if (!$updated) {
                 // Check if the record already exists
                 $checkQuery = "SELECT * FROM `$table` WHERE `$column` = '$value'";
                 $checkResult = $conn->query($checkQuery);
@@ -149,10 +158,7 @@ foreach ($tableRecordUpdateMap as $table => $queries) {
                 } else {
                     echo "Record already exists in table '$table'.".$NL;
                 }
-            }
-        } else {
-            echo "Error in updating record in table '$table': " . $conn->error . $NL;
-        }
+        } 
     }
 }
 

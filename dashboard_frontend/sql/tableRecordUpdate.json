@@ -11,6 +11,170 @@
     "update": "UPDATE `Widgets` SET `id_type_widget` = 'widgetDeviceTable', `source_php_widget` = 'widgetDeviceTable.php', `min_row` = 1, `max_row` = 80, `min_col` = 1, `max_col` = 200, `widgetType` = 'Series', `unique_metric` = ' ', `numeric_rangeOption` = 0, `number_metrics_widget` = 1, `color_widgetOption` = 1, `dimMap` = NULL, `widgetCategory` = 'dataViewer', `isNodeRedSender` = 'no', `domainType` = NULL, `defaultParameters` = '{}', `hasTimer` = 'yes', `hasChartColor` = 'no', `hasDataLabels` = 'no', `hasChartLabels` = 'no', `hasTimeRange` = 'no', `hasCartesianPlane` = 'no', `hasChangeMetric` = 'yes', `hasAddMode` = 'no', `isCollapsible` = 'no' WHERE `id_type_widget` = 'widgetDeviceTable';",
     "insert": "INSERT INTO `Widgets` (`id_type_widget`, `source_php_widget`, `min_row`, `max_row`, `min_col`, `max_col`, `widgetType`, `unique_metric`, `numeric_rangeOption`, `number_metrics_widget`, `color_widgetOption`, `dimMap`, `widgetCategory`, `isNodeRedSender`, `domainType`, `defaultParameters`, `hasTimer`, `hasChartColor`, `hasDataLabels`, `hasChartLabels`, `hasTimeRange`, `hasCartesianPlane`, `hasChangeMetric`, `hasAddMode`, `isCollapsible`) VALUES ('widgetDeviceTable', 'widgetDeviceTable.php', 1, 80, 1, 200, 'Series', ' ', 0, 1, 1, NULL, 'dataViewer', 'no', NULL, '{}', 'yes', 'no', 'no', 'no', 'no', 'no', 'yes', 'no', 'no');"
   },
+  "ACNames": [
+    {
+      "column": "name",
+      "value": "Python",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'Python' WHERE `name` = 'Python';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('Python');"
+    },
+    {
+      "column": "name",
+      "value": "Rstudio",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'Rstudio' WHERE `name` = 'Rstudio';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('Rstudio');"
+    },
+    {
+      "column": "name",
+      "value": "UserStats",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'UserStats' WHERE `name` = 'UserStats';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('UserStats');"
+    },
+    {
+      "column": "name",
+      "value": "DataIngestionTable",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'DataIngestionTable' WHERE `name` = 'DataIngestionTable';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('DataIngestionTable');"
+    },
+    {
+      "column": "name",
+      "value": "SnapAdvisor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'SnapAdvisor' WHERE `name` = 'SnapAdvisor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('SnapAdvisor');"
+    },
+    {
+      "column": "name",
+      "value": "3DLoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = '3DLoader' WHERE `name` = '3DLoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('3DLoader');"
+    },
+    {
+      "column": "name",
+      "value": "TPLEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'TPLEditor' WHERE `name` = 'TPLEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('TPLEditor');"
+    },
+    {
+      "column": "name",
+      "value": "BIMLoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'BIMLoader' WHERE `name` = 'BIMLoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('BIMLoader');"
+    },
+    {
+      "column": "name",
+      "value": "ColorMapEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'ColorMapEditor' WHERE `name` = 'ColorMapEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('ColorMapEditor');"
+    },
+    {
+      "column": "name",
+      "value": "ODMLoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'ODMLoader' WHERE `name` = 'ODMLoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('ODMLoader');"
+    },
+    {
+      "column": "name",
+      "value": "VectorFieldLoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'VectorFieldLoader' WHERE `name` = 'VectorFieldLoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('VectorFieldLoader');"
+    },
+    {
+      "column": "name",
+      "value": "HeatmapProducer",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'HeatmapProducer' WHERE `name` = 'HeatmapProducer';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('HeatmapProducer');"
+    },
+    {
+      "column": "name",
+      "value": "SynopticLoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'SynopticLoader' WHERE `name` = 'SynopticLoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('SynopticLoader');"
+    },
+    {
+      "column": "name",
+      "value": "CSBLEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'CSBLEditor' WHERE `name` = 'CSBLEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('CSBLEditor');"
+    },
+    {
+      "column": "name",
+      "value": "DashboardExport",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'DashboardExport' WHERE `name` = 'DashboardExport';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('DashboardExport');"
+    },
+    {
+      "column": "name",
+      "value": "DashboardImport",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'DashboardImport' WHERE `name` = 'DashboardImport';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('DashboardImport');"
+    },
+    {
+      "column": "name",
+      "value": "GTFSEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'GTFSEditor' WHERE `name` = 'GTFSEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('GTFSEditor');"
+    },
+    {
+      "column": "name",
+      "value": "POILoader",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'POILoader' WHERE `name` = 'POILoader';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('POILoader');"
+    },
+    {
+      "column": "name",
+      "value": "PythonJupiterHub",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'PythonJupiterHub' WHERE `name` = 'PythonJupiterHub';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('PythonJupiterHub');"
+    },
+    {
+      "column": "name",
+      "value": "RouterTool",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'RouterTool' WHERE `name` = 'RouterTool';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('RouterTool');"
+    },
+    {
+      "column": "name",
+      "value": "ScenarioEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'ScenarioEditor' WHERE `name` = 'ScenarioEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('ScenarioEditor');"
+    },
+    {
+      "column": "name",
+      "value": "SimulationManager",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'SimulationManager' WHERE `name` = 'SimulationManager';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('SimulationManager');"
+    },
+    {
+      "column": "name",
+      "value": "SumoSimulator",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'SimulationManager' WHERE `name` = 'SimulationManager';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('SimulationManager');"
+    },
+    {
+      "column": "name",
+      "value": "SynopticTemplating",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'SynopticTemplating' WHERE `name` = 'SynopticTemplating';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('SynopticTemplating');"
+    },
+    {
+      "column": "name",
+      "value": "TLPEditor",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'TLPEditor' WHERE `name` = 'TLPEditor';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('TLPEditor');"
+    },
+    {
+      "column": "name",
+      "value": "WidgetExport",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'WidgetExport' WHERE `name` = 'WidgetExport';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('WidgetExport');"
+    },
+    {
+      "column": "name",
+      "value": "WidgetImport",
+      "update": "UPDATE `Dashboard`.`ACNames` SET `name` = 'WidgetImport' WHERE `name` = 'WidgetImport';",
+      "insert":  "INSERT INTO `Dashboard`.`ACNames` (`name`) VALUES ('WidgetImport');"
+    }
+  ],
   "AccessDefinitions": [
     {
       "column": "authname",
@@ -35,17 +199,7 @@
     {
       "column": "authname",
       "value": "SnapAdvisor",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'DISIT', NULL);"
-    },
-    {
-      "column": "authname",
-      "value": "SnapAdvisor",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'Firenze', NULL);"
-    },
-    {
-      "column": "authname",
-      "value": "SnapAdvisor",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', 'Careggi', NULL);"
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SnapAdvisor', '*', NULL);"
     },
     {
       "column": "authname",
@@ -120,7 +274,7 @@
     {
       "column": "authname",
       "value": "RouterTool",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('RouterTool', 'DISIT', NULL);"
+      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('RouterTool', '*', NULL);"
     },
     {
       "column": "authname",
@@ -134,11 +288,6 @@
     },
     {
       "column": "authname",
-      "value": "SumoSimulator",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SimulationManager', 'DISIT', NULL);"
-    },
-    {
-      "column": "authname",
       "value": "SynopticTemplating",
       "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('SynopticTemplating', 'NULL', NULL);"
     },
@@ -146,16 +295,6 @@
       "column": "authname",
       "value": "TLPEditor",
       "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('TLPEditor', 'NULL', NULL);"
-    },
-    {
-      "column": "authname",
-      "value": "UserStats",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('UserStats', 'DISIT', NULL);"
-    },
-    {
-      "column": "authname",
-      "value": "UserStats",
-      "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('UserStats', 'Bari', NULL);"
     },
     {
       "column": "authname",
