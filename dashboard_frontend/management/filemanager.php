@@ -746,8 +746,8 @@ $lastUsedColors = null;
                     File Location on Map
                 </div>
                 <div class="form-row iot-directory-form-row">
-                    <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.css" />
-                    <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.draw.css" />
+                    <!--<link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.css" />
+                    <link rel="stylesheet" href="http://dashboard/iot2/css/leaflet.draw.css" />-->
                     <div id="addDeviceMapModalBodyShow" style="width: 100%; height: 400px" class="modal-body modalBody">
                     </div>
                 </div>
