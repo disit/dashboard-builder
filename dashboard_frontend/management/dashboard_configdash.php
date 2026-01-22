@@ -18,6 +18,10 @@
   include '../locale.php';
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
    
+   if (isset($useOpenSearch) && $useOpenSearch === "yes" && !isset($_GET['editNewWizard'])) {
+       $_GET['editNewWizard'] = "true";
+   }
+   
    if(!isset($_SESSION))
    {
        session_start();
