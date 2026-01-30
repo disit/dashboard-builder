@@ -31,9 +31,10 @@
             $requested_org = trim($_REQUEST['organization'] ?? '');
             $dashboardParam = trim($_REQUEST['dashboard_id'] ?? '');
             $collectionParam = trim($_REQUEST['collection_id'] ?? '');
+            $substrParam = trim($_REQUEST['ACL_substring'] ?? '');
             $claims = requireUser(); //vars from token/session
             $preferred_username = $claims['preferred_username'];
-            $ou = $claims['ou'];
+            $ou = $claims['ou'] ?? '';
             $data = [
                     'auth_name'=> $requested_name ?? '',
                     'organization'=> $requested_org ?? '',
@@ -41,6 +42,7 @@
                     'ou'=> $ou ?? '',
                     'collection_id'=> $collectionParam ?? '',
                     'dashboard_id'=> $dashboardParam ?? '',
+                    'ACL_substring'=> $substrParam ?? '',
                     ];
             switch ($action) {
                 case 'check_auth': //EXPECTED $data: ["auth_name":"required", "organization": "optional", "preferred_username":"required", "ou"='unused for now' ]
@@ -64,6 +66,12 @@
                 case 'get_user_menuIDs':
                     header('Content-Type: application/json');
                     $res = ACLAPI_check_menuIDs($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
+                    exit;
+                case 'get_user_ACLs':
+                    header('Content-Type: application/json');
+                    $res = ACLAPI_get_user_ACLs($data);
                     if (!empty($res['error'])) {http_response_code(400);}
                     echo json_encode($res);
                     exit;

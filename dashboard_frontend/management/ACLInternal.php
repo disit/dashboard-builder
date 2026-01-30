@@ -816,7 +816,7 @@ function ACLAPI_check_collection($data = []): array {
     if (! $hitAny) {
         $debug[] = "→ No AccessDefinition matched collectionID";
         return [
-        'authorized' => true,
+        'authorized' => false,
         'debug'      => $debug
     ];
     }
@@ -921,4 +921,150 @@ function ACLAPI_check_menuIDs($data = []): array {
     return $menuIDs;
 }
 
+//Return user's allowed ACL from his list of acl+profiles
+//FOR INTERNAL: expected $data= ["preferred_username":"required", "ACL_Substring":"required" (min 3 chars)] 
+function ACLAPI_get_user_ACLs($data = []): array {
+    $link = getDbLink();
+    $username = $data['preferred_username'] ?? '';
+    if ($username === '') {
+        return [
+            'error'      => 'preferred_username parameter is required'
+        ];
+    }
+    $substring = $data['ACL_substring'] ?? '';
+    if ($substring === '' || strlen($substring) <3 ) {
+        return [
+            'error'      => 'ACL_substring parameter is required with minimum 3 chars'
+        ];
+    }
+    $substring = "%".$substring."%";
+    global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
+    $enc_username = encryptOSSL(
+        strtolower($username),
+        $encryptionInitKey,
+        $encryptionIvKey,
+        $encryptionMethod
+    );
+    //provenance of defIDs
+    $prov = []; // [defID => ['direct' => bool, 'profiles' => [name => true, ...]]]
+
+    //Direct
+    $directSql = "SELECT defID FROM ACL WHERE `user` = ?";
+    if ($st = mysqli_prepare($link, $directSql)) {
+        mysqli_stmt_bind_param($st, 's', $enc_username);
+        mysqli_stmt_execute($st);
+        mysqli_stmt_bind_result($st, $defID);
+
+        while (mysqli_stmt_fetch($st)) {
+            $defID = (int)$defID;
+            if ($defID <= 0) continue;
+
+            if (!isset($prov[$defID])) {
+                $prov[$defID] = ['direct' => false, 'profiles' => []];
+            }
+            $prov[$defID]['direct'] = true;
+        }
+        mysqli_stmt_close($st);
+    } else {
+        error_log("ACLAPI_get_user_ACLs(): direct defID prepare failed: " . mysqli_error($link));
+    }
+
+    //Profile
+    $profSql = "
+        SELECT p.profilename, p.authIDs
+        FROM ACLProfilesAssignment apa
+        JOIN ACLProfiles p ON p.ID = apa.profileID
+        WHERE apa.`user` = ?
+    ";
+    if ($ps = mysqli_prepare($link, $profSql)) {
+        mysqli_stmt_bind_param($ps, 's', $enc_username);
+        mysqli_stmt_execute($ps);
+        mysqli_stmt_bind_result($ps, $profileName, $rawAuthIDs);
+
+        while (mysqli_stmt_fetch($ps)) {
+            if (!$rawAuthIDs) continue;
+
+            foreach (explode(',', $rawAuthIDs) as $s) {
+                $defID = (int)trim($s);
+                if ($defID <= 0) continue;
+
+                if (!isset($prov[$defID])) {
+                    $prov[$defID] = ['direct' => false, 'profiles' => []];
+                }
+                // keep unique profile names
+                $prov[$defID]['profiles'][$profileName] = true;
+            }
+        }
+        mysqli_stmt_close($ps);
+    } else {
+        error_log("ACLAPI_get_user_ACLs(): profile join prepare failed: " . mysqli_error($link));
+    }
+
+    //If no IDs from either source, return empty list
+    $defIDs = array_keys($prov);
+    if (empty($defIDs)) {
+        return [];
+    }
+
+    //fetches all definitions
+    $placeholders = implode(',', array_fill(0, count($defIDs), '?'));
+    $types = str_repeat('i', count($defIDs)) . 's';
+
+    $defsSql = "
+        SELECT ID, authname, menuID, dashboardID, collectionID,
+            maxbyday, maxbymonth, maxtotalaccesses
+        FROM AccessDefinitions
+        WHERE ID IN ($placeholders)
+        AND authname LIKE ?
+    ";
+    $ACLs = [];
+
+    if ($stmt = mysqli_prepare($link, $defsSql)) {
+        $params = array_merge($defIDs, [$substring]); // n ints and a string
+        mysqli_stmt_bind_param($stmt, $types, ...$params);
+
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_bind_result(
+            $stmt,
+            $id, $authname, $menuID, $dashboardID, $collectionID,
+            $maxbyday, $maxbymonth, $maxtotal
+        );
+
+        while (mysqli_stmt_fetch($stmt)) {
+            $id = (int)$id;
+
+            // compute "from"
+            $from = 'unknown';
+            if (!empty($prov[$id]['direct'])) {
+                $from = 'direct';
+            } else {
+                $names = array_keys($prov[$id]['profiles'] ?? []);
+                if (count($names) === 1) {
+                    $from = $names[0];
+                } elseif (count($names) > 1) {
+                    // if an auth is granted by multiple profiles, keep them all (as a string)
+                    $from = implode(', ', $names);
+                }
+            }
+
+            $ACLs[] = [
+                'authname'     => $authname,
+                'menuID'       => $menuID,
+                'dashboardID'  => $dashboardID,
+                'collectionID' => $collectionID,
+                'maxbyday'     => $maxbyday,
+                'maxbymonth'   => $maxbymonth,
+                'maxtotal'     => $maxtotal,
+                'from'         => $from,
+            ];
+        }
+
+        mysqli_stmt_close($stmt);
+    } else {
+        error_log("ACLAPI_get_user_ACLs(): defs prepare failed: " . mysqli_error($link));
+    }
+
+    return ['ACLs' => $ACLs];
+
+}
 ?>
