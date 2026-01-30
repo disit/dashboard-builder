@@ -71,7 +71,7 @@
         var udmFromUserOptions = null;
         var udm = null;
         var titleUdm = null;
-        var viewUdm, xOffsetUdm = null;
+        var viewUdm, xOffsetUdm, ttStepLineM, aggregationFlag = null;
         var expandedTimeRangeFlag = false;
         var currentTimeRange = null;
         var lastDateinDataArray = null;
@@ -1096,7 +1096,8 @@
                                 showInLegend: false,
                                 name: seriesName,
                                 data: seriesData,
-                                step: 'left',
+                                // type: (styleParameters != null && styleParameters.ttStepLineM != null && styleParameters.ttStepLineM == "left") ? 'area' : null,
+                                step: (styleParameters != null && styleParameters.ttStepLineM != null && styleParameters.ttStepLineM == "left") ? 'left' : null,
                                 zoneAxis: 'x',
                                 zones: myZonesArray,
                                 color: chartColor,
@@ -1336,6 +1337,8 @@
                             valueSuffix: ''
                         },
                         series: [{
+                                type: (styleParameters != null && styleParameters.ttStepLineM != null && styleParameters.ttStepLineM == "left") ? 'area' : null,
+                                step: (styleParameters != null && styleParameters.ttStepLineM != null && styleParameters.ttStepLineM == "left") ? 'left' : null,
                                 showInLegend: false,
                                 name: seriesName,
                                 data: seriesData,
@@ -1936,7 +1939,7 @@
                 }
 
                 $.ajax({
-                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField,
+                    url: "<?= $superServiceMapProxy ?>api/v1/?serviceUri=" + encodeServiceUri(fromGisExternalContentServiceUri) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + fromGisExternalContentField + (aggregationFlag ? "" : "&aggregation=no"),
                     type: "GET",
                     data: {},
                     async: true,
@@ -2241,7 +2244,7 @@
 
                         $.ajax({
                         //    url: rowParameters + "&" + serviceMapTimeRange + "&valueName=" + sm_field,
-                            url: "<?= $superServiceMapProxy ?>" + encodeServiceUri(rowParameters) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field,
+                            url: "<?= $superServiceMapProxy ?>" + encodeServiceUri(rowParameters) + "&" + serviceMapTimeRange + "&toTime=" + upperTimeLimitISOTrimmed + "&valueName=" + sm_field + (aggregationFlag ? "" : "&aggregation=no"),
                             type: "GET",
                             data: {},
                             async: true,
@@ -2548,7 +2551,7 @@
                     if(rowParameters != null) {
                         if (rowParameters.includes("https:")) {
                             $.ajax({
-                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled,
+                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled + (aggregationFlag ? "" : "&aggregation=no"),
                                 type: "GET",
                                 data: {},
                                 async: true,
@@ -2646,7 +2649,7 @@
                     if(rowParameters != null) {
                         if (rowParameters.includes("https:")) {
                             $.ajax({
-                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled,
+                                url: "<?=$superServiceMapProxy?>" + urlKBToBeCalled + (aggregationFlag ? "" : "&aggregation=no"),
                                 type: "GET",
                                 data: {},
                                 async: true,
@@ -2741,7 +2744,7 @@
                             field = fromGisExternalContentField;
                         } else {
                             //  urlKBToBeCalled = rowParameters + "&" + "&valueName=" + sm_field;
-                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + encodeServiceUri(widgetData.params.rowParameters);
+                            urlKBToBeCalled = "<?=$superServiceMapProxy?>" + encodeServiceUri(widgetData.params.rowParameters) + (aggregationFlag ? "" : "&aggregation=no");
                             field = widgetData.params.sm_field;
                         }
                         $.ajax({
@@ -2878,6 +2881,12 @@
                     }
                     if (styleParameters.xOffsetUdm != null) {
                         xOffsetUdm = styleParameters.xOffsetUdm;
+                    }
+                    if (styleParameters.ttStepLineM != null) {
+                        ttStepLineM = styleParameters.ttStepLineM;
+                    }
+		    if (styleParameters.aggregationFlag != null) {
+                        styleParameters.aggregationFlag === "yes" ? aggregationFlag = true : aggregationFlag = false;
                     }
                 }
             //    if ((sm_based === "myKPI" || sm_based === "no") && fromGisExternalContent != true) {

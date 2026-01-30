@@ -34900,6 +34900,40 @@
 
                                         newLabel.show();
                                         newInnerDiv.show();
+
+                                        // Nuova riga: Line shape (smooth / steps)
+                                        newFormRow = $('<div class="row"></div>');
+                                        newLabel = $('<label for="ttStepLineM" class="col-md-2 control-label">Line shape</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="ttStepLineM" name="ttStepLineM"></select>');
+                                        newSelect.append('<option value="off">Smooth</option>');
+                                        newSelect.append('<option value="left">Steps</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        if (styleParameters.ttStepLineM != null) {
+                                            newSelect.val(styleParameters.ttStepLineM);
+                                        }
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
+                                        newLabel = $('<label for="aggregationFlag" class="col-md-2 control-label">Data Aggregation</label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="aggregationFlag" name="aggregationFlag"></select>');
+                                        newSelect.append('<option value="yes">Yes</option>');
+                                        newSelect.append('<option value="no">No</option>');
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        if (styleParameters.aggregationFlag != null) {
+                                            newSelect.val(styleParameters.aggregationFlag);
+                                        }
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
+
 										/////////CKEDITOR TIME TREND////////
 												$.ajax({
                                                 url: "../controllers/getTrustedUsers.php",

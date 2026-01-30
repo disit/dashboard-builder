@@ -2159,8 +2159,10 @@
                             
                             $ra = mysqli_query($link, $qa);
                         }
-                        
-                        header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard . "&dashboardAuthorName=" . urlencode($dashboardAuthorName) . "&dashboardEditorName=" . urlencode($creator) . "&dashboardTitle=" . urlencode($dashboardName));
+
+                        if(isset($_REQUEST['editNewWizard'])) $editNewWizard = mysqli_real_escape_string($link, $_REQUEST['editNewWizard']);
+                        else $editNewWizard = false;
+                        header("location: dashboard_configdash.php?dashboardId=" . $id_dashboard . "&dashboardAuthorName=" . urlencode($dashboardAuthorName) . "&dashboardEditorName=" . urlencode($creator) . "&dashboardTitle=" . urlencode($dashboardName)."&editNewWizard=".urlencode($editNewWizard));
                         
                         if(isset($_REQUEST['addWidgetRegisterGen']))
                         {
@@ -4335,6 +4337,16 @@
                 $styleParametersArray["exportM"] = mysqli_real_escape_string($link, sanitizeGetString('exportM'));
             } else {
                 $styleParametersArray["exportM"] = mysqli_real_escape_string($link, sanitizePostString('exportM'));
+            }
+            if (sanitizePostString('ttStepLineM') == null) {       // New pentest
+                $styleParametersArray["ttStepLineM"] = mysqli_real_escape_string($link, sanitizeGetString('ttStepLineM'));
+            } else {
+                $styleParametersArray["ttStepLineM"] = mysqli_real_escape_string($link, sanitizePostString('ttStepLineM'));
+            }
+            if (sanitizePostString('aggregationFlag') == null) {       // New pentest
+                $styleParametersArray["ttStepLineM"] = mysqli_real_escape_string($link, sanitizeGetString('aggregationFlag'));
+            } else {
+                $styleParametersArray["aggregationFlag"] = mysqli_real_escape_string($link, sanitizePostString('aggregationFlag'));
             }
             $styleParametersM = json_encode($styleParametersArray);
         }
