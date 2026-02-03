@@ -642,8 +642,8 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     "frequency" => "600",
                     "producer" => "",
                     "model" => $model,
-                    "k1" => "",
-                    "k2" => "",
+                    "k1" => generateUUID(), //Naldi -> 19/01/2026 adding k1 value
+                    "k2" => generateUUID(), //Naldi -> 19/01/2026 adding k2 value
                     "token" => $accessToken,
                     "nodered" => "access",
                     "attributes" => $attributes,
@@ -684,6 +684,21 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
 
 
                 if ($response) {
+                    if(!isset($response["status"])){
+                        $message_output["code"] = "500";
+                        $message_output["message"] = $response;
+                        echo json_encode($message_output);
+                        curl_close($curl);
+                        exit();
+                    }
+                    if($response["status"]!== "ok"){
+                        $message_output["code"] = "400";
+                        $message_output["message"] = "File is uploaded successfully but device is not created. Error: ". json_encode($response);
+                        $message_output["api_response"] = $response;
+                        echo json_encode($message_output);
+                        curl_close($curl);
+                        exit();
+                    }
                     $message_output["code"] = "200";
                     $message_output["message"] = "Device successfully created";
                     $date_observed_new = date("Y-m-d") . "T" . date("H:i:s") . ".000Z";
@@ -827,6 +842,8 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                             $message_output["message"] = "Error during device attributes creation by API";
                             $message_output["http_status"] = $http_status_insert;
                             $message_output["api_response"] = $deviceCallInsert;
+                            echo json_encode($message_output);
+                            exit();
                         }
                     }
                 } else {
@@ -1639,4 +1656,26 @@ function getOwnerShipDevice($token, &$result, $elementId = null)
     }
 
     return $listCondDevice;
+}
+function generateUUID() {
+    return sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+
+          // 32 bits for "time_low"
+          mt_rand(0, 0xffff), mt_rand(0, 0xffff),
+
+          // 16 bits for "time_mid"
+          mt_rand(0, 0xffff),
+
+          // 16 bits for "time_hi_and_version",
+          // four most significant bits holds version number 4
+          mt_rand(0, 0x0fff) | 0x4000,
+
+          // 16 bits, 8 bits for "clk_seq_hi_res",
+          // 8 bits for "clk_seq_low",
+          // two most significant bits holds zero and one for variant DCE1.1
+          mt_rand(0, 0x3fff) | 0x8000,
+
+          // 48 bits for "node"
+          mt_rand(0, 0xffff), mt_rand(0, 0xffff), mt_rand(0, 0xffff)
+    );
 }
