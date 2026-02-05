@@ -165,11 +165,15 @@ switch($dataOrigin)
             $urlToCall = $urlToCall . "&categories=" . $serviceType;
         }
         if (strpos($dataQuery, 'model=') !== false) {
-            $model = get_string_between($dataQuery, "model=", "&");
-            if ($model === false) {
-                $model = explode('&model=', $dataQuery)[1];
+            if (strpos($dataQuery, 'iot-search') === false) {
+                $model = get_string_between($dataQuery, "model=", "&");
+                if ($model === false) {
+                    $model = explode('&model=', $dataQuery)[1];
+                }
+                $urlToCall = $urlToCall . "&model=" . $model;
+            } else {
+                $urlToCall = $dataQuery;
             }
-            $urlToCall = $urlToCall . "&model=" . $model;
         } /* else {
 
             //    $urlToCall = "https://www.disit.org/superservicemap/api/v1/?selection=" . $geoBb . "&categories=" . $serviceType . "&maxResults=1";
