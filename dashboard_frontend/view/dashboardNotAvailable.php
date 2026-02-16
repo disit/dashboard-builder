@@ -47,11 +47,11 @@
         <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css">
         
         <!-- Highcharts -->
-        <script src="../js/highcharts/code/highcharts.js"></script>
-        <script src="../js/highcharts/code/modules/exporting.js"></script>
-        <script src="../js/highcharts/code/highcharts-more.js"></script>
-        <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-        <script src="../js/highcharts/code/highcharts-3d.js"></script>
+        <script src="<?= hc_base($highchartsUrl) ?>/highcharts.js"></script>
+        <script src="<?= hc_base($highchartsUrl) ?>/modules/exporting.js"></script>
+        <script src="<?= hc_base($highchartsUrl) ?>/highcharts-more.js"></script>
+        <script src="<?= hc_base($highchartsUrl) ?>/modules/solid-gauge.js"></script>
+        <script src="<?= hc_base($highchartsUrl) ?>/highcharts-3d.js"></script>
         
         <link href="../css/dashboard.css" rel="stylesheet">
     </head>

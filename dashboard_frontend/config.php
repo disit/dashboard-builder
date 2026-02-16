@@ -75,6 +75,11 @@
       $ssoIssuer = "https://www.$http_domain/auth/realms/master";
       $ssoEndSessionEndpoint = "https://www.$http_domain/auth/realms/master/protocol/openid-connect/logout";
     }
+
+    if(!isset($highchartsUrl)) {
+        $highchartsUrl = "https://code.highcharts.com/9.1.2";
+        // $highchartsUrl = "../js/highcharts-9/code";
+    }
     require_once 'common.php';
 
     if(isset($storeSessionOnDB) && $storeSessionOnDB=='yes') {

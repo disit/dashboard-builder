@@ -923,3 +923,7 @@ function decodeNbsp($html) {
     $htmlStringWithoutPTags = strip_tags($html);
     return str_replace("&nbsp;", " ", $htmlStringWithoutPTags);
 }
+
+function hc_base(string $highchartsUrl): string {
+    return htmlspecialchars(rtrim($highchartsUrl, '/'), ENT_QUOTES, 'UTF-8');
+}

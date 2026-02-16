@@ -223,27 +223,15 @@
     <!--<link rel="stylesheet" type="text/css" href="../newGridster/dist/jquery.gridster.css">
     <script src="../newGridster/dist/jquery.gridster.js" type="text/javascript" charset="utf-8"></script>-->
 
-    <!-- Highcharts --> 
- <!--   <script src="../js/highcharts/code/highcharts.js"></script>
-    <script src="../js/highcharts/code/modules/exporting.js"></script>
-    <script src="../js/highcharts/code/highcharts-more.js"></script>
-    <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts/code/highcharts-3d.js"></script>
-    <script src="../js/highcharts-8.0.0/code/highcharts.js"></script>
-    <script src="../js/highcharts-8.0.0/code/modules/exporting.js"></script>
-    <script src="../js/highcharts-8.0.0/code/highcharts-more.js"></script>
-    <script src="../js/highcharts-8.0.0/code/modules/parallel-coordinates.js"></script>
-    <script src="../js/highcharts-8.0.0/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts-8.0.0/code/highcharts-3d.js"></script>  -->
-
-    <script src="../js/highcharts-9/code/highcharts.js"></script>
-    <script src="../js/highcharts-9/code/modules/exporting.js"></script>
-    <script src="../js/highcharts-9/code/modules/export-data.js"></script>
-    <script src="../js/highcharts-9/code/highcharts-more.js"></script>
-    <script src="../js/highcharts-9/code/modules/parallel-coordinates.js"></script>
-    <script src="../js/highcharts-9/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts-9/code/highcharts-3d.js"></script>
-    <script src="../js/highcharts-9/code/modules/streamgraph.js"></script>
+    <!-- Highcharts -->
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/exporting.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/export-data.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts-more.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/parallel-coordinates.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/solid-gauge.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts-3d.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/streamgraph.js"></script>
 
   <!-- TinyColors -->
     <script src="../js/tinyColor.js" type="text/javascript" charset="utf-8"></script>

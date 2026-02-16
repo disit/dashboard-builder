@@ -98,11 +98,11 @@
     <script src="../js/bootstrap-colorpicker.min.js"></script>
 
     <!-- Highcharts -->
-    <script src="../js/highcharts/code/highcharts.js"></script>
-    <script src="../js/highcharts/code/modules/exporting.js"></script>
-    <script src="../js/highcharts/code/highcharts-more.js"></script>
-    <script src="../js/highcharts/code/modules/solid-gauge.js"></script>
-    <script src="../js/highcharts/code/highcharts-3d.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/exporting.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts-more.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/modules/solid-gauge.js"></script>
+    <script src="<?= hc_base($highchartsUrl) ?>/highcharts-3d.js"></script>
 
     <!-- Bootstrap editable tables -->
     <link href="../bootstrap3-editable/css/bootstrap-editable.css" rel="stylesheet">
