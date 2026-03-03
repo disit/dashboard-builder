@@ -32368,17 +32368,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         //categories = ['blue', 'cyan', 'green', 'yellowgreen', 'yellow', 'gold', 'orange', 'darkorange', 'tomato', 'orangered', 'red'];
         let colors = [];
-        /*   colors['blue'] = '#0000FF';
-           colors['cyan'] = '#00FFFF';
-           colors['green'] = '#008000';
-           colors['yellowgreen'] = '#9ACD32';
-           colors['yellow'] = '#FFFF00';
-           colors['gold'] = '#FFD700';
-           colors['orange'] = '#FFA500';
-           colors['darkorange'] = '#FF8C00';
-           colors['orangered'] = '#FF4500';
-           colors['tomato'] = '#FF6347';
-           colors['red'] = '#FF0000';  */
+
         colors['blue'] = 'rgb(0,0,255)';
         colors['cyan'] = 'rgb(0,153,255)';
         colors['green'] = 'rgb(0,153,0)';
@@ -33012,12 +33002,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         let map2D = map.defaultMapRef;
         let map2DName = "<?= $_REQUEST['name_w'] ?>_map";
 
-        //                removeAllLayers(map.default3DMapRef);
-
-        // ready
-        //    map2D.panTo(new L.LatLng(43.769789, 11.255694));
-
-        // load menu
         getMenuAjaxCall();
 
         // dragend
@@ -33032,9 +33016,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
         });
 
-        //                let map3D = load3DMap(map2D);
-        //
-        //                return map3D;
     }
 
     function load3DMap(map2D) {
@@ -33044,57 +33025,6 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             center: map2D.getCenter(),
             zoom: 18
         });
-
-
-        //// MAPBOX
-        //                mapboxgl.accessToken = 'pk.eyJ1IjoiYW5kcmVhY29ydGk5MCIsImEiOiJjanhjN2dndTIwMGhnNDBvNDFkZzN3eHVoIn0.w07jn7vRfAcstoSz2EO5Ew';
-        //                var map = new mapboxgl.Map({
-        //                    style: 'mapbox://styles/mapbox/light-v10',
-        //                    center: map2D.getCenter(),
-        //                    zoom: 15.5,
-        //                    pitch: 45,
-        //                    bearing: -17.6,
-        //                    container: '3DMap'
-        //                });
-        //
-        //                map.on('load', function () {
-        //                    // Insert the layer beneath any symbol layer.
-        //                    var layers = map.getStyle().layers;
-        //
-        //                    var labelLayerId;
-        //                    for (var i = 0; i < layers.length; i++) {
-        //                        if (layers[i].type === 'symbol' && layers[i].layout['text-field']) {
-        //                            labelLayerId = layers[i].id;
-        //                            break;
-        //                        }
-        //                    }
-        //
-        //                    map.addLayer({
-        //                        'id': '3d-buildings',
-        //                        'source': 'composite',
-        //                        'source-layer': 'building',
-        //                        'filter': ['==', 'extrude', 'true'],
-        //                        'type': 'fill-extrusion',
-        //                        'minzoom': 15,
-        //                        'paint': {
-        //                            'fill-extrusion-color': '#aaa',
-        //
-        //                            // use an 'interpolate' expression to add a smooth transition effect to the
-        //                            // buildings as the user zooms in
-        //                            'fill-extrusion-height': [
-        //                                "interpolate", ["linear"], ["zoom"],
-        //                                15, 0,
-        //                                15.05, ["get", "height"]
-        //                            ],
-        //                            'fill-extrusion-base': [
-        //                                "interpolate", ["linear"], ["zoom"],
-        //                                15, 0,
-        //                                15.05, ["get", "min_height"]
-        //                            ],
-        //                            'fill-extrusion-opacity': .6
-        //                        }
-        //                    }, labelLayerId);
-        //                });
 
         return map;
     }
