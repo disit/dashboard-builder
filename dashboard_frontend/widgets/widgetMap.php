@@ -10850,7 +10850,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
     // Function to fetch SPARQL data
     //
-    async function fetchSparqlData(sparqlQuery, svoltesparqlquery, wkt, existentRoadGraph = null, existentRessvolte = null, modality = 'create') {
+    async function fetchSparqlData(sparqlQuery, svoltesparqlquery, wkt, existentRoadGraph = null, existentRessvolte = null, modality = 'create', filters = null) {
         // //console.log('DATA:', sparqlQuery);
         // //console.log('existentRoadGraph:', existentRoadGraph);
         // //const allowedHighwayTypes = ["primary", "secondary", "residential","pedestrian", "tertiary", "residential", "unclassified"];
@@ -10931,10 +10931,21 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         ]
                     );
                 }
-                for (si = 0; si < stradeInfo.length; si++) {
-                    roadInfo = stradeInfo[si];
-                    if (isPointInsidePolygon([roadInfo.nALat, roadInfo.nALong], arrayWKT) || isPointInsidePolygon([roadInfo.nBLat, roadInfo.nBLong], arrayWKT)) {
-                        stradeInfoClean.push(roadInfo);
+                //filter for Cyprus Tool
+                if(filters != null){
+                    for (si = 0; si < stradeInfo.length; si++) {
+                        roadInfo = stradeInfo[si];
+                        if ((isPointInsidePolygon([roadInfo.nALat, roadInfo.nALong], arrayWKT) || isPointInsidePolygon([roadInfo.nBLat, roadInfo.nBLong], arrayWKT)) && filters.includes(roadInfo.type)) {
+                            stradeInfoClean.push(roadInfo);
+                        }
+                    }
+                }
+                else{
+                    for (si = 0; si < stradeInfo.length; si++) {
+                        roadInfo = stradeInfo[si];
+                        if (isPointInsidePolygon([roadInfo.nALat, roadInfo.nALong], arrayWKT) || isPointInsidePolygon([roadInfo.nBLat, roadInfo.nBLong], arrayWKT)) {
+                            stradeInfoClean.push(roadInfo);
+                        }
                     }
                 }
                 stradeInfo = stradeInfoClean;
@@ -17700,6 +17711,255 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     //###################################### END TRAFFIC SCENARY BUILDER SECTION #########################################
     //####################################################################################################################
     //####################################################################################################################
+
+    //##################################################################################################
+    //################### ROAD GRAPH SCENARY EVENT (CSBL BASED) ########################################
+    //##################################################################################################
+    
+    
+    $(document).on('addRoadGraphScenary', function (event) {
+        
+        console.log("addRoadGraphScenary triggered!");
+        
+        // Helper function to notify iframe when loading completes
+        function notifyIframeLoadComplete(iframeID) {
+            try {
+                const iframe = $('#' + iframeID)[0]
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({
+                        type: 'roadGraphLoadComplete'
+                    }, '*');
+                }
+            } catch (e) {
+                console.log('Could not notify iframe:', e);
+            }
+        }
+
+        if (event.target === map.mapName) {
+            
+            let passedData = event.passedData;
+
+            // Set zoom level to 18
+            console.log("Setting zoom to " + passedData.minZoom.toString());
+            map.defaultMapRef.setZoom(passedData.minZoom);
+            
+            // Wait for zoom animation to complete
+            setTimeout(function() {
+                
+                //Get viewport bounds
+                const bounds = map.defaultMapRef.getBounds();
+                console.log("Viewport bounds:", bounds);
+                
+                // Extract coordinates from bounds
+                const northEast = bounds.getNorthEast();
+                const southWest = bounds.getSouthWest();
+                const northWest = bounds.getNorthWest();
+                const southEast = bounds.getSouthEast();
+                
+                // Create polygon from viewport coordinates
+                // Format: [[lon, lat], [lon, lat], ...]
+                const viewportCoordinates = [
+                    [southWest.lng, southWest.lat],  // Bottom-left
+                    [southEast.lng, southEast.lat],  // Bottom-right
+                    [northEast.lng, northEast.lat],  // Top-right
+                    [northWest.lng, northWest.lat],  // Top-left
+                    [southWest.lng, southWest.lat]   // Close polygon
+                ];
+                
+                console.log("Viewport coordinates:", viewportCoordinates);
+                
+                // Convert to WKT format for SPARQL query
+                const viewportWKT = `POLYGON ((${viewportCoordinates
+                    .map(([lon, lat]) => `${lon} ${lat}`)
+                    .join(', ')}))`;
+                
+                console.log("Viewport WKT:", viewportWKT);
+                
+                // Calculate bounding box from viewport
+                const viewportBoundingBox = {
+                    minX: southWest.lng,
+                    minY: southWest.lat,
+                    maxX: northEast.lng,
+                    maxY: northEast.lat
+                };
+                
+                console.log("Viewport bounding box:", viewportBoundingBox);
+                
+                // Build SPARQL query for road graph
+                console.log("Building SPARQL query for road graph...");
+
+                filterTypes = [
+                    "residential",
+                    "primary",
+                    "tertiary",
+                    //"footway",
+                    "trunk_link",
+                    "motorway",
+                    "track",
+                    "secondary_link",
+                    "service",
+                    "tertiary_link",
+                    //"path",
+                    "via_ferrata",
+                    //"cycleway",
+                    "living_street",
+                    "primary_link",
+                    "emergency_bay",
+                    //"steps",
+                    "motorway_link",
+                    "services",
+                    "disused",
+                    "road",
+                    "construction",
+                    "raceway",
+                    "emergency_access_point",
+                    "bridleway",
+                    "abandoned",
+                    "platform",
+                    "elevator",
+                    "bus_stop",
+                    "rest_area",
+                    "yes",
+                    "no",
+                    "corridor",
+                    "island",
+                    "crossing",
+                    "razed",
+                    "private",
+                    //"pedestrian",
+                    "traffic_island",
+                    "bus_guideway",
+                    "ohm:military:Trench",
+                    "unclassified",
+                    "secondary",
+                    //"tram"
+                ];
+                const sparqlQueryottimizzata = buildSparqlQueryURLottimizzata(
+                    viewportBoundingBox.maxY,
+                    viewportBoundingBox.maxX,
+                    viewportBoundingBox.minY,
+                    viewportBoundingBox.minX
+                );
+                svoltesparqlquery = buildSparqlQueryURLsvolte(viewportWKT);
+                sensorURL = buildSensorAPIURL(viewportWKT);
+                console.log("SPARQL Query URL:", sparqlQueryottimizzata);
+                
+                // Initialize layers if not already done
+                scenaryGrafo =  new L.FeatureGroup();
+                map.defaultMapRef.addLayer(scenaryGrafo);
+                // if (scenaryGrafo == null) {
+                //     scenaryGrafo = new L.FeatureGroup();
+                //     map.defaultMapRef.addLayer(scenaryGrafo);
+                // }
+                
+                // Execute SPARQL query to fetch road graph data
+                console.log("Fetching road graph data from Knowledge Base...");
+                
+                // Create the loading box element and add it to the document
+                const loadingBox = document.createElement("div");
+                loadingBox.id = "loading-box";
+                loadingBox.style.position = "absolute";
+                loadingBox.style.top = "20%";
+                loadingBox.style.left = "50%";
+                loadingBox.style.transform = "translate(-50%, -50%)";
+                loadingBox.style.backgroundColor = "#fff";
+                loadingBox.style.border = "1px solid #ccc";
+                loadingBox.style.padding = "20px";
+                loadingBox.style.boxShadow = "0 0 10px rgba(0, 0, 0, 0.2)";
+                loadingBox.style.zIndex = "9999";
+                loadingBox.innerHTML = '<p style="color: black";>The road graph is loading...</p>';
+                // Append the loading box to the map container
+                const mapContainer = map.defaultMapRef.getContainer();
+                mapContainer.appendChild(loadingBox);                                                        
+                // Before making the requests, show the loading box
+                loadingBox.style.display = "block";
+                loadingboxloaded = false;
+                
+                // Execute the query
+                //map.defaultMapRef.dragging.disable();
+                Promise.all([fetchTrafficSensorData(sensorURL), fetchSparqlData(sparqlQueryottimizzata, svoltesparqlquery, viewportWKT,null,null,'create',filterTypes)])
+                    .then((data) => {
+                        
+                        console.log("Road graph loaded successfully for viewport!");
+                        loadingBox.style.display = "none";
+                        if (loadingBox.parentNode) {
+                            mapContainer.removeChild(loadingBox);
+                        }
+                        loadingboxloaded = true;
+                        handleIntersectionsAndSensors(viewportWKT);
+                        
+                        notifyIframeLoadComplete(passedData.iframeID)
+
+                        //map.defaultMapRef.dragging.enable();
+                    })
+                .catch(error => {
+                    // Hide and remove the loading box in case of an error
+                    notifyIframeLoadComplete(passedData.iframeID);
+                    if (error.name === 'AbortError') {
+                        console.log("Fetch aborted by user");
+                    } else {
+                        console.error("Error:", error);
+                    }
+                    
+                    loadingBox.style.display = "none";
+                    if (loadingBox.parentNode) {
+                        mapContainer.removeChild(loadingBox);
+                    }
+                    loadingboxloaded = false;
+                    
+                    //map.defaultMapRef.dragging.enable();
+                });
+                
+            }, 500); // Wait 500ms for zoom animation
+        }
+    });
+
+    //##################################################################################################
+    //################### REMOVE ROAD GRAPH SCENARY EVENT ##############################################
+    //##################################################################################################
+
+    $(document).on('removeRoadGraphScenary', function (event) {
+        // gestisco quando l'utente clicca sul rimuovi lo scenario builder
+        console.log("removeRoadGraphScenary sent!");
+
+        if (event.target === map.mapName) {
+            
+            loadingboxloaded = false;
+            
+            // Remove loading box if it exists
+            const loadingBox = document.getElementById("loading-box");
+            if (loadingBox && loadingBox.parentNode) {
+                loadingBox.style.display = "none";
+                loadingBox.parentNode.removeChild(loadingBox);
+                console.log("Removed loading box");
+            }
+            
+            // levo anche il grafo
+            if (scenaryGrafo) {
+                map.defaultMapRef.removeLayer(scenaryGrafo);
+                scenaryGrafo.clearLayers();
+            }
+            
+            if (roadElementGraph) {
+                //roadElementGraph.clearSegments();
+                //roadElementGraph.clearNodes();
+                roadElementGraph.reset();
+                $('#jsonIstanze').text('');
+                //istanzedelgrafochestoconsiderando = []; 
+                console.log('reset roadElements');
+            }
+            
+            //pulisciTutto();
+        }
+
+    })
+
+    //####################################################################################################################
+    //####################################################################################################################
+    //###################################### END ROAD GRAPH SCENARY SECTION ##############################################
+    //####################################################################################################################
+    //####################################################################################################################
+
 
     //BOLOGNA
     $(document).on('addSideVision', function (event) {
@@ -26556,6 +26816,720 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
     });
 
+    /**
+     * Add interactive point placement on polygon perimeter
+     * Allows user to click inside/near polygon to place markers on perimeter
+     * 
+     * @trigger addPointOnPolygon
+     * @usage Parking Area CSBL
+     * @author Galli
+     * 
+     * @params {Object} event.passedData - Configuration object
+     * @params {Object} event.passedData.polygonData - GeoJSON with polygon/circle features
+     * @params {string} [event.passedData.addMode='additive'] - 'additive' or 'exclusive'
+     * @params {string} [event.passedData.iframeId] - Iframe element ID for notifications
+     * @params {string} [event.passedData.pointColor='#00af00'] - Marker border color
+     * @params {string} [event.passedData.pointFillColor='#00af00'] - Marker fill color
+     * 
+     * @fires pointOnPolygonAdded on iframe - When marker is placed
+     * @output Adds markers to map.pointOnPolygon.markers array
+     * @output Posts message to iframe with selected coordinates
+     * 
+     * @example
+     * $.event.trigger({
+     *   type: "addPointOnPolygon",
+     *   target: map.mapName,
+     *   passedData: {
+     *     polygonData: geoJsonObject,
+     *     addMode: 'exclusive',
+     *     iframeId: 'myIframe',
+     *     style: {
+     *         pointColor: c1,
+     *         pointFillColor: c2,
+     *         pointRadius: 8,
+     *         weight: 2,
+     *         opacity: 0.8,
+     *      },
+     *   }
+     * });
+     */
+    $(document).on("addPointOnPolygon", function(event) {
+        if(event.target === map.mapName){
+            const passedData = event.passedData;
+            
+            let tempMarker = null;
+            let lastValidPosition = null;
+            let polygonLayers = [];
+            
+            // Initialize markers array if not exists
+            if(!map.pointOnPolygon){
+                map.pointOnPolygon = {};
+            }
+            if(!map.pointOnPolygon.markers){
+                map.pointOnPolygon.markers = [];
+            }
+            
+            // Create polygon layers from passed GeoJSON data
+            if(passedData.polygonData){
+                const geoJsonData = passedData.polygonData;
+                
+                // Parse each feature and create Leaflet layers
+                if(geoJsonData.features && Array.isArray(geoJsonData.features)){
+                    geoJsonData.features.forEach(feature => {
+                        if(feature.geometry.type === "Polygon"){
+                            // Convert coordinates from GeoJSON format [lng, lat] to Leaflet format [lat, lng]
+                            const coords = feature.geometry.coordinates[0].map(coord => [coord[1], coord[0]]);
+                            const polygon = L.polygon(coords);
+                            polygonLayers.push(polygon);
+                        } else if(feature.geometry.type === "Point" && feature.properties.radius){
+                            // Handle circle
+                            const center = L.latLng(feature.geometry.coordinates[1], feature.geometry.coordinates[0]);
+                            const circle = L.circle(center, {radius: feature.properties.radius});
+                            polygonLayers.push(circle);
+                        }
+                    });
+                }
+            }
+            
+            // Function to check if point is inside polygon
+            function isPointInsidePolygon(latlng, polygon) {
+                if(polygon instanceof L.Circle){
+                    const center = polygon.getLatLng();
+                    const radius = polygon.getRadius();
+                    const dist = map.defaultMapRef.distance(latlng, center);
+                    return dist <= radius;
+                }
+                
+                // For polygons, use ray casting algorithm
+                const latlngs = polygon.getLatLngs()[0];
+                let inside = false;
+                
+                for(let i = 0, j = latlngs.length - 1; i < latlngs.length; j = i++){
+                    const xi = latlngs[i].lat, yi = latlngs[i].lng;
+                    const xj = latlngs[j].lat, yj = latlngs[j].lng;
+                    
+                    const intersect = ((yi > latlng.lng) !== (yj > latlng.lng))
+                        && (latlng.lat < (xj - xi) * (latlng.lng - yi) / (yj - yi) + xi);
+                    if(intersect) inside = !inside;
+                }
+                
+                return inside;
+            }
+            
+            // Function to find closest point on a line segment
+            function closestPointOnSegment(point, segStart, segEnd) {
+                const x = point.lng;
+                const y = point.lat;
+                const x1 = segStart.lng;
+                const y1 = segStart.lat;
+                const x2 = segEnd.lng;
+                const y2 = segEnd.lat;
+                
+                const A = x - x1;
+                const B = y - y1;
+                const C = x2 - x1;
+                const D = y2 - y1;
+                
+                const dot = A * C + B * D;
+                const lenSq = C * C + D * D;
+                let param = -1;
+                
+                if(lenSq !== 0){
+                    param = dot / lenSq;
+                }
+                
+                let xx, yy;
+                
+                if(param < 0){
+                    xx = x1;
+                    yy = y1;
+                } else if(param > 1){
+                    xx = x2;
+                    yy = y2;
+                } else {
+                    xx = x1 + param * C;
+                    yy = y1 + param * D;
+                }
+                
+                return L.latLng(yy, xx);
+            }
+            
+            // Function to find closest point on polygon perimeter
+            function findClosestPointOnPerimeter(latlng, polygon) {
+                let minDist = Infinity;
+                let closestPoint = null;
+                
+                // Handle circles
+                if(polygon instanceof L.Circle){
+                    const center = polygon.getLatLng();
+                    const radius = polygon.getRadius();
+                    
+                    // Calculate angle from center to cursor
+                    const dx = latlng.lng - center.lng;
+                    const dy = latlng.lat - center.lat;
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Project point on circle perimeter
+                    const metersPerDegree = 111320;
+                    const dlng = (radius * Math.cos(angle)) / (metersPerDegree * Math.cos(center.lat * Math.PI / 180));
+                    const dlat = (radius * Math.sin(angle)) / metersPerDegree;
+                    
+                    return L.latLng(center.lat + dlat, center.lng + dlng);
+                }
+                
+                // Handle polygons
+                const latlngs = polygon.getLatLngs()[0];
+                
+                // Include ALL segments, including the closing segment from last to first point
+                for(let i = 0; i < latlngs.length; i++){
+                    const p1 = latlngs[i];
+                    const p2 = latlngs[(i + 1) % latlngs.length];  // Wrap around to first point
+                    
+                    // Find closest point on line segment
+                    const point = closestPointOnSegment(latlng, p1, p2);
+                    const dist = map.defaultMapRef.distance(latlng, point);
+                    
+                    if(dist < minDist){
+                        minDist = dist;
+                        closestPoint = point;
+                    }
+                }
+                
+                return closestPoint;
+            }
+            
+            // Function to check if point is near perimeter
+            function isNearPerimeter(latlng, polygon, threshold = 20) {
+                const closestPoint = findClosestPointOnPerimeter(latlng, polygon);
+                if(!closestPoint) return false;
+                
+                const pixelDist = map.defaultMapRef.latLngToContainerPoint(latlng)
+                    .distanceTo(map.defaultMapRef.latLngToContainerPoint(closestPoint));
+                
+                return pixelDist <= threshold;
+            }
+            
+            // Mouse move handler
+            function onMouseMove(e) {
+                let isOnOrInsidePolygon = false;
+                let closestPoint = null;
+                
+                // Check all passed polygons
+                for(let polygon of polygonLayers){
+                    // Check if cursor is inside polygon or near perimeter
+                    const inside = isPointInsidePolygon(e.latlng, polygon);
+                    const nearPerimeter = isNearPerimeter(e.latlng, polygon, 20);
+                    
+                    if(inside || nearPerimeter){
+                        isOnOrInsidePolygon = true;
+                        closestPoint = findClosestPointOnPerimeter(e.latlng, polygon);
+                        break;
+                    }
+                }
+                
+                // Only update if cursor is inside or near the polygon perimeter
+                if(isOnOrInsidePolygon && closestPoint){
+                    lastValidPosition = closestPoint;
+                    
+                    // Update or create temp marker
+                    if(!tempMarker){
+                        tempMarker = L.circleMarker(closestPoint, {
+                            radius: 6,
+                            color: '#986ebb',
+                            fillColor: '#af4dff',
+                            fillOpacity: 0.6,
+                            weight: 2
+                        }).addTo(map.defaultMapRef);
+                    } else {
+                        tempMarker.setLatLng(closestPoint);
+                    }
+                    
+                    map.defaultMapRef.getContainer().style.cursor = 'crosshair';
+                } else {
+                    // Cursor is outside polygon area - keep marker at last valid position
+                    // Reset cursor to default
+                    map.defaultMapRef.getContainer().style.cursor = 'default';
+                }
+            }
+            
+            // Click handler to place/update permanent point
+            function onClick(e) {
+                if(lastValidPosition && tempMarker){
+                    // Check if exclusive mode - remove all existing markers first
+                    if(passedData.addMode === 'exclusive' && map.pointOnPolygon.markers.length > 0){
+                        map.pointOnPolygon.markers.forEach(markerData => {
+                            if(markerData.marker){
+                                map.defaultMapRef.removeLayer(markerData.marker);
+                            }
+                        });
+                        map.pointOnPolygon.markers = [];
+                    }
+                    
+                    // Create new permanent circle marker
+                    const permanentMarker = L.circleMarker(lastValidPosition, {
+                        radius: passedData.style.pointRadius || 8,
+                        color: passedData.style.pointColor || '#00af00be',
+                        fillColor: passedData.style.pointFillColor || '#00d400be',
+                        fillOpacity: passedData.style.opacity || 0.8,
+                        weight: passedData.style.weight || 2
+                    }).addTo(map.defaultMapRef);
+                    
+                    // Add popup with coordinates
+                    permanentMarker.bindPopup(`
+                        <b>Point on Perimeter</b><br>
+                        Lat: ${lastValidPosition.lat.toFixed(6)}<br>
+                        Lng: ${lastValidPosition.lng.toFixed(6)}
+                    `);
+                    
+                    // Store marker in array
+                    map.pointOnPolygon.markers.push({
+                        marker: permanentMarker,
+                        position: lastValidPosition,
+                        timestamp: new Date()
+                    });
+                    
+                    notifyIframeOnPointSelected(passedData.iframeId, lastValidPosition.lat, lastValidPosition.lng);
+                    
+                    // Trigger custom event
+                    $.event.trigger({
+                        type: "pointOnPolygonAdded",
+                        position: lastValidPosition,
+                        marker: permanentMarker
+                    });
+
+                    // Deactivate interactive mode: stop drawing temp marker and handlers
+                    map.defaultMapRef.off('mousemove', onMouseMove);
+                    map.defaultMapRef.off('click', onClick);
+                    if (tempMarker) {
+                        map.defaultMapRef.removeLayer(tempMarker);
+                        tempMarker = null;
+                    }
+                    // keep the permanentMarker on the map but reset cursor
+                    map.defaultMapRef.getContainer().style.cursor = 'default';
+                }
+            }
+
+            // Helper function to notify iframe when point is set
+            function notifyIframeOnPointSelected(iframeID, lat, lng) {
+                try {
+                    const iframe = $('#' + iframeID)[0]
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({
+                            type: 'updateSelectedPoint',
+                            passedData: {lat, lng}
+                        }, '*');
+                    }
+                } catch (e) {
+                    console.log('Could not notify iframe:', e);
+                }
+            }
+            
+            // Attach event listeners
+            map.defaultMapRef.on('mousemove', onMouseMove);
+            map.defaultMapRef.on('click', onClick);
+            
+            // Store cleanup function
+            map.removePointOnPolygonMode = function() {
+                map.defaultMapRef.off('mousemove', onMouseMove);
+                map.defaultMapRef.off('click', onClick);
+                if(tempMarker){
+                    map.defaultMapRef.removeLayer(tempMarker);
+                    tempMarker = null;
+                }
+                lastValidPosition = null;
+                map.defaultMapRef.getContainer().style.cursor = 'default';
+            };
+        }
+    });
+
+    /**
+     * Remove markers placed on polygon perimeter
+     * Can remove all markers or specific ones by coordinates
+     * 
+     * @trigger removePointOnPolygon
+     * @author Galli
+     * 
+     * @params {Object} [event.passedData] - Configuration object
+     * @params {string} [event.passedData.removeMode='all'] - Removal mode:
+     *   - 'all': Remove both interactive mode and all markers (default)
+     *   - 'interactive': Remove only interactive mode, keep all markers
+     *   - 'markers': Remove only markers, keep interactive mode active
+     *   - 'specific': Remove specific marker by coordinates
+     * @params {Object} [event.passedData.coordinates] - Specific marker to remove (when removeMode='specific')
+     * @params {number} event.passedData.coordinates.lat - Latitude
+     * @params {number} event.passedData.coordinates.lng - Longitude
+     * 
+     * @output Removes markers from map and map.pointOnPolygon.markers array
+     * @output Cleans up event handlers and resets cursor
+     * 
+     * @example Remove everything (interactive mode + all markers):
+     * $.event.trigger({
+     *   type: "removePointOnPolygon",
+     *   target: map.mapName,
+     *   passedData: {removeMode: 'all'}
+     * });
+     * 
+     * @example Remove only interactive mode, keep markers:
+     * $.event.trigger({
+     *   type: "removePointOnPolygon",
+     *   target: map.mapName,
+     *   passedData: {removeMode: 'interactive'}
+     * });
+     * 
+     * @example Remove only markers, keep interactive mode:
+     * $.event.trigger({
+     *   type: "removePointOnPolygon",
+     *   target: map.mapName,
+     *   passedData: {removeMode: 'markers'}
+     * });
+     * 
+     * @example Remove specific marker:
+     * $.event.trigger({
+     *   type: "removePointOnPolygon",
+     *   target: map.mapName,
+     *   passedData: {
+     *     removeMode: 'specific',
+     *     coordinates: {lat: 43.7696, lng: 11.2558}
+     *   }
+     * });
+     */
+    $(document).on("removePointOnPolygon", function(event) {
+        if(event.target === map.mapName){
+            const passedData = event.passedData || {};
+            const removeMode = passedData.removeMode || 'all';
+            const coordinates = passedData.coordinates; // {lat: ..., lng: ...}
+
+            // Handle interactive mode removal
+            if(removeMode === 'all' || removeMode === 'interactive'){
+                // Call cleanup function if it exists
+                if(map.removePointOnPolygonMode){
+                    map.removePointOnPolygonMode();
+                }
+            }
+            
+            // Handle marker removal
+            if(removeMode === 'all' || removeMode === 'markers' || removeMode === 'specific'){
+                if(map.pointOnPolygon && map.pointOnPolygon.markers){
+                    if(removeMode === 'specific' && coordinates && coordinates.lat !== undefined && coordinates.lng !== undefined){
+                        // Remove only markers with matching coordinates
+                        const tolerance = 0.000001; // Small tolerance for floating point comparison
+                        map.pointOnPolygon.markers = map.pointOnPolygon.markers.filter(markerData => {
+                            const pos = markerData.position;
+                            const matches = Math.abs(pos.lat - coordinates.lat) < tolerance && 
+                                           Math.abs(pos.lng - coordinates.lng) < tolerance;
+                            if(matches && markerData.marker){
+                                map.defaultMapRef.removeLayer(markerData.marker);
+                                return false; // Remove from array
+                            }
+                            return true; // Keep in array
+                        });
+                    } else {
+                        // Remove all markers (for 'all' or 'markers' mode)
+                        map.pointOnPolygon.markers.forEach(markerData => {
+                            if(markerData.marker){
+                                map.defaultMapRef.removeLayer(markerData.marker);
+                            }
+                        });
+                        map.pointOnPolygon.markers = [];
+                    }
+                    
+                    // Clean up completely if no markers left
+                    if(map.pointOnPolygon.markers.length === 0){
+                        delete map.pointOnPolygon;
+                    }
+                }
+            }
+            
+            // Reset cursor (unless we're keeping interactive mode active)
+            if(removeMode !== 'markers' && removeMode !== 'specific'){
+                map.defaultMapRef.getContainer().style.cursor = 'default';
+            }
+        }
+    });
+
+    
+    /**
+     * Add custom pin markers with full control over icon properties and anchoring
+     * Allows precise positioning of icon anchor point for various marker types
+     * 
+     * @trigger addPinAsMarker
+     * @usage Custom map markers with flexible icon anchoring
+     * @author Naldi
+     * 
+     * @params {Object} event.passedData - Configuration object
+     * @params {Object} event.passedData.position - Marker coordinates {lat, lng}
+     * @params {string} event.passedData.iconUrl - Path or URL to icon image
+     * @params {Array<number>} [event.passedData.iconSize=[35, 35]] - Icon size [width, height]
+     * @params {Array<number>} [event.passedData.iconAnchor=[17, 17]] - Icon anchor point [x, y] (default: center)
+     * @params {Array<number>} [event.passedData.popupAnchor=[0, -17]] - Popup offset [x, y]
+     * @params {string} event.passedData.id - Unique identifier for the marker group
+     * @params {string} [event.passedData.eventType='pinAsMarkerEvent'] - Event type identifier
+     * @params {string} [event.passedData.name='Pin Marker'] - Marker name
+     * @params {string} [event.passedData.popupContent] - Optional HTML content for popup
+     * @params {boolean} [event.passedData.draggable=false] - Enable marker dragging
+     * @params {Object} [event.passedData.customData] - Custom data to attach to marker
+     * @params {string} [event.passedData.triggerName] - Optional callback trigger name
+     * 
+     * @fires triggerName on body (if specified) - When marker is added
+     * @output Adds marker to map.eventsOnMap array
+     * @output Posts message to callback with marker data
+     * 
+     * @example Add marker with top-left anchor:
+     * $.event.trigger({
+     *   type: "addPinAsMarker",
+     *   target: map.mapName,
+     *   passedData: {
+     *     position: {lat: 43.7696, lng: 11.2558},
+     *     iconUrl: '../img/marker-red.png',
+     *     iconSize: [35, 35],
+     *     iconAnchor: [5, 5],
+     *     popupAnchor: [0, -5],
+     *     id: 'pin-1',
+     *     name: 'Location Pin',
+     *     popupContent: '<p>Click here</p>'
+     *   }
+     * });
+     * 
+     * @example Add marker with bottom-center anchor (standard pin):
+     * $.event.trigger({
+     *   type: "addPinAsMarker",
+     *   target: map.mapName,
+     *   passedData: {
+     *     position: {lat: 43.8075, lng: 11.2441},
+     *     iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+     *     iconSize: [25, 41],
+     *     iconAnchor: [12, 41],
+     *     popupAnchor: [0, -41],
+     *     id: 'pin-2',
+     *     draggable: true,
+     *     customData: {type: 'waypoint', order: 1}
+     *   }
+     * });
+     */
+    $(document).on('addPinAsMarker', function(event){
+        if(event.target === map.mapName){
+            if(disabledTriggers.includes(event.type))
+                return
+            
+            function addPinAsMarkerToMap(){
+                const passedData = event.passedData;
+                const position = passedData.position; // {lat: ..., lng: ...}
+                const iconUrl = passedData.iconUrl;
+                const iconSize = passedData.iconSize || [35, 35];
+                const iconAnchor = passedData.iconAnchor || [17, 17]; // center by default
+                const popupAnchor = passedData.popupAnchor || [0, -17];
+                const id = passedData.id;
+                const eventType = passedData.eventType || 'pinAsMarkerEvent';
+                const name = passedData.name || 'Pin Marker';
+                const popupContent = passedData.popupContent; // optional
+                const draggable = passedData.draggable || false;
+                const customData = passedData.customData; // optional custom data to store
+
+                // Create icon
+                let icon = L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: iconSize,
+                    iconAnchor: iconAnchor,
+                    popupAnchor: popupAnchor
+                });
+
+                // Create marker
+                let markerLocation = new L.LatLng(position.lat, position.lng);
+                let marker = new L.Marker(markerLocation, {
+                    icon: icon,
+                    id: id,
+                    name: name,
+                    draggable: draggable
+                });
+
+                // Add popup if content provided
+                if(popupContent){
+                    marker.bindPopup(popupContent, {offset: [0, 0]});
+                }
+
+                // Store custom data if provided
+                if(customData){
+                    marker.customData = customData;
+                }
+
+                // Add marker to map
+                map.defaultMapRef.addLayer(marker);
+
+                // Find or create event entry in eventsOnMap
+                let ev = map.eventsOnMap.find((e)=>e.id === id && e.eventType === eventType);
+                if(ev === undefined){
+                    const newEvent = {
+                        id: id,
+                        eventType: eventType,
+                        type: eventType,
+                        markers: []
+                    };
+                    map.eventsOnMap.push(newEvent);
+                    ev = map.eventsOnMap.find((e)=>e.id === id && e.eventType === eventType);
+                }
+                ev.markers.push(marker);
+
+                // Optional callback trigger
+                if(passedData.triggerName){
+                    const markerData = {
+                        options: marker.options,
+                        latLng: marker.getLatLng(),
+                        name: marker.options.name,
+                        customData: marker.customData
+                    };
+                    $('body').trigger({
+                        type: passedData.triggerName,
+                        target: map.mapName,
+                        passedData: JSON.stringify({sender:"addPinAsMarker", data:markerData})
+                    });
+                }
+            }
+
+            if (addMode === 'additive') {
+                addPinAsMarkerToMap();
+            }
+            
+            if (addMode === 'exclusive') {
+                // Remove all non-pinAsMarker layers
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].type !== 'pinAsMarkerEvent') {
+                        map.defaultMapRef.eachLayer(function (layer) {
+                            map.defaultMapRef.removeLayer(layer);
+                        });
+                        map.eventsOnMap.length = 0;
+                        break;
+                    }
+                }
+                // //Remove WidgetAlarm active pins
+                // $.event.trigger({
+                //     type: "removeAlarmPin",
+                // });
+                // //Remove WidgetEvacuationPlans active pins
+                // $.event.trigger({
+                //     type: "removeEvacuationPlanPin",
+                // });
+                // //Remove WidgetSelector active pins
+                // $.event.trigger({
+                //     type: "removeSelectorEventPin",
+                // });
+                // //Remove WidgetEvents active pins
+                // $.event.trigger({
+                //     type: "removeEventFIPin",
+                // });
+                // //Remove WidgetResources active pins
+                // $.event.trigger({
+                //     type: "removeResourcePin",
+                // });
+                // //Remove WidgetOperatorEvents active pins
+                // $.event.trigger({
+                //     type: "removeOperatorEventPin",
+                // });
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
+                    maxZoom: leafletMaxZoom,
+                    maxNativeZoom: leafletNativeMaxZoom
+                }).addTo(map.defaultMapRef);
+                
+                addPinAsMarkerToMap();
+            }
+        }
+    });
+
+    /**
+     * Remove pin markers added with addPinAsMarker
+     * Can remove all markers for an ID or specific individual markers
+     * 
+     * @trigger removePinAsMarker
+     * @author Naldi
+     * 
+     * @params {Object} event.passedData - Configuration object
+     * @params {string} event.passedData.id - Identifier of the marker group to remove
+     * @params {string} [event.passedData.eventType='pinAsMarkerEvent'] - Event type identifier
+     * @params {string} [event.passedData.removeMode='all'] - Removal mode:
+     *   - 'all': Remove all markers with this id (default)
+     *   - 'specific': Remove only one specific marker by markerId
+     * @params {string} [event.passedData.markerId] - Specific marker ID (when removeMode='specific')
+     * 
+     * @output Removes markers from map and map.eventsOnMap array
+     * @output Cleans up event entry if no markers remain
+     * 
+     * @example Remove all markers for an ID:
+     * $.event.trigger({
+     *   type: 'removePinAsMarker',
+     *   target: map.mapName,
+     *   passedData: {
+     *     id: 'pin-1'
+     *   }
+     * });
+     * 
+     * @example Remove all markers with explicit removeMode:
+     * $.event.trigger({
+     *   type: 'removePinAsMarker',
+     *   target: map.mapName,
+     *   passedData: {
+     *     id: 'pin-group',
+     *     removeMode: 'all'
+     *   }
+     * });
+     * 
+     * @example Remove specific marker by markerId:
+     * $.event.trigger({
+     *   type: 'removePinAsMarker',
+     *   target: map.mapName,
+     *   passedData: {
+     *     id: 'pin-group',
+     *     removeMode: 'specific',
+     *     markerId: 'pin-2'
+     *   }
+     * });
+     */
+    $(document).on('removePinAsMarker', function(event){
+        if(event.target === map.mapName){
+            const passedData = event.passedData;
+            const id = passedData.id;
+            const eventType = passedData.eventType || 'pinAsMarkerEvent';
+            const removeMode = passedData.removeMode || 'all'; // 'all', 'specific'
+            const markerId = passedData.markerId; // for specific marker removal
+
+            if(removeMode === 'all'){
+                // Remove all markers for this event
+                for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
+                    if (map.eventsOnMap[i].id === id && map.eventsOnMap[i].eventType === eventType) {
+                        // Remove all markers from map
+                        if(map.eventsOnMap[i].markers){
+                            for(let j = 0; j < map.eventsOnMap[i].markers.length; j++){
+                                map.defaultMapRef.removeLayer(map.eventsOnMap[i].markers[j]);
+                            }
+                        }
+                        // Remove event entry
+                        map.eventsOnMap.splice(i, 1);
+                        break;
+                    }
+                }
+            } else if(removeMode === 'specific' && markerId){
+                // Remove specific marker by its id
+                let ev = map.eventsOnMap.find((e)=>e.id === id && e.eventType === eventType);
+                if(ev && ev.markers){
+                    for(let i = ev.markers.length - 1; i >= 0; i--){
+                        if(ev.markers[i].options.id === markerId){
+                            map.defaultMapRef.removeLayer(ev.markers[i]);
+                            ev.markers.splice(i, 1);
+                            break;
+                        }
+                    }
+                    // If no markers left, remove the event entry
+                    if(ev.markers.length === 0){
+                        const eventIndex = map.eventsOnMap.findIndex((e)=>e.id === id && e.eventType === eventType);
+                        if(eventIndex !== -1){
+                            map.eventsOnMap.splice(eventIndex, 1);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    
     // Naldi 05/05/2025 -> add new trigger to add a pin to map guided by popup interaction.
     // Used in What If dashboard
     // Add pins by popup to map
