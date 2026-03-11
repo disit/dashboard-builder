@@ -8148,18 +8148,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                 gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                     pointToLayer: gisPrepareCustomMarker,
-                                    onEachFeature: onEachFeatureSpiderify,
-                                    style: function(feature) {
-                                        return {
-                                            color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
-                                            weight: 5,
-                                            opacity: 1
-                                        };
-                                    }
+                                    onEachFeature: onEachFeatureSpiderify
+                                    //   }).addTo(map.defaultMapRef);
                                 }).addTo(map.defaultMapRef);
-                                if (map.defaultMapRef) {
-                                    gisLayersOnMap[desc].addTo(map.defaultMapRef);
-                                }
                                 //    }
 
                                 loadingDiv.empty();
@@ -8243,20 +8234,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                             map.defaultMapRef.createPane('ciclePathFeature');
                                                             map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
 
-                                                            var layer = L.geoJSON(ciclePathFeature, { 
-                                                                pane: 'ciclePathFeature',
-                                                                style: function(feature) {
-                                                                    return {
-                                                                        color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
-                                                                        weight: 5,
-                                                                        opacity: 1
-                                                                    };
-                                                                }
-                                                            });
-                                                            if (map.defaultMapRef) {
-                                                                layer.addTo(map.defaultMapRef);
-                                                            }
-                                                            gisGeometryLayersOnMap[desc].push(layer);
+                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
                                                             gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                         }
                                                     },
@@ -8898,18 +8876,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')&& (queryType !== 'wfs')) {
                                 gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                     pointToLayer: gisPrepareCustomMarker,
-                                    onEachFeature: onEachFeatureSpiderify,
-                                    style: function(feature) {
-                                        return {
-                                            color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
-                                            weight: 5,
-                                            opacity: 1
-                                        };
-                                    }
-                                });
-                                if (map.defaultMapRef) {
-                                    gisLayersOnMap[desc].addTo(map.defaultMapRef);
-                                }
+                                    onEachFeature: onEachFeatureSpiderify
+                                }).addTo(map.defaultMapRef);
                                 //    oms.addMarker(gisLayersOnMap[desc]._layers);
 
                                 // CORTI - setta markers nella mappa 3D
@@ -9004,21 +8972,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         map.defaultMapRef.createPane('ciclePathFeature');
                                                         map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
 
-                                                        var layer = L.geoJSON(ciclePathFeature, { 
-                                                            pane: 'ciclePathFeature',
-                                                            style: function(feature) {
-                                                                return {
-                                                                    color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
-                                                                    weight: 5,
-                                                                    opacity: 1
-                                                                };
-                                                            }
-                                                        });
-                                                        
-                                                        if (map.defaultMapRef) {
-                                                            layer.addTo(map.defaultMapRef);
-                                                        }
-                                                        gisGeometryLayersOnMap[desc].push(layer);
+                                                        gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
                                                         gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                     }
                                                 },
@@ -30805,15 +30759,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                                 gisGeometryLayersOnMap[desc] = [];
                                                             }
 
-                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {
-                                                                style: function(feature) {
-                                                                    return {
-                                                                        color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
-                                                                        weight: 5,
-                                                                        opacity: 1
-                                                                    };
-                                                                }
-                                                            }).addTo(fullscreendefaultMapRef));
+                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {}).addTo(fullscreendefaultMapRef));
                                                             gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                         }
                                                     },
