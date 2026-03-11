@@ -1755,6 +1755,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         //Variabili per il selector
         var gisLayersOnMap = {};
         var gisGeometryLayersOnMap = {};
+        var editTrattaControl = null;
+        var draggableMarkers = [];
+        var editTrattaAbortController = null;
         var stopGeometryAjax = {};
         var gisGeometryTankForFullscreen = {};
         var checkTankInterval = null;
@@ -3355,7 +3358,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         $.getJSON('<?= $whatifmdtendpt ?>?agency=' + encodeURIComponent(pAgency) + '&trip=' + encodeURIComponent(trips[tripkey]["uri"]) + "&list=stops", function (stops) {
                                                             var eventDesc = null;
                                                             map["eventsOnMap"].forEach(function (mapevt) {
-                                                                if (mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                if (mapevt && mapevt["color1"] && mapevt["color2"] && feature && feature["properties"] && mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
                                                                     eventDesc = mapevt["desc"];
                                                                 }
                                                             });
@@ -3556,7 +3559,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                             var lon = $(this).data("lon");
                                                             var eventDesc = null;
                                                             map["eventsOnMap"].forEach(function (mapevt) {
-                                                                if (mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                if (mapevt && mapevt["color1"] && mapevt["color2"] && feature && feature["properties"] && mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
                                                                     eventDesc = mapevt["desc"];
                                                                 }
                                                             });
@@ -4600,10 +4603,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     }
                     selectedDataJson = JSON.stringify(selectedData);
 
+                    if (!feature.properties.noExecute) {
                     try {
                         execute_<?= $_REQUEST['name_w'] ?>(selectedDataJson);
                     } catch (e) {
                         console.log("Error in JS function from marker click on " + widgetName);
+                        }
                     }
                 }
 
@@ -5082,7 +5087,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         $.getJSON('<?= $whatifmdtendpt ?>?agency=' + encodeURIComponent(pAgency) + '&trip=' + encodeURIComponent(trips[tripkey]["uri"]) + "&list=stops", function (stops) {
                                                             var eventDesc = null;
                                                             map["eventsOnMap"].forEach(function (mapevt) {
-                                                                if (mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                if (mapevt && mapevt["color1"] && mapevt["color2"] && feature && feature["properties"] && mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
                                                                     eventDesc = mapevt["desc"];
                                                                 }
                                                             });
@@ -5283,7 +5288,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                             var lon = $(this).data("lon");
                                                             var eventDesc = null;
                                                             map["eventsOnMap"].forEach(function (mapevt) {
-                                                                if (mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
+                                                                if (mapevt && mapevt["color1"] && mapevt["color2"] && feature && feature["properties"] && mapevt["color1"] == feature["properties"]["color1"] && mapevt["color2"] == feature["properties"]["color2"]) {
                                                                     eventDesc = mapevt["desc"];
                                                                 }
                                                             });
@@ -8143,9 +8148,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 //    if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')) {
                                 gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                     pointToLayer: gisPrepareCustomMarker,
-                                    onEachFeature: onEachFeatureSpiderify
-                                    //   }).addTo(map.defaultMapRef);
-                                });
+                                    onEachFeature: onEachFeatureSpiderify,
+                                    style: function(feature) {
+                                        return {
+                                            color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
+                                            weight: 5,
+                                            opacity: 1
+                                        };
+                                    }
+                                }).addTo(map.defaultMapRef);
+                                if (map.defaultMapRef) {
+                                    gisLayersOnMap[desc].addTo(map.defaultMapRef);
+                                }
                                 //    }
 
                                 loadingDiv.empty();
@@ -8229,7 +8243,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                             map.defaultMapRef.createPane('ciclePathFeature');
                                                             map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
 
-                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
+                                                            var layer = L.geoJSON(ciclePathFeature, { 
+                                                                pane: 'ciclePathFeature',
+                                                                style: function(feature) {
+                                                                    return {
+                                                                        color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
+                                                                        weight: 5,
+                                                                        opacity: 1
+                                                                    };
+                                                                }
+                                                            });
+                                                            if (map.defaultMapRef) {
+                                                                layer.addTo(map.defaultMapRef);
+                                                            }
+                                                            gisGeometryLayersOnMap[desc].push(layer);
                                                             gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                         }
                                                     },
@@ -8825,6 +8852,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             }
 
                             console.log(geoJsonData);
+                            if (!fatherGeoJsonNode || !fatherGeoJsonNode.features) {
+                                loadingDiv.remove();
+                                if (typeof passedData.onLoaded === 'function') passedData.onLoaded();
+                                return;
+                            }
                             for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
 
                                 var dataObj = {};
@@ -8841,6 +8873,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 fatherGeoJsonNode.features[i].properties.symbolcolor = passedData.symbolcolor;
                                 fatherGeoJsonNode.features[i].properties.iconFilePath = passedData.iconFilePath;
                                 //    fatherGeoJsonNode.features[i].properties.altViewMode = passedData.altViewMode;
+                                if (passedData.noExecute) {
+                                    fatherGeoJsonNode.features[i].properties.noExecute = true;
+                                }
 
                                 dataObj.lat = fatherGeoJsonNode.features[i].geometry.coordinates[1];
                                 dataObj.lng = fatherGeoJsonNode.features[i].geometry.coordinates[0];
@@ -8863,8 +8898,18 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             if (!gisLayersOnMap.hasOwnProperty(desc) && (display !== 'geometries')&& (queryType !== 'wfs')) {
                                 gisLayersOnMap[desc] = L.geoJSON(fatherGeoJsonNode, {
                                     pointToLayer: gisPrepareCustomMarker,
-                                    onEachFeature: onEachFeatureSpiderify
-                                }).addTo(map.defaultMapRef);
+                                    onEachFeature: onEachFeatureSpiderify,
+                                    style: function(feature) {
+                                        return {
+                                            color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
+                                            weight: 5,
+                                            opacity: 1
+                                        };
+                                    }
+                                });
+                                if (map.defaultMapRef) {
+                                    gisLayersOnMap[desc].addTo(map.defaultMapRef);
+                                }
                                 //    oms.addMarker(gisLayersOnMap[desc]._layers);
 
                                 // CORTI - setta markers nella mappa 3D
@@ -8959,7 +9004,21 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         map.defaultMapRef.createPane('ciclePathFeature');
                                                         map.defaultMapRef.getPane('ciclePathFeature').style.zIndex = 420;
 
-                                                        gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, { pane: 'ciclePathFeature' }).addTo(map.defaultMapRef));
+                                                        var layer = L.geoJSON(ciclePathFeature, { 
+                                                            pane: 'ciclePathFeature',
+                                                            style: function(feature) {
+                                                                return {
+                                                                    color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
+                                                                    weight: 5,
+                                                                    opacity: 1
+                                                                };
+                                                            }
+                                                        });
+                                                        
+                                                        if (map.defaultMapRef) {
+                                                            layer.addTo(map.defaultMapRef);
+                                                        }
+                                                        gisGeometryLayersOnMap[desc].push(layer);
                                                         gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                     }
                                                 },
@@ -8972,6 +9031,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                     }
                                 }
                             }
+                            if (typeof passedData.onLoaded === 'function') passedData.onLoaded();
                         },
                         error: function (errorData) {
                             gisLayersOnMap[event.desc] = "loadError";
@@ -9006,6 +9066,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             console.log("Error in getting GeoJSON from ServiceMap");
                             console.log(JSON.stringify(errorData));
+                            if (typeof passedData.onLoaded === 'function') passedData.onLoaded();
                         }
                     });
                 }
@@ -29292,6 +29353,145 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             //  resizeMapView(map.defaultMapRef);
         }
     });
+    $(document).on('drawBusRoute', function (event) {
+        if (event.target === map.mapName) {
+            var passedData = event.passedData;
+            var desc = passedData.desc;
+            var wkt = passedData.wktGeometry;
+            var color = passedData.color || '#007bff';
+            var match = wkt && wkt.match(/LINESTRING\s*\(([^)]+)\)/i);
+            if (!match) return;
+            var latlngs = match[1].split(',').map(function (pair) {
+                var parts = pair.trim().split(/\s+/);
+                return [parseFloat(parts[1]), parseFloat(parts[0])];
+            });
+            if (!gisGeometryLayersOnMap.hasOwnProperty(desc)) {
+                gisGeometryLayersOnMap[desc] = [];
+            }
+            var polyline = L.polyline(latlngs, { color: color, weight: 5, opacity: 0.9 });
+            polyline.addTo(map.defaultMapRef);
+            gisGeometryLayersOnMap[desc].push(polyline);
+            (function(routeUri) {
+                polyline.on('click', function (e) {
+                    L.DomEvent.stopPropagation(e);
+                    parent.document.dispatchEvent(new CustomEvent('clickOnBusRoute', {
+                        detail: { routeUri: routeUri },
+                        bubbles: true
+                    }));
+                });
+            })(desc);
+        }
+    });
+
+    $(document).on('removeBusRoute', function (event) {
+        if (event.target === map.mapName) {
+            var desc = event.passedData.desc;
+            if (gisGeometryLayersOnMap.hasOwnProperty(desc)) {
+                for (var i = 0; i < gisGeometryLayersOnMap[desc].length; i++) {
+                    map.defaultMapRef.removeLayer(gisGeometryLayersOnMap[desc][i]);
+                }
+                delete gisGeometryLayersOnMap[desc];
+            }
+        }
+    });
+
+    $(document).on('startEditTratta', function (event) {
+        if (event.target !== map.mapName) return;
+        var passedData = event.passedData;
+        var stops = passedData.stops; // [{lat, lng}]
+        var color = passedData.color || '#007bff';
+
+        // Clean up any previous edit session
+        if (editTrattaAbortController) { editTrattaAbortController.abort(); editTrattaAbortController = null; }
+        draggableMarkers.forEach(function (m) { map.defaultMapRef.removeLayer(m); });
+        draggableMarkers = [];
+
+        var serviceUrl = setServiceUrl(orgParams, map.defaultMapRef.getBounds()['_northEast']);
+        var routingDebounceTimer = null;
+
+        function fetchRoute() {
+            var waypointStr = draggableMarkers.map(function (m) {
+                var ll = m.getLatLng();
+                return ll.lng + ',' + ll.lat;
+            }).join(';');
+
+            if (editTrattaAbortController) { editTrattaAbortController.abort(); }
+            editTrattaAbortController = new AbortController();
+
+            // Use wkt=true to get the WKT LINESTRING directly in paths[0].wkt — no polyline decoding needed.
+            // One call per drop, no LRM concurrent-request lock contention.
+            fetch(serviceUrl + '?vehicle=car&waypoints=' + waypointStr + '&wkt=true', { signal: editTrattaAbortController.signal })
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    editTrattaAbortController = null;
+                    if (!data || !data.paths || data.paths.length === 0) {
+                        parent.document.dispatchEvent(new CustomEvent('trattaRouteError', {
+                            detail: { message: 'Errore di routing: nessun percorso trovato' },
+                            bubbles: true
+                        }));
+                        return;
+                    }
+                    // GH with vehicle=bus (multimodal) returns one path per consecutive waypoint pair.
+                    // Combine all segment WKTs into a single LINESTRING.
+                    var allCoords = [];
+                    for (var pi = 0; pi < data.paths.length; pi++) {
+                        var segWkt = data.paths[pi].wkt;
+                        if (!segWkt) continue;
+                        var match = segWkt.match(/LINESTRING\s*\(([^)]+)\)/i);
+                        if (!match) continue;
+                        var segCoords = match[1].split(',').map(function (c) { return c.trim(); });
+                        // Skip the first coordinate of each segment after the first — it duplicates the previous endpoint.
+                        allCoords = allCoords.concat(pi === 0 ? segCoords : segCoords.slice(1));
+                    }
+                    if (allCoords.length > 0) {
+                        parent.document.dispatchEvent(new CustomEvent('trattaRouteUpdated', {
+                            detail: { wkt: 'LINESTRING (' + allCoords.join(', ') + ')' },
+                            bubbles: true
+                        }));
+                    }
+                })
+                .catch(function (err) {
+                    if (err.name !== 'AbortError') {
+                        console.error('Routing error:', err);
+                        parent.document.dispatchEvent(new CustomEvent('trattaRouteError', {
+                            detail: { message: 'Errore di routing: ' + (err.message || 'il server non risponde') },
+                            bubbles: true
+                        }));
+                    }
+                });
+        }
+
+        stops.forEach(function (s, i) {
+            var marker = L.marker([s.lat, s.lng], {
+                draggable: true,
+                icon: L.divIcon({
+                    className: '',
+                    html: '<div style="width:22px;height:22px;background:' + color + ';border:2px solid white;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:white;line-height:1;">' + (i + 1) + '</div>',
+                    iconSize: [22, 22], iconAnchor: [11, 11]
+                })
+            });
+            marker.addTo(map.defaultMapRef);
+            draggableMarkers[i] = marker;
+            marker.on('dragstart', function () {
+                parent.document.dispatchEvent(new CustomEvent('editStopMoved', {
+                    detail: { stopIndex: i },
+                    bubbles: true
+                }));
+            });
+            marker.on('dragend', function () {
+                clearTimeout(routingDebounceTimer);
+                routingDebounceTimer = setTimeout(fetchRoute, 300);
+            });
+        });
+    });
+
+    $(document).on('stopEditTratta', function (event) {
+        if (event.target !== map.mapName) return;
+        if (editTrattaAbortController) { editTrattaAbortController.abort(); editTrattaAbortController = null; }
+        draggableMarkers.forEach(function (m) { map.defaultMapRef.removeLayer(m); });
+        draggableMarkers = [];
+    });
+
     $(document).on('removeBubbles', function (event) {
         if (event.target === map.mapName) {
             var passedData = event.passedData;
@@ -30605,7 +30805,15 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                                 gisGeometryLayersOnMap[desc] = [];
                                                             }
 
-                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {}).addTo(fullscreendefaultMapRef));
+                                                            gisGeometryLayersOnMap[desc].push(L.geoJSON(ciclePathFeature, {
+                                                                style: function(feature) {
+                                                                    return {
+                                                                        color: (color1 && color1 !== "undefined") ? color1 : "#3388ff",
+                                                                        weight: 5,
+                                                                        opacity: 1
+                                                                    };
+                                                                }
+                                                            }).addTo(fullscreendefaultMapRef));
                                                             gisGeometryTankForFullscreen[desc].tank.push(ciclePathFeature);
                                                         }
                                                     },
