@@ -60,7 +60,7 @@
     }
     
     session_start();
-    checkSession('Manager');
+    checkSession('Observer');
     
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);

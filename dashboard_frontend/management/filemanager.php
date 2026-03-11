@@ -19,7 +19,7 @@ header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 session_start();
 //checkSession('AreaManager');
-checkSession('Manager');
+checkSession('Observer');
 
 include "../config.php";
 

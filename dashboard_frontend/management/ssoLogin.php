@@ -117,13 +117,8 @@ if ($ds && $bind) {
                 $ldapRole = "Manager";
                 $ldapOk = true;
               } else {
-                if (checkLdapRole($ds, $ldapUsername, "Observer", $ldapBaseDN)) {
-                  $ldapRole = "Observer";
-                  $ldapOk = true;
-                } else {
-                    echo "cannot find a role for $usernameD, wait for administrator approval.<br><a href='logout.php'>Logout</a>";
-                    exit;                  
-                }
+                $ldapRole = "Observer";
+                $ldapOk = true;
               }
             }
           }
@@ -153,9 +148,7 @@ $userLevel = checkUserLevel($usernameD, $sql_host_pd, $usrDb, $pwdDb);
 if ($ldapOk) {
   ini_set('session.gc_maxlifetime', $sessionDuration);
   session_set_cookie_params($sessionDuration);
-  session_destroy(); //delete old session
-  session_regenerate_id();
-  session_start();
+  session_regenerate_id(true);
   $_SESSION['sessionEndTime'] = time() + $sessionDuration;
   $_SESSION['loggedUsername'] = $usernameD;
   $_SESSION['loggedRole'] = $ldapRole;
