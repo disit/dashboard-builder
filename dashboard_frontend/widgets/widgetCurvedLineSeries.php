@@ -80,6 +80,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var currWeekDay = null;
         var webSocket, openWs, manageIncomingWsMsg, openWsConn, wsClosed = null;
         var areaOpacity = null;
+        var lineStepMode = null;
         var chart = null;
         var idYAxis = null;
         var code, connections = null;
@@ -1739,6 +1740,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 groupPadding: 0.1,
                                 pointPadding: 0,
                                 stacking: stackingOption,
+                                step: lineStepMode,
                                 states: {
                                     hover: {
                                         enabled: false
@@ -2282,6 +2284,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 groupPadding: 0.1,
                                 pointPadding: 0,
                                 stacking: stackingOption,
+                                step: lineStepMode,
                                 states: {
                                     hover: {
                                         enabled: false
@@ -4502,12 +4505,13 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 
                 chartType = styleParameters.chartType;
                 lineWidth = styleParameters.lineWidth;
+                lineStepMode = (styleParameters != null && styleParameters.ttStepLineM != null && styleParameters.ttStepLineM === "left") ? "left" : null;
                 
                 switch(chartType)
                 {
                     case 'lines':
                         stackingOption = null;
-                        highchartsChartType = 'spline';
+                        highchartsChartType = (lineStepMode === "left") ? 'line' : 'spline';
                         dataLabelsAlign = 'center';
                         dataLabelsVerticalAlign = 'middle';
                         dataLabelsY = 0;
@@ -4515,7 +4519,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                     case 'area':
                         stackingOption = null;
-                        highchartsChartType = 'areaspline';
+                        highchartsChartType = (lineStepMode === "left") ? 'area' : 'areaspline';
                         dataLabelsAlign = 'center';
                         dataLabelsVerticalAlign = 'middle';
                         dataLabelsY = 0;
@@ -4523,7 +4527,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                     case 'stacked':
                         stackingOption = 'normal';
-                        highchartsChartType = 'areaspline';
+                        highchartsChartType = (lineStepMode === "left") ? 'area' : 'areaspline';
                         dataLabelsAlign = 'center';
                         dataLabelsVerticalAlign = 'middle';
                         dataLabelsY = 0;
@@ -4531,7 +4535,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                     default:
                         stackingOption = null;    
-                        highchartsChartType = 'spline';
+                        highchartsChartType = (lineStepMode === "left") ? 'line' : 'spline';
                         dataLabelsAlign = 'center';
                         break;
                 }

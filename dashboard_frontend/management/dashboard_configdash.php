@@ -29482,6 +29482,23 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
+                                        
+                                        newLabel = $('<label for="ttStepLineM" class="col-md-1 control-label">Line shape</label>');
+                                        newInnerDiv = $('<div class="col-md-2"></div>');
+                                        newSelect = $('<select class="form-control" id="ttStepLineM" name="ttStepLineM"></select>');
+                                        newSelect.append('<option value="off">Smooth</option>');
+                                        newSelect.append('<option value="left">Steps</option>');
+                                        if (styleParameters.ttStepLineM != null) {
+                                            newSelect.val(styleParameters.ttStepLineM);
+                                        } else {
+                                            newSelect.val("off");
+                                        }
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
 
                                         $("#chartTypeDiv").on("change", function() {
                                             // if Stacekd Option is selected, a message is shown explaining it works only with equally-sampled data series

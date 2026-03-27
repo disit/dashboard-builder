@@ -2543,6 +2543,7 @@
         $dataLabelsRotationM = NULL;
         $xAxisDatasetM = NULL;
         $lineWidthM = NULL;
+        $ttStepLineM = NULL;
         $alrLookM = NULL;
         $TypicalTimeTrendM = NULL;
         $TrendTypeM = NULL;
@@ -3053,6 +3054,11 @@
                 $lineWidthM = sanitizePostInt('lineWidthM');
             }
 
+            if(($type_widget_m == "widgetCurvedLineSeries") && isset($_POST['ttStepLineM'])&&($_POST['ttStepLineM']!=""))
+            {
+                $ttStepLineM = sanitizePostString('ttStepLineM');
+            }
+
             if(isset($_POST['alrLookM'])&&($_POST['alrLookM']!=""))
             {
                 $alrLookM = sanitizePostString('alrLookM');
@@ -3124,6 +3130,9 @@
             $styleParametersArrayM['xAxisDataset'] = $xAxisDatasetM;
             $styleParametersArrayM['lineWidth'] = $lineWidthM;
             $styleParametersArrayM['alrLook'] = $alrLookM;
+            if ($type_widget_m == "widgetCurvedLineSeries") {
+                $styleParametersArrayM['ttStepLineM'] = $ttStepLineM;
+            }
             $styleParametersArrayM['areaChartOpacityM'] = $areaChartOpacityM;
 			$styleParametersArrayM['calendarM'] = $calendarM;
             $styleParametersArrayM['showContentLoadM'] = $showContentLoadM;
