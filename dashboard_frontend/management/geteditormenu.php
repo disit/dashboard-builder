@@ -677,7 +677,9 @@ if (isset($_SESSION['loggedRole'])) {
                     UNION
                     SELECT DISTINCT icon FROM MainMenuSubmenus GROUP BY icon
                     UNION
-                    SELECT DISTINCT icon FROM DashboardLinkMenu GROUP BY icon ORDER BY icon ASC
+                    SELECT DISTINCT icon FROM DashboardLinkMenu GROUP BY icon
+                    UNION
+                    SELECT DISTINCT icon FROM DashboardLinkMenuSubmenus GROUP BY icon ORDER BY icon ASC
                     ";
         $result = mysqli_query($link, $query) or die(mysqli_error($link));
         $i = 0;

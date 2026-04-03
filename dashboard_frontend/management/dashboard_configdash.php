@@ -2847,7 +2847,7 @@
                 </div>
 
                 <div class="modal-body">
-                    <div class="input-group"><span class="input-group-addon">Link Url: </span><input id="customLinkUrl" name="linkUrl" type="text" class="form-control" required></div><br>
+                    <div class="input-group"><span class="input-group-addon">Link Url: </span><input id="customLinkUrl" name="linkUrl" type="text" class="form-control"></div><br>
                     <div class="input-group"><span class="input-group-addon" required>Icon: <i class="icon-preview fa fa-assistive-listening-systems"></i></span>
                         <select id="customLinkIcon" name="icon" class="form-control" onchange="select_icon('customLinkIcon')" defaultValue="">
                         </select>
@@ -2872,18 +2872,18 @@
                             <option value="samePage">samePage</option>
                         </select>
                     </div>
-                    <!-- <br> -->
-                    <!-- <div class="input-group"><span class="input-group-addon">Type of Link: </span>
+                    <br>
+                    <div class="input-group"><span class="input-group-addon">Type of Link: </span>
 
-                        <select id="customLinkType" name="linkType" class="form-control">  
-                            <option value="DashboardLinkMenu">Custom Link</option>
-                            <option value="DashboardLinkMenuSubmenus">Custom Sublink</option>
+                        <select id="customLinkType" name="linkType" class="form-control" defaultValue="link">  
+                            <option value="link" selected>Custom Link</option>
+                            <option value="sublink">Custom Sublink</option>
                         </select>
-                    </div><br> -->
-                    <!-- <div id ="linkCode" class="input-group" style="display:none">
-                        <span class="input-group-addon">Main Link Id: </span>
-                        <select id="customLinkFather" name="menuId" class="form-control"></select>
-                    </div> -->
+                    </div><br>
+                    <div id ="customLinkFatherDiv" class="input-group" style="display:none">
+                        <span class="input-group-addon">Father custom link: </span>
+                        <select id="customLinkFather" name="menuId" class="form-control" defaultValue=""></select>
+                    </div>
                     </div>
                     <br>
                     <div class="modal-footer">
@@ -3001,7 +3001,16 @@
                     initialOrder: {},
                     currId: ""
                 }
+                var submenuOrderObj = {}
+                var defaultMenuOrderObj = {
+                    currPos:0,
+                    initialPos:0,
+                    currOrder: [],
+                    initialOrder: {},
+                    currId: ""
+                }
                 var linkList = []
+                var subLinkList = []
 
                 $("#customLinkColor").colorpicker();
                 $("#addRow").click(() => openCustomLinkModal())
@@ -3021,19 +3030,26 @@
                         let fileInput = $('#customLinkJsonFile')[0];
                         let file = fileInput.files[0];
                         let importJson = await parseJsonFile(file)
-                        if(importJson.error) throw new Error(JSON.stringify(importJson))
-                        let maxOrder = (linkList.length > 0)?Math.max(...linkList.map(x => x.menuOrder))+1:0
+                        let importLinkJson = importJson.CustomLinks
+                        let importSubLinkJson = importJson.SubCustomLinks
+                        if(importLinkJson.error) throw new Error(JSON.stringify(importLinkJson))
+                        if(importSubLinkJson.error) throw new Error(JSON.stringify(importSubLinkJson))
+                        let maxLinkOrder = (linkList.length > 0)?Math.max(...linkList.map(x => x.menuOrder))+1:0
                         
-                        importJson.forEach(x =>{
+                        importLinkJson.forEach(x =>{
                             x.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
-                            x.menuOrder += maxOrder
+                            x.menuOrder += maxLinkOrder
+                        })
+                        importSubLinkJson.forEach(x =>{
+                            x.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
                         })
                         $.ajax({
                             url: 'process-form.php',
                             type: 'POST',
                             data: {
                                 importCustomLink: true,
-                                importObj: JSON.stringify(importJson)
+                                importLinkJson: JSON.stringify(importLinkJson),
+                                importSubLinkJson: JSON.stringify(importSubLinkJson)
                             },
                             success: function (response) {
                                 getCustomLinks()
@@ -3107,14 +3123,24 @@
                 })
 
                 $("#customLinkConfirm").click(() => {
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeMenuOrderObj = menuOrderObj
+                    var typeList = linkList
+                    if(fatherId){
+                        typeList = subLinkList.filter(x => x.menuId == fatherId)
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
                     $(".customLinkMsg").hide()
                     $("#modalCustomLink .form-control[required]").trigger("input")
                     if(!$("#customLinkConfirm").prop("disabled")){
 
                         let id = $("#customLinkConfirm").attr("linkId")
                         let mode = $("#customLinkConfirm").attr("mode")
-                        let data = {}
-                        let linkInfo = linkList.find(x => x.id == id)
+                        let data = {
+                            isSub: (fatherId)?true:false
+                        }
+                        let linkInfo = typeList.find(x => x.id == id)
                         $("#customLinktRunningText").text(((mode=="delete")?"Deleting":(linkInfo)?"Editing":"Creating")+" link")
                         $("#customLinkRunningMsg").show()
                         if(mode != "delete"){
@@ -3126,8 +3152,12 @@
                                         data[name] = x.value
                                 }
                             })
+                            if(fatherId && mode=="edit" && !data.menuId){
+                                data.menuId = fatherId
+                                data.menuOrder = $("#menuorder").val() || 0
+                            }
                         }
-                        if(mode == "delete" || Object.keys(data).length > 0){
+                        if(mode == "delete" || Object.keys(data).length > 1){
                             data[`${mode}CustomLink`] = true;
                             data.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
                             if(linkInfo) data.id = id
@@ -3140,32 +3170,39 @@
                                 success: (res) => {
                                     res = JSON.parse(res)
                                     if(mode == "delete"){
-                                        let index = linkList.findIndex(x => x.id == id)
-                                        if(index > -1) linkList.splice(index, 1)
+                                        let index = typeList.findIndex(x => x.id == id)
+                                        if(index > -1) typeList.splice(index, 1)
                                         $("#currMenuOrderElement").remove()
                                         saveMenuOrder()
                                     }
                                     else if(linkInfo){
                                         Object.entries(data).forEach(([name, value]) => {
-                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId"].includes(name)){
+                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId", "isSub"].includes(name)){
                                                 linkInfo[name] = value
                                             }
                                         })
                                     }else{
                                         let newItem = {id: res.response}
                                         Object.entries(data).forEach(([name, value]) => {
-                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId"].includes(name)){
+                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId", "isSub"].includes(name)){
                                                 newItem[name] = value
                                             }
                                         })
-                                        linkList.push(newItem)
+                                        typeList.push(newItem)
                                     }
                                     setTimeout(() => {
                                         $("#customLinktOkText").text("Link " + ((mode=="delete")?"deleted":(linkInfo)?"edited":"created"))
                                         $("#customLinkRunningMsg").hide()
                                         $("#customLinkOkMsg").show()
+                                        if(linkInfo && linkInfo.tmp){
+                                            subLinkList.filter(x => x.id == id && !x.tmp).forEach(x => x.tmp = true)
+                                            delete linkInfo.tmp
+                                            subLinkList = subLinkList.filter(x => !x.tmp) 
+                                        }
+                                        
                                         updateMenuOrder()
                                         setTimeout(() => {
+                                            getCustomLinks()
                                             $('#modalCustomLink').modal('hide');
                                         }, 500)
                                     }, 500);
@@ -3192,16 +3229,36 @@
                     }
                 })
 
-                // $("#customLinkType").change(() => {
-                //     let isSubmenu = $("#customLinkType").val() == "DashboardLinkMenuSubmenus"
-                //     $("#linkCode").toggle(isSubmenu)
-                //     if(isSubmenu){
-                //         $("#customLinkFather").empty()
-                //         linkList.DashboardLinkMenu.sort((x, y) => x.menuOrder - y.menuOrder).forEach(x => {
-                //             $("#customLinkFather").append(`<option value="${x.id}">${x.text}</option>`)
-                //         })
-                //     }
-                // })
+                $("#customLinkType").change(() => {
+                    let isSubmenu = $("#customLinkType").val() == "sublink"
+                    $("#customLinkFatherDiv").toggle(isSubmenu)
+                    if(isSubmenu){
+                        let defaultSelect = $("#customLinkFather").attr("defaultValue")
+                        $("#customLinkFather").empty()
+                        linkList.sort((x, y) => x.menuOrder - y.menuOrder).forEach(x => {
+                            $("#customLinkFather").append(`<option value="${x.id}">${x.text}</option>`)
+                        })
+                        if(defaultSelect) $("#customLinkFather").val(defaultSelect)
+
+                    }
+                })
+
+                $("#customLinkFather").change(() => {
+                    let newFatherId = $("#customLinkFather").val()
+                    $("#modalCustomLink").attr("fatherId", newFatherId)
+                    let linkId = $("#customLinkConfirm").attr("linkid") || ""
+                    subLinkList = subLinkList.filter(x => !x.tmp)
+                    let linkItem = subLinkList.find(x => x.id == linkId)
+                    if(linkItem && linkItem.menuId != newFatherId){
+                        let copyItem = JSON.parse(JSON.stringify(linkItem))
+                        copyItem.tmp = true
+                        copyItem.menuId = newFatherId
+                        let newOrder = subLinkList.filter(x => x.menuId == newFatherId).length
+                        copyItem.menuOrder = newOrder
+                        subLinkList.push(copyItem)
+                    }
+                    populateMenuOrder(linkId)
+                })
 
                 $.ajax({
                     async: true,
@@ -3243,7 +3300,9 @@
                             dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>
                         },
                         success: function (data) {
-                            linkList = JSON.parse(data).response
+                            parsedData = JSON.parse(data).response
+                            linkList = parsedData.DashboardLinkMenu || []
+                            subLinkList = parsedData.DashboardLinkMenuSubmenus || []
                             populateCustomLinkMenu()
                         },
                         error: function (err) {
@@ -3255,8 +3314,26 @@
                 getCustomLinks()
                 
 
-                function openCustomLinkModal(id = "", isDelete = false){
-                    var linkItem = linkList.find(x => x.id == id)
+                function openCustomLinkModal(customLinkRow = undefined, mode = "create"){
+                    subLinkList = subLinkList.filter(x => !x.tmp)
+                    var id = ""
+                    var fatherId = ""
+                    var isDelete = mode == "delete"
+                    if(customLinkRow){
+                        id = customLinkRow.attr("data-linkid") || ""
+                        if(mode == "add"){
+                            fatherId = id
+                            id = ""
+                        }else{
+                            fatherId = customLinkRow.find(".orgMenuSubItemCnt").attr("data-fathermenuiddiv") || ""
+                        }
+                    }
+                    var typeList = linkList
+                    if(fatherId){
+                        typeList = subLinkList.filter(x => x.menuId == fatherId)
+                    }
+                    var linkItem = typeList.find(x => x.id == id)
+                    $("#customLinkFather").attr("defaultValue", fatherId)
                     if(id == "" || linkItem){
                         $(".customLinkMsg").hide()
                         if(linkItem){
@@ -3264,14 +3341,21 @@
                         }else{
                             $("#modalCustomLink").find(".form-control").each((i, x) => x.value = (x.getAttribute("defaultValue") != undefined)?x.getAttribute("defaultValue"):"")
                         }
+                        $("#customLinkConfirm").attr("linkId", id)
+                        $("#customLinkType").val((fatherId)?"sublink":"link").change()
                         $("#modalCustomLink").find(".form-control").change()
                         $("#modalCustomLink").find(".form-control[required]").trigger("input")
-                        $("#customLinkConfirm").val((isDelete)?"Delete link":(id == "")?"Add link":"Edit link")
-                        $("#customLinkConfirm").attr("mode", (isDelete)?"delete":(id == "")?"add":"edit")
-                        $("#customLinkConfirm").attr("linkId", id)
+                        $("#modalCustomLink").attr("fatherId", fatherId)
+                        $("#modalCustomLink").attr("originalFatherId", fatherId)
+                        mode = (mode == "create")?"add":mode
+                        let textMode = mode[0].toUpperCase() + mode.slice(1)
+                        // $("#customLinkConfirm").val((isDelete)?"Delete link":(id == "")?"Add link":"Edit link")
+                        $("#customLinkConfirm").val(textMode+" link")
+                        $("#customLinkConfirm").attr("mode", mode)
+                        
                         $("#modalCustomLink").find(".form-control").prop("disabled", isDelete)
                         $('#modalCustomLink').modal('show');
-                        populateMenuOrder()
+                        populateMenuOrder(id)
                     }
                     
                     
@@ -3282,37 +3366,51 @@
                     $(".row.customLinkRow").remove()
                     // linkList.DashboardLinkMenu.forEach(x => {
                     linkList.sort((x, y) => Number(x.menuOrder) - Number(y.menuOrder)).forEach(x => {
-                        // var isFather = false;
-                        // var linkHtml = linkList.DashboardLinkMenuSubmenus.filter(y => y.menuId == x.id).map(y => {
-                        //     if(!isFather) isFather = true;
-                        //     let target = (y.openMode == "samePage")?"":'target="_blank"'
-                        //     return `<div class="row customLinkRow">
-                        //     <div class="col-md-12 orgMenuSubItemCnt" data-fathermenuiddiv="${x.id}" style="display: none;">
-                        //     <a href="${x.linkUrl}" id="${y.id}" style="text-decoration: none;padding-left: 15px;display: inline;" class="internalLink moduleLink orgMenuSubItemLink mainMenuIframeLink" ${target}>
-                        //     <i class="${y.icon}" style="color: ${y.iconColor}"></i>&nbsp;&nbsp;&nbsp;${y.text}</a>
-                        //     </div></div>`
-                        // }).join("")
                         let target = (x.openMode == "samePage")?"":'target="_blank"'
                         let href = `href='${x.linkUrl}'`
-                        // let submenuIndicator = ""
-                        // if(isFather){
-                        //     href = ""
-                        //     submenuIndicator = `<i class="fa fa-caret-down submenuIndicator" style="color: rgb(51, 64, 69)"></i>`
-                        // }
-                        let html = `<div class="row customLinkRow" data-linkid="${x.id}">
+                        var isFather = false;
+                        var linkHtml = subLinkList.filter(y => y.menuId == x.id && !x.tmp).sort((y1, y2) => Number(y1.menuOrder) - Number(y2.menuOrder)).map(y => {
+                            if(!isFather) isFather = true;
+                            let target = (y.openMode == "samePage")?"":'target="_blank"'
+                            return `<div class="row customLinkRow sublink" data-linkid="${y.id}">
+                            <div class="col-md-12 orgMenuSubItemCnt" data-fathermenuiddiv="${x.id}" style="display: none;">
+                            <a href="${y.linkUrl}" id="${y.id}" style="text-decoration: none;padding-left: 15px;display: inline;" class="internalLink moduleLink orgMenuSubItemLink mainMenuIframeLink" ${target}>
+                            <i class="${y.icon}" style="color: ${y.iconColor}"></i>&nbsp;&nbsp;&nbsp;${y.text}</a>
+                            <a class="customLinkButton customLinkEdit"><i class="fa fa-pencil" style="color: rgb(51, 64, 69)"></i></a>
+                            <a class="customLinkButton customLinkDelete"><i class="fa fa-trash" style="color: rgb(51, 64, 69)"></i></a>
+                            </div></div>`
+                        }).join("")
+                        
+                        let submenuIndicator = ""
+                        if(isFather){
+                            href = ""
+                            submenuIndicator = `<a><i class="fa fa-caret-right submenuIndicator" style="color: rgb(51, 64, 69)"></i><a>`
+                        }
+                        let html = `<div class="row customLinkRow ${isFather?'sublinkFather':''}" data-linkid="${x.id}">
                         <div class="col-md-12 orgMenuItemCnt">
                         <a title="${x.text}" ${href} ${target} id="customLink_${x.id}" class="customLink">
                         <i class="${x.icon}" style="color: ${x.iconColor}"></i><span class='customLinkText'>${x.text}</span>
                         </a>
                         <a class="customLinkButton customLinkEdit"><i class="fa fa-pencil" style="color: rgb(51, 64, 69)"></i></a>
                         <a class="customLinkButton customLinkDelete"><i class="fa fa-trash" style="color: rgb(51, 64, 69)"></i></a>
+                        <a class="customLinkButton customLinkAdd"><i class="fa fa-plus" style="color: rgb(51, 64, 69)"></i></a>
+                        ${submenuIndicator}
                         </div></div>`
-                        let lastIdQuery = (lastId=="")?"#addRow":`.customLinkRow[data-linkid=${lastId}]`
-                        $(`#orgMenuCnt ${lastIdQuery}`).after(html)
-                        lastId = x.id
+                        $(`#orgMenuCnt #exportCustomLinkRow`).before(html+linkHtml)
+                        
                     })
-                    $(".customLinkEdit").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow").attr("data-linkid")))
-                    $(".customLinkDelete").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow").attr("data-linkid"), true))
+                    $(".customLinkAdd").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow"), "add"))
+                    $(".customLinkEdit").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow"), "edit"))
+                    $(".customLinkDelete").click((evt) => openCustomLinkModal($(evt.currentTarget).parents(".customLinkRow"), "delete"))
+                    $(".customLinkRow.sublinkFather:not(.customLinkButton)").click(openSublinks)
+                }
+
+                function openSublinks(evt){
+                    if(!(evt.target.parentElement.classList.contains("customLinkButton"))){
+                        let fatherId = evt.currentTarget.getAttribute("data-linkid")
+                        $(`.customLinkRow .orgMenuSubItemCnt[data-fathermenuiddiv=${fatherId}]`).toggle()
+                        $(evt.currentTarget).find(".submenuIndicator").toggleClass("fa-caret-right").toggleClass("fa-caret-down")
+                    }
                 }
 
                 function select_icon(icon) {
@@ -3330,7 +3428,11 @@
                 }
 
                 function exportCustomLinks(){
-                    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(linkList));
+                    var out = {
+                        "CustomLinks": linkList,
+                        "SubCustomLinks": subLinkList.filter(x => !x.tmp)
+                    }
+                    var dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(out));
                     var dlAnchorElem = document.getElementById('customLinkDownloadAnchor');
                     dlAnchorElem.setAttribute("href",dataStr);
                     dlAnchorElem.setAttribute("download", `CustomLink ${$("#dashboardTitle span").text()}.json`);
@@ -3339,10 +3441,18 @@
 
                 //MENU ORDER
                 function updateMenuOrder(){
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeList = linkList
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        typeList = subLinkList.filter(x => x.menuId == fatherId)
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
                     if($("#modalCustomLink:visible").length > 0){
                         var diffMenuOrder = {}
-                        menuOrderObj.currOrder.forEach((x, i) => {
-                            if(x != menuOrderObj.currId && menuOrderObj.initialOrder[x] != i) diffMenuOrder[x] = i
+                        typeMenuOrderObj.currOrder.forEach((x, i) => {
+                            if(x != typeMenuOrderObj.currId && typeMenuOrderObj.initialOrder[x] != i) diffMenuOrder[x] = i
                         })
                         if(Object.keys(diffMenuOrder).length > 0){
                             $.ajax({
@@ -3351,12 +3461,13 @@
                                 url: 'process-form.php',
                                 data: {
                                     updateCustomLinkOrder: true,
-                                    update_list: JSON.stringify(diffMenuOrder)
+                                    update_list: JSON.stringify(diffMenuOrder),
+                                    isSub: (fatherId)?true:false
                                 },
                                 success: function (data) {
                                     data = JSON.parse(data);
                                     Object.entries(diffMenuOrder).forEach(([id, order]) => {
-                                        let link = linkList.find(x => x.id == id)
+                                        let link = typeList.find(x => x.id == id)
                                         if(link) link.menuOrder = order
                                     })
                                     populateCustomLinkMenu()
@@ -3367,33 +3478,53 @@
                 }
 
                 function saveMenuOrder(){
-                    menuOrderObj.currOrder = $("#orderSortableList").children().toArray().map(x => x.getAttribute("data-id"))
-                    menuOrderObj.currPos = menuOrderObj.currOrder.findIndex(x => x==menuOrderObj.currId)
-                    if(menuOrderObj.currPos < 0) menuOrderObj.currPos = menuOrderObj.initialPos
-                    $("#menuorder").val(menuOrderObj.currPos)
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
+                    typeMenuOrderObj.currOrder = $("#orderSortableList").children().toArray().map(x => x.getAttribute("data-id"))
+                    typeMenuOrderObj.currPos = typeMenuOrderObj.currOrder.findIndex(x => x==typeMenuOrderObj.currId)
+                    if(typeMenuOrderObj.currPos < 0) typeMenuOrderObj.currPos = typeMenuOrderObj.initialPos
+                    $("#menuorder").val(typeMenuOrderObj.currPos)
                 }
 
                 function setMenuPosition(html){
-                    menuOrderObj.currPos = Number($("#menuorder").val())
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
+                    typeMenuOrderObj.currPos = Number($("#menuorder").val())
                     html ??= $("#currMenuOrderElement").remove()[0]
-                    if(menuOrderObj.currPos<$("#orderSortableList").children().length) $(`#orderSortableList > li:nth-child(${menuOrderObj.currPos+1})`).before(html);
+                    if(typeMenuOrderObj.currPos<$("#orderSortableList").children().length) $(`#orderSortableList > li:nth-child(${typeMenuOrderObj.currPos+1})`).before(html);
                     else $("#orderSortableList").append(html)
-                    if(!menuOrderObj.currOrder || menuOrderObj.currOrder.length == 0) saveMenuOrder()
+                    if(!typeMenuOrderObj.currOrder || typeMenuOrderObj.currOrder.length == 0) saveMenuOrder()
                 }
 
 
-                function populateMenuOrder(){
+                function populateMenuOrder(id){
                     mode = $("#customLinkConfirm").attr("mode")
                     currId = $("#customLinkConfirm").attr("linkId")
-                    menuOrderObj.currId = currId
-                    menuOrderObj.initialOrder = {}
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeList = linkList
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        typeList = subLinkList.filter(x => x.menuId == fatherId)
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
+                    typeMenuOrderObj.currId = currId
+                    typeMenuOrderObj.initialOrder = {}
                     var html = ""
-                    let obj = linkList.map((x, i) => {
+                    let obj = typeList.map((x, i) => {
                         if(currId != "" && x.id == currId){
-                            menuOrderObj.initialPos = i
-                            menuOrderObj.currPos = i
+                            typeMenuOrderObj.initialPos = i
+                            typeMenuOrderObj.currPos = i
                         }
-                        menuOrderObj.initialOrder[x.id] = x.menuOrder
+                        typeMenuOrderObj.initialOrder[x.id] = x.menuOrder
                         return {
                             id: x.id,
                             text: x.text,
@@ -3401,15 +3532,15 @@
                         }
                     })
                     if(currId == ""){
-                        menuOrderObj.initialPos = 0
-                        menuOrderObj.currPos = 0
-                        menuOrderObj.currOrder = [""]
+                        typeMenuOrderObj.initialPos = 0
+                        typeMenuOrderObj.currPos = 0
+                        typeMenuOrderObj.currOrder = [""]
                     }else{
-                        menuOrderObj.currOrder = []
+                        typeMenuOrderObj.currOrder = []
                     }
 
-                    menuOrderObj.currOrder = [...menuOrderObj.currOrder, ...linkList.map(x => x.id)]
-                    $("#menuorder").val(menuOrderObj.currPos)
+                    typeMenuOrderObj.currOrder = [...typeMenuOrderObj.currOrder, ...typeList.map(x => x.id)]
+                    $("#menuorder").val(typeMenuOrderObj.currPos)
                     obj.sort((x, y) => Number(x.menuOrder)-Number(y.menuOrder))
                     
                     if(mode == "add" && !obj.some(x => x.id == currId)){
@@ -3422,8 +3553,8 @@
                         </li>`
                     }
                     $("#orderSortableList").empty()
-                    if(mode == "add" && menuOrderObj.currOrder && menuOrderObj.currOrder.length > 0){
-                        obj = menuOrderObj.currOrder.filter(x => x != "").map(x => obj.find(y => y.id == x))
+                    if(mode == "add" && typeMenuOrderObj.currOrder && typeMenuOrderObj.currOrder.length > 0){
+                        obj = typeMenuOrderObj.currOrder.filter(x => x != "").map(x => obj.find(y => y.id == x))
                     }
                     obj.forEach((x, i) => {
                         $("#orderSortableList").append(`<li class="order-sortable-item" ${((mode=="edit" || mode == "delete") && x.id == currId)?"id=currMenuOrderElement":""} data-id="${x.id}">
@@ -3440,9 +3571,15 @@
                 }
 
                 $("#menuorder").parents(".modal").click(evt => {
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
                     if($("#orderSortableMenu").is(":visible") && !$("#orderSortableMenu")[0].contains(evt.target)){
                         //CHIUDE MODALE ORDINE
-                        $("#menuorder").val(menuOrderObj.currPos)
+                        $("#menuorder").val(typeMenuOrderObj.currPos)
                         saveMenuOrder()
                         $("#orderSortableMenu").hide()
                     }else if(evt.target == $("#menuorder")[0]){
@@ -3460,15 +3597,21 @@
                 })
 
                 $(document).on("click", ".order-item-controls", evt => {
+                    var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var typeMenuOrderObj = menuOrderObj
+                    if(fatherId){
+                        submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
+                        typeMenuOrderObj = submenuOrderObj[fatherId]
+                    }
                     var direction = evt.target.classList.contains("move-up")?-1:evt.target.classList.contains("move-down")?1:0
                     if(direction != 0){
                         item = $(evt.target).parents(".order-sortable-item")
                         otherItem = (direction == -1)?item.prev():item.next()
                         if(otherItem.length>0) {
-                            menuOrderObj.currPos += direction;
+                            typeMenuOrderObj.currPos += direction;
                             if(direction==-1) item.insertBefore(otherItem)
                             else item.insertAfter(otherItem)
-                            $("#menuorder").val(menuOrderObj.currPos)
+                            $("#menuorder").val(typeMenuOrderObj.currPos)
                         }
                     }
                 })

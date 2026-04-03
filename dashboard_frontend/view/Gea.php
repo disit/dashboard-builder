@@ -2026,27 +2026,9 @@
             
                             //    $newDivItem = '<div id=orgMenuCnt"><div id="orgMenu" data-shown="false" class="applicationCtxMenu fullCtxMenu container-fluid dashboardCtxMenu">';
                             //    echo($newDivItem);
-
-
-                            $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
-                            $customLinkSql = "SELECT ".join(",", $customLinkVars)." FROM Dashboard.DashboardLinkMenu WHERE dashboardId = $dashId ORDER BY menuOrder ASC";
-                            if (($customLinkStmt = mysqli_prepare($link, $customLinkSql)) && mysqli_stmt_execute($customLinkStmt)) {
-                                $customLinkRefs = [];
-                                foreach ($customLinkVars as $customLinkVar) {
-                                    $$customLinkVar = null;
-                                    $customLinkRefs[] = &$$customLinkVar;
-                                }
-                                mysqli_stmt_bind_result($customLinkStmt, ...$customLinkRefs);
-            
-                                while ($customLinkStmt->fetch()) {
-                                    $target = $openMode == "samePage" ? "" : "target='_blank'";
-                                    echo "<li class='customLinkRow' data-linkid='$id'>".
-                                        "<a title='$text' href='$linkUrl' $target id='customLink_$id' class='customLink'>".
-                                        "<i class='$icon' style='color: $iconColor'></i><span class='menu-item'>$text</span>".
-                                        "</a>".
-                                        "</li>";
-                                }
-                            }
+                            
+                            //Ha bisogno di $dashId
+                            include "customLinks-side.php";
             
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
                             $r = mysqli_query($link, $menuQuery);
@@ -2221,7 +2203,16 @@
                    $('nav#s4c-sidebar ul li').click(function(){
                     $(this).addClass("active").siblings().removeClass("active");
                  });
+                    $(document).on("click", ".sublinkFather", (evt) => {
+                        let currTarget = evt.currentTarget
+                        let fatherId = currTarget.getAttribute("data-linkid")
+                        if(fatherId != ""){
+                            $(`.sublink[data-fathermenuiddiv=${fatherId}]`).toggle()
+                            $(currTarget).find(".submenuIndicator").toggleClass("fa-caret-right").toggleClass("fa-caret-down")
+                        }
+                    })
                 </script>
+                <link rel="stylesheet" href="../css/customLinks-side.css"> 
               <!-- END SIDEBAR NAV -->
         </nav>
         
