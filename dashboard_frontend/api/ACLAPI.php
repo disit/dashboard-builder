@@ -32,6 +32,7 @@
             $dashboardParam = trim($_REQUEST['dashboard_id'] ?? '');
             $collectionParam = trim($_REQUEST['collection_id'] ?? '');
             $substrParam = trim($_REQUEST['ACL_substring'] ?? '');
+            $requested_user = trim($_REQUEST['requested_username'] ?? '');
             $claims = requireUser(); //vars from token/session
             $preferred_username = $claims['preferred_username'];
             $ou = $claims['ou'] ?? '';
@@ -43,6 +44,7 @@
                     'collection_id'=> $collectionParam ?? '',
                     'dashboard_id'=> $dashboardParam ?? '',
                     'ACL_substring'=> $substrParam ?? '',
+                    'requested_username' => $requested_user ?? '',
                     ];
             switch ($action) {
                 case 'check_auth': //EXPECTED $data: ["auth_name":"required", "organization": "optional", "preferred_username":"required", "ou"='unused for now' ]
@@ -73,6 +75,12 @@
                     header('Content-Type: application/json');
                     $res = ACLAPI_get_user_ACLs($data);
                     if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
+                    exit;
+                case 'get_user_ACLs_delegator':
+                    header('Content-Type: application/json');
+                    $res = ACLAPI_get_user_ACLs_delegator($data);
+                    if (!empty($res['error'])) { http_response_code(400); }
                     echo json_encode($res);
                     exit;
                 default:

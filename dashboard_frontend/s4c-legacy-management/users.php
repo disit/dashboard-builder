@@ -1663,7 +1663,7 @@ text-transform: uppercase;
                 $('#editACLModal').data('originalDefs', originalDefs);
                 const selectedDefs = new Set(originalDefs);
                 const rows = defs.map(def => ({
-                    state:       selectedDefs.has(def.ID),
+                    state:       selectedDefs.has(Number(def.ID)), 
                     ID:          def.ID,
                     authname:    def.authname,
                     org:         def.org       || '',
@@ -1674,6 +1674,7 @@ text-transform: uppercase;
                     maxbymonth:  def.maxbymonth  != null ? def.maxbymonth  : '',
                     maxtotal:    def.maxtotal    != null ? def.maxtotal    : ''
                 }));
+
                 $('#aclTable').bootstrapTable('destroy').bootstrapTable({
                     data:          rows,
                     search:        true,
@@ -1682,17 +1683,30 @@ text-transform: uppercase;
                     pageList:      [5, 10, 25, 50],
                     showPageList:  true,
                     clickToSelect: true,
-                    onCheck:      row  => selectedDefs.add(row.ID),
-                    onUncheck:    row  => selectedDefs.delete(row.ID),
-                    onCheckAll:   rows => rows.forEach(r => selectedDefs.add(r.ID)),
-                    onUncheckAll: rows => rows.forEach(r => selectedDefs.delete(r.ID)),
-                    onPageChange: () => {
-                    $('#aclTable').bootstrapTable('checkBy', {
-                        field:  'ID',
-                        values: Array.from(selectedDefs)
-                    });
-                    }
-                });//profiles
+                    columns: [
+                        {
+                            field: 'state',
+                            checkbox: true,
+                            formatter: (value, row) => ({
+                                checked: selectedDefs.has(Number(row.ID))
+                            })
+                        },
+                        { field: 'ID',           visible: false },
+                        { field: 'authname',     title: 'Name',          sortable: true },
+                        { field: 'org',          title: 'Org',           sortable: true },
+                        { field: 'menuID',       title: 'Menu ID',       sortable: true },
+                        { field: 'dashboardID',  title: 'Dashboard ID',  sortable: true },
+                        { field: 'collectionID', title: 'Collection ID', sortable: true },
+                        { field: 'maxbyday',     title: 'Max/Day',       sortable: true },
+                        { field: 'maxbymonth',   title: 'Max/Month',     sortable: true },
+                        { field: 'maxtotal',     title: 'Max Total',     sortable: true },
+                    ],
+                    onCheck:      row  => selectedDefs.add(Number(row.ID)),
+                    onUncheck:    row  => selectedDefs.delete(Number(row.ID)),
+                    onCheckAll:   rows => rows.forEach(r => selectedDefs.add(Number(r.ID))),
+                    onUncheckAll: rows => rows.forEach(r => selectedDefs.delete(Number(r.ID))),
+                });
+                //profiles
                 const originalProfiles = userProfs.map(n => Number(n));
                 $('#editACLModal').data('originalProfiles', originalProfiles);
                 const sel = new Set(originalProfiles);
@@ -1702,9 +1716,7 @@ text-transform: uppercase;
                     profilename: pr.profilename,
                     authIDs:     pr.authIDs 
                 }));
-                $('#profileAssignTable')
-                    .bootstrapTable('destroy')
-                    .bootstrapTable({
+                $('#profileAssignTable').bootstrapTable('destroy').bootstrapTable({
                     data:          prow,
                     search:        true,
                     pagination:    true,
@@ -1712,18 +1724,23 @@ text-transform: uppercase;
                     pageList:      [5, 10, 25, 50],
                     showPageList:  true,
                     clickToSelect: true,
-                    onCheck:      row => sel.add(row.ID),
-                    onUncheck:    row => sel.delete(row.ID),
-                    onCheckAll:   rows => rows.forEach(r=>sel.add(r.ID)),
-                    onUncheckAll: rows => rows.forEach(r=>sel.delete(r.ID)),
-                    onPageChange: () => {
-                        $('#profileAssignTable').bootstrapTable('checkBy', {
-                        field:  'ID',
-                        values: Array.from(sel)
-                        });
-                    }
-                    });
-
+                    columns: [
+                        {
+                            field: 'state',
+                            checkbox: true,
+                            formatter: (value, row) => ({
+                                checked: sel.has(Number(row.ID))
+                            })
+                        },
+                        { field: 'ID',          visible: false },
+                        { field: 'profilename', title: 'Profile Name', sortable: true },
+                        { field: 'authIDs',     visible: false },
+                    ],
+                    onCheck:      row  => sel.add(Number(row.ID)),
+                    onUncheck:    row  => sel.delete(Number(row.ID)),
+                    onCheckAll:   rows => rows.forEach(r => sel.add(Number(r.ID))),
+                    onUncheckAll: rows => rows.forEach(r => sel.delete(Number(r.ID))),
+                });
                 $('#editACLModal').modal('show');
                 })
                 )
