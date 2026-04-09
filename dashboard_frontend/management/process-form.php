@@ -6081,8 +6081,9 @@
         }
     }else if(isset($_REQUEST['editCustomLink'])){
         if(isset($_REQUEST["id"])){
-            $isSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["isSub"]), FILTER_SANITIZE_STRING));
-            $link_type = ($isSub == "true")?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
+            $isSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["isSub"]), FILTER_SANITIZE_STRING)) == "true";
+            $wasSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["wasSub"]), FILTER_SANITIZE_STRING)) == "true";
+            $link_type = ($isSub)?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
             $id = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["id"]), FILTER_SANITIZE_STRING));
             $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
             if($link_type == "DashboardLinkMenuSubmenus"){
@@ -6093,13 +6094,72 @@
             foreach($var_arr as $variable){
                 if(isset($_REQUEST[$variable])){
                     $clean_var = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST[$variable]), FILTER_SANITIZE_STRING));
-                    array_push($var_strings, "$variable = '$clean_var'");
+                    if($isSub != $wasSub){
+                        array_push($var_strings, "'$clean_var'");
+                    }else{
+                        array_push($var_strings, "$variable = '$clean_var'");
+                    }
                     
                 }
             }
+
             // $sql = "INSERT INTO Dashboard.$link_type (".join(",", $var_arr).") VALUES(".join(",", $var_strings).")";
             // $sql = "UPDATE Dashboard.DashboardLinkMenu SET ".join(",", $var_strings)." WHERE id = $id";
-            $sql = "UPDATE Dashboard.$link_type SET ".join(",", $var_strings)." WHERE id = $id";
+            if(!$isSub and $wasSub){
+                $sql = "DELETE FROM Dashboard.DashboardLinkMenuSubmenus WHERE id = $id";
+                if($stmt = mysqli_prepare($link, $sql)){
+                    if(! mysqli_stmt_execute($stmt)){
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+                $dashboardId = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["dashboardId"]), FILTER_SANITIZE_STRING));
+                $sql = "INSERT INTO Dashboard.$link_type (".join(",", $var_arr).", dashboardId) VALUES(".join(",", $var_strings).",'".$dashboardId."')";
+            }else if($isSub and ! $wasSub){
+                $menuId = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["menuId"]), FILTER_SANITIZE_STRING));
+                $menuOrder = intval(strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["menuOrder"]), FILTER_SANITIZE_STRING)));
+                $sql = "SELECT id FROM Dashboard.DashboardLinkMenuSubmenus WHERE menuId = ".$id." ORDER BY menuOrder ASC";
+
+                if($stmt = mysqli_prepare($link, $sql)){
+                    if(! mysqli_stmt_execute($stmt)){
+                        mysqli_stmt_close($stmt);
+                    }else{
+                        mysqli_stmt_bind_result($stmt, $subId);
+                        $subIds = [];
+                        while ($stmt->fetch()) {
+                            $subIds[] = $subId;
+                        }
+                        mysqli_stmt_close($stmt);
+                        if(count($subIds) > 0){
+                            $update_arr = [];
+                            $subIdsStr = [];
+                            foreach($subIds as $sIdx => $sId){
+                                $newMenuOrder = $menuOrder + 1 + $sIdx;
+                                array_push($update_arr, "when id = '$sId' then '$newMenuOrder'");
+                                array_push($subIdsStr, "'$sId'");
+                            }
+                            $sql = "UPDATE Dashboard.DashboardLinkMenuSubmenus SET menuOrder = (case ".join(" ", $update_arr)." end), menuId = '$menuId' WHERE menuId = '$id' and id in (".join(", ",$subIdsStr).");";
+                            if($stmt = mysqli_prepare($link, $sql)){
+                                mysqli_stmt_execute($stmt);
+                                mysqli_stmt_close($stmt);
+                            }
+                        }
+
+                    }
+                }
+                
+                $sql = "DELETE FROM Dashboard.DashboardLinkMenu WHERE id = $id";
+                if($stmt = mysqli_prepare($link, $sql)){
+                    if(! mysqli_stmt_execute($stmt)){
+                        mysqli_stmt_close($stmt);
+                    }
+                }
+                $dashboardId = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["dashboardId"]), FILTER_SANITIZE_STRING));
+                $sql = "INSERT INTO Dashboard.$link_type (".join(",", $var_arr).", dashboardId) VALUES(".join(",", $var_strings).",'".$dashboardId."')";
+            }else{
+                $sql = "UPDATE Dashboard.$link_type SET ".join(",", $var_strings)." WHERE id = $id";
+            }
+
+            
             // echo $sql;
             if (! $stmt = mysqli_prepare($link, $sql)) {
                 http_response_code(500);
@@ -6110,7 +6170,12 @@
                 echo json_encode(['error' => mysqli_error($link), "sql" => $sql]);
             }else{
                 http_response_code(200);
-                echo json_encode(['response' => "Ok", "sql" => $sql]);
+                if($isSub != $wasSub){
+                    $newId = mysqli_stmt_insert_id($stmt);
+                    echo json_encode(['response' => $newId, "sql" => $sql]);
+                }else{
+                    echo json_encode(['response' => "Ok", "sql" => $sql]);
+                }
             }
         }else{
             http_response_code(400);
@@ -6148,6 +6213,8 @@
                         http_response_code(200);
                         echo json_encode(['response' => "Ok", "sql" => $sql]);
                     }
+                } else {
+                    echo json_encode(['response' => "Ok", "sql" => $sql]);
                 }
             }
         }else{
@@ -6258,6 +6325,22 @@
             $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId'];
             $values_arr = [];
             $out_link = [];
+            if(count($import_link_obj) > 0){
+                $dashboardIds = implode(",", array_unique(array_column($import_link_obj, 'dashboardId')));
+                $sql = "DELETE FROM Dashboard.DashboardLinkMenu WHERE dashboardId in ($dashboardIds)";
+                if($stmt = mysqli_prepare($link, $sql)){
+                    if(! mysqli_stmt_execute($stmt)){
+                        mysqli_stmt_close($stmt);
+                    }else{
+                        $sql = "DELETE FROM Dashboard.DashboardLinkMenuSubmenus WHERE dashboardId in ($dashboardIds)";
+                        if($stmt = mysqli_prepare($link, $sql)){
+                            if(! mysqli_stmt_execute($stmt)){
+                                mysqli_stmt_close($stmt);
+                            }
+                        }
+                    }
+                }
+            }
             foreach($import_link_obj as $newLink){
                 
                 $var_strings = [];
