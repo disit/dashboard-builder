@@ -51,8 +51,8 @@
         constructor(tourId, options) {
             this._options = Object.assign({}, {
                 isPublic: true,
-              //  resetTimeout: 1000 * 60 * 60 * 24
-                resetTimeout: 1000 * 60 * 5
+                resetTimeout: 1000 * 60 * 60 * 24
+                //resetTimeout: 1000 * 60 * 5
             }, options);
 
             this._initStorage(tourId);
@@ -86,7 +86,10 @@
                     cancelIcon: {
                         enabled: true
                     },
-                    scrollTo: { behavior: 'smooth', block: 'center' },
+                    //scrollTo: { behavior: 'smooth', block: 'center' }
+                    scrollTo: { behavior: 'smooth', block: 'start' }
+                    //scrollTo: { behavior: 'smooth'}
+                    //scrollTo: true
                 },
                 useModalOverlay: true
             });
@@ -190,10 +193,17 @@
             };
 
             if (attachToElementSelector) {
-                opt.attachTo = {
-                    element: attachToElementSelector,
-                    on: "auto"
-                };
+                if (step.stepId == "dashboard-whatif" || step.stepId == "scenario-people-control" || step.stepId == "scenario-env-and-quality") {
+                    opt.attachTo = {
+                        element: attachToElementSelector,
+                        on: "right"
+                    };
+                } else {
+                    opt.attachTo = {
+                        element: attachToElementSelector,
+                        on: "auto"
+                    };
+                }
                 opt.beforeShowPromise = () => {
                     if (this._getDOMEl(attachToElementSelector))
                         return Promise.resolve();
@@ -270,6 +280,8 @@
 
     win.SnapTour = {
         init(steps, options) {
+            return;
+            //console.log("Start Tour!");
             if (!steps || steps.length == 0)
                 return; //throw new Error("Initialized SnapTour without steps");
 

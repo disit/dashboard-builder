@@ -3669,6 +3669,16 @@ input[type="text"]:disabled
   justify-content: center;
 }
 
+.tourBtnSet .myS4C-btn:only-child {
+    width: 100%;
+}
+
+.tourBtnSet .myS4C-btn:only-child span {
+    position: relative;
+    top: -4px;
+    font-size: 1rem;
+}
+
 .myS4C-btn:hover, .tour-btn:hover, .myS4C-btn:focus, .tour-btn:focus{
   background: var(--white-);
   color: var(--blue-);
