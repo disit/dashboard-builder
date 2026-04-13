@@ -238,6 +238,7 @@
     <!-- Font awesome icons -->
 <!--     <link rel="stylesheet" href="../js/fontAwesome/css/font-awesome.min.css"> -->
     <link href="../js/fontAwesome/V6/css/all.css" rel="stylesheet">
+    <link href="../css/s4c-css/fontawesome-free-6.2.0-web/css/v4-shims.css" rel="stylesheet">
     
     <!-- Leaflet -->
     <!-- Versione locale: 1.3.1 --> 
