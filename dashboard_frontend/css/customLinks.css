@@ -1,0 +1,14 @@
+.customLink{
+    display: grid;
+    grid-template-columns: 1.5vw auto 1.5vw;
+    column-gap: 0.5vw;
+}
+.sublink .orgMenuItemCnt .customLink{
+    margin-left: 2vw;
+    grid-template-columns: 1vw auto 1vw;
+}
+.customLinkText {
+    max-width: 5vw;
+    overflow-x: clip;
+    text-overflow: ellipsis;
+}

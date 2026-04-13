@@ -1,0 +1,8 @@
+.customLinkRow a{
+    cursor: pointer;
+    display: grid !important;
+    grid-template-columns: 1vw auto 1vw;
+}
+.sublink a{
+    margin-left: 1vw
+}
