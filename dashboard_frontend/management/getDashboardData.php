@@ -19,7 +19,7 @@
     use Jumbojett\OpenIDConnectClient;
    
     //Altrimenti restituisce in output le warning
-    error_reporting(E_ERROR | E_NOTICE);
+    error_reporting(E_ERROR);
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     session_start(); 
@@ -140,6 +140,9 @@
         {
             while($row = mysqli_fetch_assoc($result)) 
             {
+                if (isset($row['type_w']) && $row['type_w'] === 'widgetExternalContent') {
+                    unset($row['code']);
+                }
                 array_push($dashboardWidgets, $row);
             }
         }
@@ -235,8 +238,8 @@
            $authorOrigin = '';
         }
 
-        $auth_result = ACLAPI_check_dashboard([ 'dashboard_id'=> $dashboardId, 'preferred_username'=> $_SESSION['loggedUsername'] ?? '']);
-        $allowedByACL = $auth_result['authorized'];
+        $acl_auth_result = ACLAPI_check_dashboard([ 'dashboard_id'=> $dashboardId, 'preferred_username'=> $_SESSION['loggedUsername'] ?? '']);
+        $allowedByACL = $acl_auth_result['authorized'];
 
         switch($visibility)
         {
@@ -252,7 +255,8 @@
                 else
                 {
                     $response["detail"] = "Ko";
-                    error_log("Access to dashboard Id ".$dashboardId." denied by ACL for public visibility.");
+                    $response["error"] = $acl_auth_result['error'];
+                    error_log("Access to dashboard Id ".$dashboardId." denied by ACL for public visibility ".", reason: " . json_encode($acl_auth_result['debug']));
                 }
                 break;
 
@@ -403,7 +407,6 @@
                                     $context  = stream_context_create($options);
                                     $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
                                     $delegatedDashboards = json_decode($delegatedDashboardsJson);
-
                                     $hasDelegation = $delegatedDashboards->result=='true';
 
                                     if($hasDelegation)
@@ -437,13 +440,14 @@
                    else
                    {
                        $response["detail"] = "Ko";
+                       $response["error"] = $acl_auth_result['error'] ?? 'not authorized by ACL';
                        if(!$proceed)
                        {
                            error_log("Access to dashboard Id ".$dashboardId." denied: not author nor delegated user.");
                        }
                        else
                        {
-                           error_log("Access to dashboard Id ".$dashboardId." denied by ACL for restricted visibility, reason: " . json_encode($auth_result['debug']));
+                           error_log("Access to dashboard Id ".$dashboardId." denied by ACL for restricted visibility, reason: " . json_encode($acl_auth_result['debug']));
                        }
                    }
                }
@@ -459,4 +463,3 @@
     
    
     
-

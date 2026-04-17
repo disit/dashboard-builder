@@ -32,10 +32,23 @@
                 eventLog("Returned the following ERROR in widgetExternalContent.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
                 exit();
             }
+
+            $widgetCodeFromDb = null;
+            $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+            $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+            $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+            $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+            if ($widgetCodeResult) {
+                $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                    $widgetCodeFromDb = $widgetCodeRow['code'];
+                }
+            }
         ?> 
                 
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetName = "<?= escapeForJS($_REQUEST['name_w']) ?>";
+        var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
         var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
@@ -129,6 +142,15 @@
             }
             
             return styleParameters;
+        }
+
+        function getWidgetCode()
+        {
+            if (widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+                return widgetCodeFromDb;
+            }
+
+            return null;
         }
         
         //Va aggiornata con showWidgetContent
@@ -4058,8 +4080,8 @@
                        try {
                            widgetParameters = JSON.parse(widgetProperties.param.parameters);
                            if (widgetParameters && widgetParameters['mode'] == "ckeditor" && widgetParameters['svgCKEditor'] !=="svgMode") {
-                               if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
-                                   let code = widgetProperties.param.code;
+                               let code = getWidgetCode();
+                               if (code != null) {
                                    var text_ck_area = document.createElement("text_ck_area");
                                    text_ck_area.innerHTML = code;
                                    var newInfoDecoded = text_ck_area.innerText;
@@ -4087,8 +4109,8 @@
                                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').css("display", "none");
 
 
-                                           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
-                                                                    let code = widgetProperties.param.code;
+                                           let code = getWidgetCode();
+                                           if (code != null) {
                                                                     var text_ck_area = document.createElement("text_ck_area");
                                                                     text_ck_area.innerHTML = code;
                                                                     var newInfoDecoded = text_ck_area.innerText;
