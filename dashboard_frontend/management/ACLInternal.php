@@ -752,6 +752,7 @@ function ACLAPI_check_collection($data = []): array {
         } else {
             mysqli_stmt_bind_param($paStmt, 's', $enc_username);
             mysqli_stmt_execute($paStmt);
+            mysqli_stmt_store_result($paStmt);
             mysqli_stmt_bind_result($paStmt, $profileID);
 
             $foundProfile = false;
@@ -819,91 +820,115 @@ function ACLAPI_check_collection($data = []): array {
     ];
 }
 
+// helper: collect one field from the user's effective ACLs
+function collect_effective_acl_values(mysqli $link, string $username, string $field, $normalize = null): array {
+    $ACLs = fetch_user_ACLs($link, $username);
+    $values = [];
+    $seen = [];
+
+    foreach ($ACLs as $acl) {
+        if (!array_key_exists($field, $acl) || $acl[$field] === null) {
+            continue;
+        }
+
+        $value = $acl[$field];
+
+        if ($normalize !== null) {
+            $value = $normalize($value);
+        }
+
+        if ($value === null) {
+            continue;
+        }
+
+        $dedupeKey = is_int($value)
+            ? 'i:' . $value
+            : 's:' . (string)$value;
+
+        if (isset($seen[$dedupeKey])) {
+            continue;
+        }
+
+        $seen[$dedupeKey] = true;
+        $values[] = $value;
+    }
+
+    return $values;
+}
 //Return user's allowed menuIDs from his list of acl+profiles
 //FOR INTERNAL: expected $data= ["preferred_username":"required"]
+// Return user's allowed menuIDs from his ACLs + profiles
+// FOR INTERNAL: expected $data = ["preferred_username":"required"]
 function ACLAPI_check_menuIDs($data = []): array {
     $link = getDbLink();
-    $username = $data['preferred_username'] ?? '';
+    $username = trim($data['preferred_username'] ?? '');
+
     if ($username === '') {
+        mysqli_close($link);
         return [
             'authorized' => false,
             'error'      => 'preferred_username parameter is required'
         ];
     }
-    $enc_username = encrypt_username(strtolower($username));
-    $menuIDs = [];
-    //Direct ACL
-    $sql = "
-      SELECT AD.menuID
-        FROM ACL AS A
-        JOIN AccessDefinitions AS AD
-          ON A.defID = AD.ID
-       WHERE A.`user` = ?
-    ";
-    if ($stmt = mysqli_prepare($link, $sql)) {
-        mysqli_stmt_bind_param($stmt, 's', $enc_username);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $mID);
-        while (mysqli_stmt_fetch($stmt)) {
-            if ($mID !== null) {
-                $menuIDs[] = (int)$mID;
+
+    $menuIDs = collect_effective_acl_values(
+        $link,
+        $username,
+        'menuID',
+        function ($value) {
+            if ($value === null || $value === '') {
+                return null;
             }
+            return (int)$value;
         }
-        mysqli_stmt_close($stmt);
-    } else {
-        error_log("ACLAPI_check_menuIDs(): direct ACL prepare failed: " . mysqli_error($link));
-    }
-    //Profile-based ACL to authIDs to menuID
-    //Get all profile IDs for this user
-    $profileIDs = [];
-    $paSql = "SELECT profileID FROM ACLProfilesAssignment WHERE `user` = ?";
-    if ($paStmt = mysqli_prepare($link, $paSql)) {
-        mysqli_stmt_bind_param($paStmt, 's', $enc_username);
-        mysqli_stmt_execute($paStmt);
-        mysqli_stmt_bind_result($paStmt, $pid);
-        while (mysqli_stmt_fetch($paStmt)) {
-            $profileIDs[] = $pid;
-        }
-        mysqli_stmt_close($paStmt);
-    } else {
-        error_log("ACLAPI_check_menuIDs(): profile assignment prepare failed: " . mysqli_error($link));
+    );
+
+    mysqli_close($link);
+    return [
+    'menuIDs' => $menuIDs,
+    ];
+}
+//Return user's allowed dashboardIDs from his list of acl+profiles 
+//FOR INTERNAL: expected $data= ["preferred_username":"required"]
+// Get all possible dashboards from the user's ACLs + profiles
+// FOR INTERNAL: expected $data = ["preferred_username":"required"]
+function ACLAPI_get_dashboard_list($data = []): array {
+    $link = getDbLink();
+    $username = trim($data['preferred_username'] ?? '');
+
+    if ($username === '') {
+        mysqli_close($link);
+        return [
+            'authorized' => false,
+            'error'      => 'preferred_username parameter is required'
+        ];
     }
 
-    // For each profile, parse its authIDs and fetch menuIDs
-    foreach ($profileIDs as $profileID) {
-        $pSql = "SELECT authIDs FROM ACLProfiles WHERE ID = ?";
-        if ($pStmt = mysqli_prepare($link, $pSql)) {
-            mysqli_stmt_bind_param($pStmt, 'i', $profileID);
-            mysqli_stmt_execute($pStmt);
-            mysqli_stmt_bind_result($pStmt, $rawAuthIDs);
-            if (mysqli_stmt_fetch($pStmt) && $rawAuthIDs !== null) {
-                // parse comma-separated IDs
-                $auths = array_filter(
-                    array_map('trim', explode(',', $rawAuthIDs)),
-                    function($v) {
-                        return $v !== '';
-                    });
-                $auths = array_map('intval', $auths);
-                //for each authID, grab its menuID
-                foreach ($auths as $defID) {
-                    $mdSql = "SELECT menuID FROM AccessDefinitions WHERE ID = ? LIMIT 1";
-                    if ($mdStmt = mysqli_prepare($link, $mdSql)) {
-                        mysqli_stmt_bind_param($mdStmt, 'i', $defID);
-                        mysqli_stmt_execute($mdStmt);
-                        mysqli_stmt_bind_result($mdStmt, $mID2);
-                        if (mysqli_stmt_fetch($mdStmt) && $mID2 !== null) {
-                            $menuIDs[] = (int)$mID2;
-                        }
-                        mysqli_stmt_close($mdStmt);
-                    }
-                }
+    $dashboardIDs = collect_effective_acl_values(
+        $link,
+        $username,
+        'dashboardID',
+        function ($value) {
+            if ($value === null) {
+                return null;
             }
-            mysqli_stmt_close($pStmt);
+
+            $value = trim((string)$value);
+            if ($value === '') {
+                return null;
+            }
+
+            if (filter_var($value, FILTER_VALIDATE_INT) !== false) {
+                return base64_encode($value);
+            }
+            return $value;
         }
-    }
-    //Dedupe and reindex
-    $menuIDs = array_values(array_unique($menuIDs, SORT_NUMERIC));
-    return $menuIDs;
+    );
+
+    mysqli_close($link);
+    return [
+    'dashboardIDs' => $dashboardIDs,
+    ];
 }
 
 // -- helpers for user acls
@@ -916,6 +941,7 @@ function acl_provenance(mysqli $link, string $enc_username): array {
     if ($st = mysqli_prepare($link, $directSql)) {
         mysqli_stmt_bind_param($st, 's', $enc_username);
         mysqli_stmt_execute($st);
+        mysqli_stmt_store_result($st);
         mysqli_stmt_bind_result($st, $defID);
 
         while (mysqli_stmt_fetch($st)) {

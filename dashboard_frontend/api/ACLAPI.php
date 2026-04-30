@@ -71,6 +71,12 @@
                     if (!empty($res['error'])) {http_response_code(400);}
                     echo json_encode($res);
                     exit;
+                case 'get_dashboard_list':
+                    header('Content-Type: application/json');
+                    $res = ACLAPI_get_dashboard_list($data);
+                    if (!empty($res['error'])) {http_response_code(400);}
+                    echo json_encode($res);
+                    exit;
                 case 'get_user_ACLs':
                     header('Content-Type: application/json');
                     $res = ACLAPI_get_user_ACLs($data);

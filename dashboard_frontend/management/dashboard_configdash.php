@@ -3124,8 +3124,13 @@
 
                 $("#customLinkConfirm").click(() => {
                     var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var originalFatherId = $("#modalCustomLink").attr("originalFatherId")
                     var typeMenuOrderObj = menuOrderObj
                     var typeList = linkList
+                    var originalListToCheck = linkList
+                    let fatherIdToCheck = fatherId || originalFatherId
+                    if(originalFatherId)
+                        originalListToCheck = subLinkList.filter(x => x.menuId == originalFatherId)
                     if(fatherId){
                         typeList = subLinkList.filter(x => x.menuId == fatherId)
                         submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
@@ -3137,10 +3142,13 @@
 
                         let id = $("#customLinkConfirm").attr("linkId")
                         let mode = $("#customLinkConfirm").attr("mode")
+                        let isSub = (fatherId)?true:false
+                        let wasSub = (originalFatherId)?true:false
                         let data = {
-                            isSub: (fatherId)?true:false
+                            isSub,
+                            wasSub
                         }
-                        let linkInfo = typeList.find(x => x.id == id)
+                        let linkInfo = originalListToCheck.find(x => x.id == id)
                         $("#customLinktRunningText").text(((mode=="delete")?"Deleting":(linkInfo)?"Editing":"Creating")+" link")
                         $("#customLinkRunningMsg").show()
                         if(mode != "delete"){
@@ -3148,7 +3156,7 @@
                                 let name = x.name
                                 if(name && name != ""){
                                     if(x.value=="" && x.getAttribute("defaultValue")!= undefined) x.value = x.getAttribute("defaultValue")
-                                    if((!linkInfo || linkInfo[name] != x.value))
+                                    if((!linkInfo || linkInfo[name] != x.value || originalFatherId != fatherId))
                                         data[name] = x.value
                                 }
                             })
@@ -3170,17 +3178,26 @@
                                 success: (res) => {
                                     res = JSON.parse(res)
                                     if(mode == "delete"){
-                                        let index = typeList.findIndex(x => x.id == id)
-                                        if(index > -1) typeList.splice(index, 1)
+                                        let index = originalListToCheck.findIndex(x => x.id == id)
+                                        if(index > -1) originalListToCheck.splice(index, 1)
                                         $("#currMenuOrderElement").remove()
                                         saveMenuOrder()
                                     }
                                     else if(linkInfo){
                                         Object.entries(data).forEach(([name, value]) => {
-                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId", "isSub"].includes(name)){
+                                            if(!["id", "editCustomLink", "addCustomLink", "dashboardId", "isSub", "wasSub"].includes(name)){
                                                 linkInfo[name] = value
                                             }
                                         })
+                                        if(wasSub != isSub){
+                                            linkInfo.id = res.response
+                                            if(isSub){
+                                                let oldSubs = subLinkList.filter(x => x.menuId == id).map(x => x.id)
+                                                let currOrder =submenuOrderObj[fatherId].currOrder
+                                                submenuOrderObj[fatherId].currOrder = [...currOrder.slice(0,+linkInfo.menuOrder+1), ...oldSubs, ...currOrder.slice(+linkInfo.menuOrder+1)]
+                                                delete submenuOrderObj[id]
+                                            }
+                                        }
                                     }else{
                                         let newItem = {id: res.response}
                                         Object.entries(data).forEach(([name, value]) => {
@@ -3235,12 +3252,17 @@
                     if(isSubmenu){
                         let defaultSelect = $("#customLinkFather").attr("defaultValue")
                         $("#customLinkFather").empty()
+                        let id = $("#customLinkConfirm").attr("linkId")
                         linkList.sort((x, y) => x.menuOrder - y.menuOrder).forEach(x => {
-                            $("#customLinkFather").append(`<option value="${x.id}">${x.text}</option>`)
+                            if(x.id != id)
+                                $("#customLinkFather").append(`<option value="${x.id}">${x.text}</option>`)
                         })
                         if(defaultSelect) $("#customLinkFather").val(defaultSelect)
-
+                        
+                    }else{
+                        $("#customLinkFather").val("")
                     }
+                    $("#customLinkFather").change()
                 })
 
                 $("#customLinkFather").change(() => {
@@ -3328,6 +3350,7 @@
                             fatherId = customLinkRow.find(".orgMenuSubItemCnt").attr("data-fathermenuiddiv") || ""
                         }
                     }
+
                     var typeList = linkList
                     if(fatherId){
                         typeList = subLinkList.filter(x => x.menuId == fatherId)
@@ -3509,6 +3532,7 @@
                     mode = $("#customLinkConfirm").attr("mode")
                     currId = $("#customLinkConfirm").attr("linkId")
                     var fatherId = $("#modalCustomLink").attr("fatherId")
+                    var originalFatherId = $("#modalCustomLink").attr("originalFatherId")
                     var typeList = linkList
                     var typeMenuOrderObj = menuOrderObj
                     if(fatherId){
@@ -3516,6 +3540,7 @@
                         submenuOrderObj[fatherId] ??= JSON.parse(JSON.stringify(defaultMenuOrderObj))
                         typeMenuOrderObj = submenuOrderObj[fatherId]
                     }
+                    let wasInList = typeList.some(x => x.id == currId)
                     typeMenuOrderObj.currId = currId
                     typeMenuOrderObj.initialOrder = {}
                     var html = ""
@@ -3531,7 +3556,7 @@
                             menuOrder: x.menuOrder
                         }
                     })
-                    if(currId == ""){
+                    if(currId == "" || !wasInList){
                         typeMenuOrderObj.initialPos = 0
                         typeMenuOrderObj.currPos = 0
                         typeMenuOrderObj.currOrder = [""]
@@ -3551,7 +3576,28 @@
                                 <button class="control-btn move-down">↓</button>
                             </div>
                         </li>`
+                    }else if(mode == "edit" && originalFatherId != fatherId && !wasInList){
+                        let oldTypeList = (originalFatherId)?subLinkList.filter(x => x.menuId == originalFatherId):linkList
+                        let oldLinkInfo = oldTypeList.find(x => x.id == currId)
+                        if(oldLinkInfo){
+                            html = `<li class="order-sortable-item" data-id="${currId}" id="currMenuOrderElement" draggable=true>
+                                <span>${oldLinkInfo.text}</span>
+                                <div class="order-item-controls">
+                                    <button class="control-btn move-up">↑</button>
+                                    <button class="control-btn move-down">↓</button>
+                                </div>
+                            </li>`
+                        }else{
+                            html = `<li class="order-sortable-item" data-id="" id="currMenuOrderElement" draggable=true>
+                                <span>New menu element</span>
+                                <div class="order-item-controls">
+                                    <button class="control-btn move-up">↑</button>
+                                    <button class="control-btn move-down">↓</button>
+                                </div>
+                            </li>`
+                        }
                     }
+
                     $("#orderSortableList").empty()
                     if(mode == "add" && typeMenuOrderObj.currOrder && typeMenuOrderObj.currOrder.length > 0){
                         obj = typeMenuOrderObj.currOrder.filter(x => x != "").map(x => obj.find(y => y.id == x))
