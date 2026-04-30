@@ -886,9 +886,7 @@ text-transform: uppercase;
                         {
                             $("#addUserOkModal").modal('hide');
                             $('#addUserModal').modal('hide');
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
-                            buildMainTable(true);
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                         }, 2000);
                         //
                     } else if(des==='nousername') {
@@ -1143,14 +1141,11 @@ text-transform: uppercase;
                 ]
             });
             //role filtering
-            $('#roleFilterButtons').on('click', '.role-filter', function(){
-            // mark active button
+            $('#roleFilterButtons').off('click.rolefilter').on('click.rolefilter', '.role-filter', function(){
             $('.role-filter').removeClass('active');
             $(this).addClass('active');
-            // pick up the role (empty string = “All”)
             currentRoleFilter = $(this).data('role');
-            // refresh the table (silent so it doesn’t reset pagination)
-            $('#usersTable').bootstrapTable('refresh', {silent: true});
+            $('#usersTable').bootstrapTable('refresh', { silent: true });
             });
             //user modal trigger & caching
             $('#addUserBtn').on('click').click(function () {
@@ -1449,10 +1444,7 @@ text-transform: uppercase;
                         $('#editUserOkModal').modal('show');
                         $("#editNewUserModal").modal('hide');
                         setTimeout(function () {
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]')
-                                .addClass('active'); 
-                            buildMainTable(true); 
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                         }, 2000);
                     } else {
                         $('#editUserKoModal').modal('show');
@@ -1595,9 +1587,7 @@ text-transform: uppercase;
                         $("#deleteUserModalInnerDiv2").html('<i class="fa fa-check" style="font-size:42px"></i>');
                         setTimeout(function ()
                         {
-                            buildMainTable(true);
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                             $("#deleteUserModal").modal('hide');
                             $("#deleteUserCancelBtn").show();
                             $("#deleteUserConfirmBtn").show();

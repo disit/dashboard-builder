@@ -12,7 +12,6 @@
    GNU Affero General Public License for more details.
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
-
 include '../config.php';
 require '../sso/autoload.php';
 
@@ -26,67 +25,89 @@ $ldap = getLdapConn();
 
 $action = $_REQUEST['action'];
 switch ($action) {
-    case 'get_list':
-        header('Content-Type: application/json');
-        //pull server-side pagination params from GET
-        $limit  = isset($_GET['limit'])  ? intval($_GET['limit'])  : 10;
-        $offset = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
-        $search = trim($_GET['search']  ?? '');
-        $sort   = $_GET['sort']   ?? 'username';
-        $order  = (isset($_GET['order']) && strtolower($_GET['order']) === 'desc')
-                   ? SORT_DESC
-                   : SORT_ASC;
-        $roleFilter = trim($_GET['role'] ?? '');
-        //get the full user list
-        $allUsers = buildUserList($link, $ldap, $roleFilter);
-        //filter by search term if present
-        if ($search !== '') {
-            $searchLower = mb_strtolower($search, 'UTF-8');
-            $allUsers = array_filter($allUsers, function($u) use ($searchLower) {
-                return
-                   mb_stripos($u['username'],     $searchLower, 0, 'UTF-8') !== false
+case 'get_list':
+    header('Content-Type: application/json');
+    $limit      = isset($_GET['limit'])  ? intval($_GET['limit'])  : 10;
+    $offset     = isset($_GET['offset']) ? intval($_GET['offset']) : 0;
+    $search     = trim($_GET['search']  ?? '');
+    $sort       = $_GET['sort']   ?? 'username';
+    $order      = (isset($_GET['order']) && strtolower($_GET['order']) === 'desc')
+                   ? SORT_DESC : SORT_ASC;
+    $roleFilter = trim($_GET['role'] ?? '');
+
+    // Cache key: role filter only (search/sort/page are done in PHP) 
+    $cacheKey = 'userlist_cache';
+    $cacheTTL = 120; // duration of cache in seconds
+
+    $now = time();
+    $allUsers = null;
+
+    if (
+        isset($_SESSION[$cacheKey], $_SESSION[$cacheKey . '_ts'])
+        && ($now - $_SESSION[$cacheKey . '_ts']) < $cacheTTL
+    ) {
+        $allUsers = $_SESSION[$cacheKey];
+    }
+
+    if ($allUsers === null) {
+        $link   = getDbLink();
+        $ldap   = getLdapConn();
+        // Always fetch ALL users unfiltered, cache the full set
+        $allUsers = buildUserList($link, $ldap, '');
+        $_SESSION[$cacheKey]       = $allUsers;
+        $_SESSION[$cacheKey . '_ts'] = $now;
+    }
+
+    // Apply role filter in PHP after cache hit
+    if ($roleFilter !== '') {
+        $allUsers = array_values(array_filter($allUsers, function ($u) use ($roleFilter) {
+            return isset($u['admin']) && $u['admin'] === $roleFilter;
+        }));
+    }
+
+    // Search
+    if ($search !== '') {
+        $searchLower = mb_strtolower($search, 'UTF-8');
+        $allUsers = array_values(array_filter($allUsers, function($u) use ($searchLower) {
+            return mb_stripos($u['username'],     $searchLower, 0, 'UTF-8') !== false
                 || mb_stripos($u['mail'],         $searchLower, 0, 'UTF-8') !== false
-                || mb_stripos(mb_strtolower($u['admin'], 'UTF-8'), $searchLower, 0, 'UTF-8') !== false
+                || mb_stripos($u['admin'],        $searchLower, 0, 'UTF-8') !== false
                 || mb_stripos($u['organization'], $searchLower, 0, 'UTF-8') !== false;
-            });
-        }
-        //sort by the requested field
-        usort($allUsers, function($a, $b) use ($sort, $order) {
-            $va = $a[$sort] ?? '';
-            $vb = $b[$sort] ?? '';
-            if ($va == $vb) return 0;
-            // numeric vs string compare
-            if (is_numeric($va) && is_numeric($vb)) {
-                return $order === SORT_ASC ? ($va - $vb) : ($vb - $va);
-            }
-            return $order === SORT_ASC
-                ? strcasecmp($va, $vb)
-                : strcasecmp($vb, $va);
-        });
-        //compute total and slice the page
-        $total = count($allUsers);
-        $rows  = array_slice($allUsers, $offset, $limit);
-        //emit { total, rows }
-        echo json_encode([
-            'total' => $total,
-            'rows'  => array_values($rows),
-        ]);
-        break;
+        }));
+    }
+
+    // Sort
+    usort($allUsers, function($a, $b) use ($sort, $order) {
+        $va = $a[$sort] ?? '';
+        $vb = $b[$sort] ?? '';
+        if ($va == $vb) return 0;
+        if (is_numeric($va) && is_numeric($vb))
+            return $order === SORT_ASC ? ($va - $vb) : ($vb - $va);
+        return $order === SORT_ASC ? strcasecmp($va, $vb) : strcasecmp($vb, $va);
+    });
+
+    $total = count($allUsers);
+    $rows  = array_slice($allUsers, $offset, $limit);
+    echo json_encode(['total' => $total, 'rows' => array_values($rows)]);
+    break;
 
     case 'add_user':
+        unset($_SESSION['userlist_cache'], $_SESSION['userlist_cache_ts']);
         AddUser($link, $ldap);
         break;
 
     case 'edit_user':
+        unset($_SESSION['userlist_cache'], $_SESSION['userlist_cache_ts']);
         EditUser($link, $ldap);
+        break;
+
+    case 'delete_user':
+        unset($_SESSION['userlist_cache'], $_SESSION['userlist_cache_ts']);
+        DeleteUser($ldap);
         break;
 
     case 'list_org':
         ListOrg($ldap);
-        break;
-
-    case 'delete_user':
-        DeleteUser($ldap);
         break;
 
     case 'get_groups':
@@ -424,159 +445,161 @@ function findGroupDn($ldap, $baseDn, $cn) {
 
 function buildUserList($link, $ldap, string $roleFilter = '') {
     global $ldapBaseDN, $ldapToolGroups, $dbname, $userMonitoring;
-    $usersOut = [];
-    // If a roleFilter is specified, load only that group's members
-    if ($roleFilter !== '' && $roleFilter !== 'Observer') {
-        // fetch the group entry for the given role
-        $groupSearch = @ldap_search(
-            $ldap,
-            $ldapBaseDN,
-            "(cn={$roleFilter})",
-            ['roleOccupant']
-        );
-        $groupEnt = ldap_get_entries($ldap, $groupSearch);
-        if (! empty($groupEnt[0]['roleoccupant'])) {
-            $idx = 0;
-            // loop each DN listed as a roleOccupant
-            for ($i = 0; $i < $groupEnt[0]['roleoccupant']['count']; $i++) {
-                $userDn = $groupEnt[0]['roleoccupant'][$i];
-                // read just that one user entry
-                $userSearch = @ldap_read(
-                    $ldap,
-                    $userDn,
-                    '(objectClass=inetOrgPerson)',
-                    ['cn','mail','ou']
-                );
-                $userEnts = ldap_get_entries($ldap, $userSearch);
-                if ($userEnts['count'] === 0) {
-                    continue;
-                }
-                $e = $userEnts[0];
-                // extract username from DN
-                if (! preg_match('/^cn=([^,]+)/i', $e['dn'], $m)) {
-                    continue;
-                }
-                $username = $m[1];
-                $email    = $e['mail'][0] ?? '';
-                // collect OU-based organizations
-                $orgs = [];
-                if (! empty($e['ou']['count'])) {
-                    for ($j = 0; $j < $e['ou']['count']; $j++) {
-                        $orgs[] = $e['ou'][$j];
-                    }
-                }
-                $orgString = implode(', ', $orgs);
-                // assemble output row
-                $usersOut[] = [
-                    "IdUser"       => (string)$idx++,
-                    "username"     => $username,
-                    "organization" => $orgString,
-                    "status"       => null,
-                    "reg_data"     => null,
-                    "password"     => null,
-                    "mail"         => $email,
-                    "admin"        => $roleFilter,
-                    "cn"           => $e['dn'],
-                    "csbl"         => false,
-                    "data_table"   => false,
-                    "groups"       => [],
-                    "delegated_userstats_orgs" => [],
-                ];
+
+    //Load ALL OUs in one shot and build a DN→orgs map
+    $srOus = @ldap_search($ldap, $ldapBaseDN,
+        '(objectClass=organizationalUnit)', ['ou', 'l']);
+    $ouEntries = $srOus ? ldap_get_entries($ldap, $srOus) : ['count' => 0];
+
+    $dnToOrgs = []; // lowercase userDN → [org, org, ...]
+    for ($i = 0; $i < $ouEntries['count']; $i++) {
+        $e = $ouEntries[$i];
+        $ouName = $e['ou'][0] ?? '';
+        if (empty($e['l']['count'])) continue;
+        for ($j = 0; $j < $e['l']['count']; $j++) {
+            $memberDn = strtolower($e['l'][$j]);
+            $dnToOrgs[$memberDn][] = $ouName;
+        }
+    }
+
+    //Load ALL roles in one shot and build a DN→role map
+    $roles = ['ToolAdmin', 'RootAdmin', 'Manager', 'AreaManager'];
+    $dnToRole = []; // lowercase userDN → roleName
+    foreach ($roles as $r) {
+        $sr = @ldap_search($ldap, $ldapBaseDN, "(cn=$r)", ['roleOccupant']);
+        if (!$sr) continue;
+        $ent = ldap_get_entries($ldap, $sr);
+        if (empty($ent[0]['roleoccupant']['count'])) continue;
+        for ($j = 0; $j < $ent[0]['roleoccupant']['count']; $j++) {
+            $memberDn = strtolower($ent[0]['roleoccupant'][$j]);
+            // first match wins (respect priority order)
+            if (!isset($dnToRole[$memberDn])) {
+                $dnToRole[$memberDn] = $r;
             }
+        }
+    }
+
+    //If role filter is requested, resolve just those members
+    if ($roleFilter !== '' && $roleFilter !== 'Observer') {
+        $sr = @ldap_search($ldap, $ldapBaseDN,
+            "(cn={$roleFilter})", ['roleOccupant']);
+        $ent = ldap_get_entries($ldap, $sr);
+        if (empty($ent[0]['roleoccupant']['count'])) return [];
+
+        // collect all DNs for that role, then fetch them in ONE paged search
+        $targetDns = [];
+        for ($i = 0; $i < $ent[0]['roleoccupant']['count']; $i++) {
+            $targetDns[] = strtolower($ent[0]['roleoccupant'][$i]);
         }
 
-        return $usersOut;
-    }
-    // NO ROLE FILTER
-    //role to dn map
-    $roles = ['ToolAdmin','RootAdmin','Manager','AreaManager','Observer'];
-    $roleMembers = [];
-    foreach ($roles as $r) {
-        $rRes = ldap_search($ldap, $ldapBaseDN, "(cn=$r)", ['roleOccupant']);
-        $rEnt = ldap_get_entries($ldap, $rRes);
-        $roleMembers[$r] = array_map('strtolower', $rEnt[0]['roleoccupant'] ?? []);
-    }
-    mysqli_select_db($link, $dbname);
-    //get all users
-    $srUsers = ldap_search(
-        $ldap,
-        $ldapBaseDN,
-        '(objectClass=inetOrgPerson)',
-        ['cn','mail']
-    );
-    if ($srUsers === false) {
-        error_log("buildUserList(): could not fetch users: " . ldap_error($ldap));
-        return [];
-    }
-    $entriesUsers = ldap_get_entries($ldap, $srUsers);
-    //iterate and build each user
-    for ($i = 0; $i < $entriesUsers['count']; $i++) {
-        $e  = $entriesUsers[$i];
-        $dn = $e['dn'] ?? '';
-        // extract username
-        if (! preg_match('/^cn=([^,]+)/i', $dn, $m)) {
-            continue;
+        // Build a big OR filter: (|(cn=alice)(cn=bob)...)
+        $cnFilters = '';
+        foreach ($targetDns as $dn) {
+            if (preg_match('/^cn=([^,]+)/i', $dn, $m)) {
+                $cnFilters .= '(cn=' . ldap_escape($m[1], '', LDAP_ESCAPE_FILTER) . ')';
+            }
         }
+        $filter = '(&(objectClass=inetOrgPerson)(|' . $cnFilters . '))';
+        $sr = @ldap_search($ldap, $ldapBaseDN, $filter, ['cn', 'mail']);
+        $entries = $sr ? ldap_get_entries($ldap, $sr) : ['count' => 0];
+
+        $out = [];
+        for ($i = 0; $i < $entries['count']; $i++) {
+            $e  = $entries[$i];
+            $dn = strtolower($e['dn'] ?? '');
+            if (!preg_match('/^cn=([^,]+)/i', $dn, $m)) continue;
+            $username = $m[1];
+            $orgs = $dnToOrgs[$dn] ?? [];
+            $out[] = [
+                'IdUser'       => (string)$i,
+                'username'     => $username,
+                'organization' => implode(', ', $orgs),
+                'status'       => null, 'reg_data' => null, 'password' => null,
+                'mail'         => $e['mail'][0] ?? '',
+                'admin'        => $roleFilter,
+                'cn'           => $e['dn'],
+                'csbl'         => false,
+                'data_table'   => false,
+                'groups'       => [],
+                'delegated_userstats_orgs' => [],
+            ];
+        }
+        return $out;
+    }
+
+    //Full user list
+    // change page size here
+    $pageSize   = 500;
+    $cookie     = '';
+    $allEntries = [];
+
+    do {
+        $controls = [[
+            'oid'        => LDAP_CONTROL_PAGEDRESULTS,
+            'iscritical' => false,
+            'value'      => [
+                'size'   => $pageSize,
+                'cookie' => $cookie,
+            ],
+        ]];
+
+        $sr = @ldap_search(
+            $ldap,
+            $ldapBaseDN,
+            '(objectClass=inetOrgPerson)',
+            ['cn', 'mail'],
+            0,
+            0,
+            0,
+            LDAP_DEREF_NEVER,
+            $controls
+        );
+
+        if ($sr === false) break;
+
+        $entries = ldap_get_entries($ldap, $sr);
+        for ($i = 0; $i < $entries['count']; $i++) {
+            $allEntries[] = $entries[$i];
+        }
+
+        $cookie = '';
+        $responseControls = [];
+        ldap_parse_result($ldap, $sr, $errcode, $matcheddn, $errmsg, $referrals, $responseControls);
+        if (isset($responseControls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'])) {
+            $cookie = $responseControls[LDAP_CONTROL_PAGEDRESULTS]['value']['cookie'];
+        }
+
+    } while ($cookie !== null && $cookie !== '');
+
+    $usersOut = [];
+    foreach ($allEntries as $i => $e) {
+        $dn    = strtolower($e['dn'] ?? '');
+        if (!preg_match('/^cn=([^,]+)/i', $dn, $m)) continue;
         $username = $m[1];
-        $email    = $e['mail'][0] ?? '';
-        //fetch orgs via 'l' from OUs
-        $dnFilter  = ldap_escape($dn, '', LDAP_ESCAPE_FILTER);
-        $orgFilter = '(&(objectClass=organizationalUnit)(l=' . $dnFilter . '))';
-        $srOrgs    = @ldap_search($ldap, $ldapBaseDN, $orgFilter, ['ou']);
-        $orgs      = [];
-        if ($srOrgs !== false) {
-            $entriesOrgs = ldap_get_entries($ldap, $srOrgs);
-            for ($j = 0; $j < $entriesOrgs['count']; $j++) {
-                if (! empty($entriesOrgs[$j]['ou'][0])) {
-                    $orgs[] = $entriesOrgs[$j]['ou'][0];
-                }
-            }
-        }
-        $orgString = implode(', ', $orgs);
-        // find this user’s role by seeing which roleOccupant list contains their DN
-        $dnLower = strtolower($dn);
-        $role    = null;
-        foreach ($roleMembers as $rName => $dns) {
-            if (in_array($dnLower, $dns, true)) {
-                $role = $rName;
-                break;
-            }
-        }
-        // check CSBL & data-table flags (delayed to GetUserDetails)
-        $has_csbl        = false;
-        $data_table_user = false;
-        // fetch LDAP groups
-        $groups = [];
-        // fetch delegated orgs if enabled
-        if ($userMonitoring == 'true') {
-            $delegated_userstats_orgs = [];
-        } else {
-            $delegated_userstats_orgs = [];
-        }
-        // push into the output
+        $orgs     = $dnToOrgs[$dn] ?? [];
+        $role     = $dnToRole[$dn] ?? 'Observer';
+
         $usersOut[] = [
-            "IdUser"       => (string)$i,
-            "username"     => $username,
-            "organization" => $orgString,
-            "status"       => null,
-            "reg_data"     => null,
-            "password"     => null,
-            "mail"         => $email,
-            "admin"        => $role ?? 'Observer',
-            "cn"           => $dn,
-            "csbl"         => $has_csbl,
-            "data_table"   => $data_table_user,
-            "groups"       => $groups,
-            "delegated_userstats_orgs" => $delegated_userstats_orgs,
+            'IdUser'       => (string)$i,
+            'username'     => $username,
+            'organization' => implode(', ', $orgs),
+            'status'       => null, 'reg_data' => null, 'password' => null,
+            'mail'         => $e['mail'][0] ?? '',
+            'admin'        => $role,
+            'cn'           => $e['dn'],
+            'csbl'         => false,
+            'data_table'   => false,
+            'groups'       => [],
+            'delegated_userstats_orgs' => [],
         ];
     }
+
     if ($roleFilter === 'Observer') {
-        $usersOut = array_filter($usersOut, function($u){
+        $usersOut = array_values(array_filter($usersOut, function ($u) {
             return isset($u['admin']) && $u['admin'] === 'Observer';
-        });
-        // re-index if you want contiguous numeric IdUser
-        $usersOut = array_values($usersOut);
+        }));
     }
+
     return $usersOut;
 }
 

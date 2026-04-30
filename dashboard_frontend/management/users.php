@@ -912,9 +912,7 @@ text-transform: uppercase;
                         {
                             $("#addUserOkModal").modal('hide');
                             $('#addUserModal').modal('hide');
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
-                            buildMainTable(true);
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                         }, 2000);
                         //
                     } else if(des==='nousername') {
@@ -1085,7 +1083,7 @@ text-transform: uppercase;
                     // Update total users
                     $('#dashboardTotNumberCnt div.pageSingleDataCnt').text(data.total);
                 },
-                // Inject the ì+î button once
+                // Inject the ‚Äú+‚Äù button once
                 onPostBody: function() {
                     if (tableFirstLoad) {
                         tableFirstLoad = false;
@@ -1173,9 +1171,9 @@ text-transform: uppercase;
             // mark active button
             $('.role-filter').removeClass('active');
             $(this).addClass('active');
-            // pick up the role (empty string = ìAllî)
+            // pick up the role (empty string = ‚ÄúAll‚Äù)
             currentRoleFilter = $(this).data('role');
-            // refresh the table (silent so it doesnít reset pagination)
+            // refresh the table (silent so it doesn‚Äôt reset pagination)
             $('#usersTable').bootstrapTable('refresh', {silent: true});
             });
             //user modal trigger & caching
@@ -1475,10 +1473,7 @@ text-transform: uppercase;
                         $('#editUserOkModal').modal('show');
                         $("#editNewUserModal").modal('hide');
                         setTimeout(function () {
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]')
-                                .addClass('active'); 
-                            buildMainTable(true); 
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                         }, 2000);
                     } else {
                         $('#editUserKoModal').modal('show');
@@ -1621,9 +1616,7 @@ text-transform: uppercase;
                         $("#deleteUserModalInnerDiv2").html('<i class="fa fa-check" style="font-size:42px"></i>');
                         setTimeout(function ()
                         {
-                            buildMainTable(true);
-                            $('#roleFilterButtons .role-filter').removeClass('active');
-                            $('#roleFilterButtons .role-filter[data-role="AreaManager"]').addClass('active');
+                            $('#usersTable').bootstrapTable('refresh', { silent: true });
                             $("#deleteUserModal").modal('hide');
                             $("#deleteUserCancelBtn").show();
                             $("#deleteUserConfirmBtn").show();
@@ -1772,7 +1765,7 @@ text-transform: uppercase;
                 )
                 .catch(err => {
                 console.error('ACL popup error:', err);
-                alert('Could not load ACL ó see console.');
+                alert('Could not load ACL ‚Äî see console.');
                 });
         });
         $('#editACLConfirmBtn').click(function(){
