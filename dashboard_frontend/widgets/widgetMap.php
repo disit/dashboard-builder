@@ -3307,7 +3307,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             });
                             //
 
-                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                            if (geoJsonServiceData.hasOwnProperty("BusStop") && parent.busMapAppState !== 'tratta_selected') {
 
                                 $.getJSON('<?= $whatifmdtendpt ?>?stop=' + encodeURIComponent(serviceProperties['serviceUri']) + "&list=graphs", function (graphs) {
                                     var pAgency = graphs.join();
@@ -5036,7 +5036,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             });
                             //
 
-                            if (geoJsonServiceData.hasOwnProperty("BusStop")) {
+                            if (geoJsonServiceData.hasOwnProperty("BusStop") && parent.busMapAppState !== 'tratta_selected') {
 
                                 $.getJSON('<?= $whatifmdtendpt ?>?stop=' + encodeURIComponent(serviceProperties['serviceUri']) + "&list=graphs", function (graphs) {
                                     var pAgency = graphs.join();
@@ -27269,7 +27269,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
      * 
      * @trigger addPinAsMarker
      * @usage Custom map markers with flexible icon anchoring
-     * @author Naldi
+     * @author Galli
      * 
      * @params {Object} event.passedData - Configuration object
      * @params {Object} event.passedData.position - Marker coordinates {lat, lng}
@@ -27455,7 +27455,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
      * Can remove all markers for an ID or specific individual markers
      * 
      * @trigger removePinAsMarker
-     * @author Naldi
+     * @author Galli
      * 
      * @params {Object} event.passedData - Configuration object
      * @params {string} event.passedData.id - Identifier of the marker group to remove
