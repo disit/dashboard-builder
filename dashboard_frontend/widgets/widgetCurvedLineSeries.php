@@ -32,16 +32,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             }
 
             $widgetCodeFromDb = null;
-            if ((isset($_REQUEST['hostFile'])) && ($_REQUEST['hostFile'] === 'config')) {
-                $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
-                $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
-                $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
-                $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
-                if ($widgetCodeResult) {
-                    $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
-                    if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
-                        $widgetCodeFromDb = $widgetCodeRow['code'];
-                    }
+            $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+            $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+            $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+            $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+            if ($widgetCodeResult) {
+                $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                    $widgetCodeFromDb = $widgetCodeRow['code'];
                 }
             }
         ?>  
@@ -102,7 +100,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
         function getWidgetCode(fallbackCode)
         {
-            if (hostFile === "config" && widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+            if (widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
                 return widgetCodeFromDb;
             }
 

@@ -610,6 +610,20 @@ function checkWidgetNameInDashboard($link, $widgetName, $dashId) {
     }
 }
 
+function shouldHideWidgetCodeInDashboardPayload($widgetType)
+{
+    static $widgetTypesWithServerSideCode = [
+        'widgetExternalContent',
+        'widgetBarSeries',
+        'widgetMap',
+        'widgetDeviceTable',
+        'widgetCurvedLineSeries',
+        'widgetButton'
+    ];
+
+    return in_array($widgetType, $widgetTypesWithServerSideCode, true);
+}
+
 function checkAlphaNum($entry) {
     if (ctype_alnum($entry)) {
         return true;

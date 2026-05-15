@@ -61,20 +61,6 @@ function canEditDashboard()
     return $result;
 }
 
-function shouldHideWidgetCodeInDashboardPayload($widgetType)
-{
-    static $widgetTypesWithServerSideCode = [
-        'widgetExternalContent',
-        'widgetBarSeries',
-        'widgetMap',
-        'widgetDeviceTable',
-        'widgetCurvedLineSeries',
-        'widgetButton'
-    ];
-
-    return in_array($widgetType, $widgetTypesWithServerSideCode, true);
-}
-
 if(!$link->set_charset("utf8")) 
 {
     exit();

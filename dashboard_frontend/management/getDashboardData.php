@@ -140,7 +140,7 @@
         {
             while($row = mysqli_fetch_assoc($result)) 
             {
-                if (isset($row['type_w']) && $row['type_w'] === 'widgetExternalContent') {
+                if (isset($row['type_w']) && shouldHideWidgetCodeInDashboardPayload($row['type_w'])) {
                     unset($row['code']);
                 }
                 array_push($dashboardWidgets, $row);
