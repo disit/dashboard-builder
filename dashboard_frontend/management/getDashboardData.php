@@ -429,8 +429,7 @@
                        //header("Location: ../management/ssoLogin.php?redirect=https://main.snap4city.org/view/index.php?iddasboard=NDc4");
                        
                    }//Fine else utente NON collegato all'applicazione
-                   
-                   if($proceed && $allowedByACL)
+                   if($proceed || $allowedByACL)
                    {
                         $response["detail"] = "Ok";
                         $response["context"] = "View";

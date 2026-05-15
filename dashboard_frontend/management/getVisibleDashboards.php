@@ -8,9 +8,9 @@ mysqli_select_db($link, $dbname);
 function encodeB64($id){
     if($id != null){
         $decoded = base64_decode($id, true);
-        if($decoded !== false && base64_encode($decoded) === $id){
+        /*if($decoded !== false && base64_encode($decoded) === $id){
             return $id;
-        }
+        }*/
         return base64_encode($id);
     }else return null;
 }

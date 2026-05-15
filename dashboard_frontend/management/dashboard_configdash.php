@@ -29671,7 +29671,7 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-                                        
+					
                                         newLabel = $('<label for="ttStepLineM" class="col-md-1 control-label">Line shape</label>');
                                         newInnerDiv = $('<div class="col-md-2"></div>');
                                         newSelect = $('<select class="form-control" id="ttStepLineM" name="ttStepLineM"></select>');
@@ -29688,7 +29688,7 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-
+					
                                         $("#chartTypeDiv").on("change", function() {
                                             // if Stacekd Option is selected, a message is shown explaining it works only with equally-sampled data series
                                             if (this.children[0].options[2].selected === true) {

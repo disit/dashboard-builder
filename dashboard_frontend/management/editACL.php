@@ -25,14 +25,15 @@ case get_list_ACL : select * from Dashboard.ACL
 */
 include '../config.php';
 require '../sso/autoload.php';
+require  '../management/ACLInternal.php';
 
 use Jumbojett\OpenIDConnectClient;
 session_start();
 requireAdmin();
 
-$link = getDbLink();       
-
+$link = getDbLink();
 $action = $_REQUEST['action'];
+
 switch ($action) {
     case 'get_list_AD':
         header('Content-Type: application/json');
@@ -96,7 +97,7 @@ switch ($action) {
     default:
         break;
 }
-exit;
+//exit;
 
 function requireAdmin() {
     //grab any Authorization header
@@ -154,6 +155,11 @@ function requireAdmin() {
         //must include RootAdmin
         if (in_array('RootAdmin', $roles, true)) {
             return;  //ok
+        }
+        //check if user is in authorized users list
+        $is_user_auth = check_AUTH_ACL($userinfo);
+        if($is_user_auth){
+            return;
         }
         header('HTTP/1.1 403 Forbidden');
         echo 'You are not authorized to access this data!';
@@ -294,7 +300,7 @@ function add_access_definition($link){
         reserveAcName($link, $name);
     } catch (\Exception $e) {
         echo json_encode(['error' => $e->getMessage()]);
-        exit;
+        return;
     }
     $orgs    = isset($_POST['orgs']) && is_array($_POST['orgs'])
                 ? $_POST['orgs']
@@ -984,6 +990,7 @@ function get_user_profiles($link) {
 }
 
 function update_user_profiles($link) {
+    
     global $encryptionInitKey, $encryptionIvKey, $encryptionMethod;
     $user = trim($_POST['username'] ?? '');
     if ($user === '') return ['error'=> 'no username'];
@@ -996,6 +1003,10 @@ function update_user_profiles($link) {
               : [];
     $toAdd    = array_diff($new, $original);
     $toRem    = array_diff($original, $new);
+
+    //echo(json_encode($_POST));
+    //echo(json_encode($original));
+    //echo(json_encode($new));
 
     $ins = mysqli_prepare($link, "INSERT IGNORE INTO ACLProfilesAssignment(profileID,user) VALUES(?,?)");
     mysqli_stmt_bind_param($ins, "is", $pid, $enc_user);
@@ -1014,4 +1025,16 @@ function update_user_profiles($link) {
     return ['added'=>$added,'removed'=>$removed];
 }
 
+function check_AUTH_ACL($userinfo){
+    $username = $userinfo['preferred_username'];
+    if($username == null){
+        $username = $userinfo['username'];
+        if($username == null)
+            return false;
+    }
+    $acl_authorized_users_name = getenv('ACL_NAME_AUTHORIZED_USERS') ?: "ACL_AUTHORIZED_USERS";
+    $user_acls = ACLAPI_get_user_ACLs(["preferred_username"=>$username, "ACL_substring"=>$acl_authorized_users_name]);
+    $has_auth = !empty($user_acls['ACLs']);
+    return $has_auth;
+}
 

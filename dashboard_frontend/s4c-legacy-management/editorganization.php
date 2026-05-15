@@ -36,10 +36,77 @@ error_reporting(E_ERROR);
 //$action = $_REQUEST['action'];
 $action = mysqli_real_escape_string($link, $_REQUEST['action']);
 $action = filter_var($action, FILTER_SANITIZE_STRING);
+
 //
-if (isset($_SESSION['loggedRole'])) {
+
+if(!function_exists('checkAuth')){
+    function checkAuth(){
+        if(isset($_SESSION['loggedRole']))
+            return true;
+        if(!function_exists('checkACLAuth')){
+            function checkACLAuth(){
+                if(function_exists('requireAdmin')){
+                    requireAdmin();
+                    return true;
+                }
+                return false;
+            }
+        }
+        return function_exists('checkACLAuth') && checkACLAuth();
+    }
+}
+
+
+if (checkAuth()) {
+    
     $role_session_active = $_SESSION['loggedRole'];
 
+    if (!function_exists('addGroup')) {
+        function addGroup($link, $ldapServer, $ldapPort, $ldapAdmin2DN, $ldapAdmin2Pwd, $ldapBaseRootCN, $ldapBaseDN) {
+            $name = mysqli_real_escape_string($link, $_REQUEST['group']);
+            $organization = mysqli_real_escape_string($link, $_REQUEST['organization']);
+            $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
+            if ($connection) {
+                ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3);
+                $bind = ldap_bind($connection, $ldapAdmin2DN, $ldapAdmin2Pwd);
+                if($bind){
+                    $org2 = strtolower($organization);
+                    //$newEntryDn = "cn=userrootadmin,dc=ldap,dc=organization,dc=com"; 
+                    $newEntryDn = "cn=".$ldapBaseRootCN."," . $ldapBaseDN;	
+                    //
+                    $newou = array();
+                    //$newou["dn"] =  "cn=$name,ou=$organization,dc=ldap,dc=$org2,dc=com";
+                    $newou["member"] =  $newEntryDn;
+                    $newou["objectClass"][0] = "groupOfNames";
+                    $newou["objectClass"][1] = "top";
+                    //$newou["objectClass"]= "groupOfNames";
+                    $newou["ou"] = $organization;
+                    $newou["cn"] = $name;
+
+                    $newEntry = json_encode($newou);
+
+                    //$dn = "cn=$name,ou=$organization,dc=ldap,dc=organization,dc=com";
+                        $dn = "cn=$name,ou=$organization,$ldapBaseDN";
+                    //
+                    //echo($newEntry);
+                    //$create_ou = ldap_add($connection, $ldapBase2DN, $newEntry);
+
+                    if (ldap_add($connection, $dn, $newou)){
+                        echo('Created');
+                    }else{
+                        //echo "Errore nella creazione del child: " . ldap_error($connection);
+                        $ldapErrorNo = ldap_errno($connection);
+                        $ldapErrorStr = ldap_err2str($ldapErrorNo);
+                        echo($ldapErrorStr);
+                    }
+                }else{
+                    $ldapErrorNo = ldap_errno($connection);
+                    $ldapErrorStr = ldap_err2str($ldapErrorNo);
+                    echo($ldapErrorStr);
+                }
+            }
+        }
+    }
     if ($action == 'get_data') {
 //////
 $name = 'Organization';
@@ -708,7 +775,8 @@ $name = 'Organization';
         }
         }
     } else if($action == 'add_group'){
-        $name = mysqli_real_escape_string($link, $_REQUEST['group']);
+        addGroup($link, $ldapServer, $ldapPort, $ldapAdmin2DN, $ldapAdmin2Pwd, $ldapBaseRootCN, $ldapBaseDN);
+        /*$name = mysqli_real_escape_string($link, $_REQUEST['group']);
         $organization = mysqli_real_escape_string($link, $_REQUEST['organization']);
             $connection = ldap_connect($ldapServer, $ldapPort)or die("That LDAP-URI was not parseable");
             if ($connection) {
@@ -749,7 +817,7 @@ $name = 'Organization';
                         $ldapErrorStr = ldap_err2str($ldapErrorNo);
                         echo($ldapErrorStr);
 				}
-            }
+            }*/
     }else if($action =='get_gropus'){
         $groups = [];
             $organization = mysqli_real_escape_string($link, $_REQUEST['org']);

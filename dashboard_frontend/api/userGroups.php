@@ -24,7 +24,6 @@ ini_set("max_execution_time", 0);
 error_reporting(E_ERROR);
 $output_message = [];
 
-	
 if(isset($_GET['accessToken'])) {
 	//////
 	$bearerToken = $_GET['accessToken'];
@@ -59,10 +58,10 @@ if (array_key_exists('error', $obj)) {
 	$output_message['message'] = 'Error in accessToken';
 	echo json_encode($output_message);
 	die();
-}else if (array_key_exists('preferred_username', $obj)) {
+}else if (array_key_exists('preferred_username', $obj) || array_key_exists('username', $obj)) {
 	//echo($obj['name']);
 
-	$name = $obj['preferred_username'];
+	$name = $obj['preferred_username'] ?? $obj['username'];
 	////////
 	$link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
@@ -77,7 +76,7 @@ if (array_key_exists('error', $obj)) {
 		///
 		//echo ($_GET['action']);
 		if($_GET['action'] == 'addUser'){
-			if (($_GET['username'])&&($_GET['group'])&&($_GET['organization'])){
+			if ((isset($_GET['username']))&&(isset($_GET['group']))&&(isset($_GET['organization']))){
 				$username = $_GET['username'];
 				$group = $_GET['group'];
 				$organization = $_GET['organization'];
@@ -119,7 +118,6 @@ if (array_key_exists('error', $obj)) {
 													echo json_encode($output_message);
 													die();
 												}else{
-
 													$output_message['status'] = 'KO';
 													$output_message['message'] = 'Error during adding operation';
 													echo json_encode($output_message);

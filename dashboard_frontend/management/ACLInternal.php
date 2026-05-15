@@ -19,7 +19,7 @@
 
     include '../config.php';
 
-    function getDbLink() {
+    function getDbLink_internal() {
         global $host, $username, $password, $dbname;
         $link = mysqli_connect($host, $username, $password, $dbname)
             or die("MySQL connect error: " . mysqli_error($link));
@@ -41,7 +41,7 @@
     */
     function ACLAPI_check_auth($data = []) {
     global $ldapBaseDN;
-    $link = getDbLink();
+    $link = getDbLink_internal();
     $ldap = getLdapConn();
     $requested_name = trim($data['auth_name'] ?? '');
     $requested_org = trim($data['organization'] ?? '');
@@ -439,7 +439,7 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
 //Check if requested user has access to that dash ID
 //FOR INTERNAL: expected $data= ["preferred_username":"required", "dashboard_idx":"required"]
 function ACLAPI_check_dashboard($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
     $debug = [];
     $username = $data['preferred_username'] ?? '';
     $dashboardParam = $data['dashboard_id'] ?? '';
@@ -670,7 +670,7 @@ function ACLAPI_check_dashboard($data = []): array {
 //Check if requested user has access to that collection ID
 //FOR INTERNAL: expected $data= ["preferred_username":"required", "collection_id":"required"]
 function ACLAPI_check_collection($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
     $debug = [];
     $username = $data['preferred_username'] ?? '';
     $collectionParam = $data['collection_id'] ?? '';
@@ -860,7 +860,7 @@ function collect_effective_acl_values(mysqli $link, string $username, string $fi
 // Return user's allowed menuIDs from his ACLs + profiles
 // FOR INTERNAL: expected $data = ["preferred_username":"required"]
 function ACLAPI_check_menuIDs($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
     $username = trim($data['preferred_username'] ?? '');
 
     if ($username === '') {
@@ -893,7 +893,7 @@ function ACLAPI_check_menuIDs($data = []): array {
 // Get all possible dashboards from the user's ACLs + profiles
 // FOR INTERNAL: expected $data = ["preferred_username":"required"]
 function ACLAPI_get_dashboard_list($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
     $username = trim($data['preferred_username'] ?? '');
 
     if ($username === '') {
@@ -1145,7 +1145,7 @@ function check_single_auth(mysqli $link, string $username, string $authname): bo
 // Return user's allowed ACL from his list of ACLs + profiles
 // FOR INTERNAL: expected $data = ["preferred_username":"required", "ACL_substring":"required" (min 3 chars)]
 function ACLAPI_get_user_ACLs($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
 
     $username = trim($data['preferred_username'] ?? '');
     if ($username === '') {
@@ -1168,7 +1168,7 @@ function ACLAPI_get_user_ACLs($data = []): array {
 // Get a requested user's allowed ACL from his list of ACLs + profiles [only for users with ACL MasterDelegator]
 // FOR INTERNAL: expected $data = ["preferred_username":"required", "requested_username":"required"]
 function ACLAPI_get_user_ACLs_delegator($data = []): array {
-    $link = getDbLink();
+    $link = getDbLink_internal();
 
     $caller = trim($data['preferred_username'] ?? '');
     $requested_user = trim($data['requested_username'] ?? '');
