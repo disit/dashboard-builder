@@ -26,8 +26,23 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 eventLog("Returned the following ERROR in widgetBarSeries.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
                 exit();
             }
+
+            $widgetCodeFromDb = null;
+            if ((isset($_REQUEST['hostFile'])) && ($_REQUEST['hostFile'] === 'config')) {
+                $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+                $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+                $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+                $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+                if ($widgetCodeResult) {
+                    $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                    if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                        $widgetCodeFromDb = $widgetCodeRow['code'];
+                    }
+                }
+            }
         ?>  
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
      //   console.log("BarSeries: " + widgetName);
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
@@ -56,6 +71,15 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var sortSeriesStr, sortedSeries = null;
         var followPointerFlag = false;
         var code, connections, clickedVar, clickedCat, selectedDataJson = null;
+
+        function getWidgetCode(fallbackCode)
+        {
+            if (hostFile === "config" && widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+                return widgetCodeFromDb;
+            }
+
+            return fallbackCode;
+        }
 
         console.log("Entrato in widgetBarSeries --> " + widgetName);
 
@@ -1934,7 +1958,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 nrMetricType = widgetData.params.nrMetricType;
                 serviceUri = widgetData.params.serviceUri;
                 idMetric = widgetData.params.id_metric;
-                code = widgetData.params.code;
+                code = getWidgetCode(widgetData.params.code);
                 connections = widgetData.params.connections;
 
                 if (nrMetricType != null) {

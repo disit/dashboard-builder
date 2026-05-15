@@ -94,7 +94,22 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
         if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $_REQUEST['id_dashboard']) === false) {
             eventLog("Returned the following ERROR in widgetEvent.php for the widget " . escapeForHTML($_REQUEST['name_w']) . " is not instantiated or allowed in this dashboard.");
             exit();
+        }
+
+        $widgetCodeFromDb = null;
+        if ((isset($_REQUEST['hostFile'])) && ($_REQUEST['hostFile'] === 'config')) {
+            $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+            $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+            $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+            $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+            if ($widgetCodeResult) {
+                $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                    $widgetCodeFromDb = $widgetCodeRow['code'];
+                }
+            }
         }?> var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
@@ -128,6 +143,15 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
             missingFieldsPerDevice: null
         };	
 		//
+        function getWidgetCode(fallbackCode)
+        {
+            if (hostFile === "config" && widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+                return widgetCodeFromDb;
+            }
+
+            return fallbackCode;
+        }
+
 		$(document).off('showDeviceTableFromExternalContent_' + widgetName);
 			$(document).on('showDeviceTableFromExternalContent_' + widgetName, function(event){
 			console.log('showDeviceTableFromExternalContent_Code!');
@@ -922,7 +946,7 @@ function goToPage(page) {
                 nrInputId = widgetData.params.nrInputId;
                 nodeRedInputName = widgetData.params.name;
                 dashboard_id = widgetData.params.id_dashboard;
-				code = widgetData.params.code;
+				code = getWidgetCode(widgetData.params.code);
 
                 if (((embedWidget === true) && (embedWidgetPolicy === 'auto')) || ((embedWidget === true) && (embedWidgetPolicy === 'manual') && (showTitle === "no")) || ((embedWidget === false) && (showTitle === "no"))) {
                     showHeader = false;

@@ -61,6 +61,20 @@ function canEditDashboard()
     return $result;
 }
 
+function shouldHideWidgetCodeInDashboardPayload($widgetType)
+{
+    static $widgetTypesWithServerSideCode = [
+        'widgetExternalContent',
+        'widgetBarSeries',
+        'widgetMap',
+        'widgetDeviceTable',
+        'widgetCurvedLineSeries',
+        'widgetButton'
+    ];
+
+    return in_array($widgetType, $widgetTypesWithServerSideCode, true);
+}
+
 if(!$link->set_charset("utf8")) 
 {
     exit();
@@ -116,6 +130,9 @@ if(isset($_REQUEST['notBySession'])&&($_REQUEST['notBySession'] == "true"))
                             {
                                 while($row = mysqli_fetch_assoc($result2)) 
                                 {
+                                    if (isset($row['type_w']) && shouldHideWidgetCodeInDashboardPayload($row['type_w'])) {
+                                        unset($row['code']);
+                                    }
                                     array_push($dashboardWidgets, $row);
                                 }
                             }
@@ -1384,6 +1401,9 @@ else
                 {
                     while($row = mysqli_fetch_assoc($result)) 
                     {
+                        if (isset($row['type_w']) && shouldHideWidgetCodeInDashboardPayload($row['type_w'])) {
+                            unset($row['code']);
+                        }
                         array_push($dashboardWidgets, $row);
                     }
                 }

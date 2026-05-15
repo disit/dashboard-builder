@@ -1716,6 +1716,20 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
         }
 
+        $widgetCodeFromDb = null;
+        if ((isset($_REQUEST['hostFile'])) && ($_REQUEST['hostFile'] === 'config')) {
+            $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+            $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+            $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+            $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+            if ($widgetCodeResult) {
+                $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                    $widgetCodeFromDb = $widgetCodeRow['code'];
+                }
+            }
+        }
+
 
         $genFileContent = parse_ini_file("../conf/environment.ini");
         $wsServerContent = parse_ini_file("../conf/webSocketServer.ini");
@@ -1731,6 +1745,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         var headerHeight = 25;
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
         var mapOptionsDivName = widgetName + "_mapOptions";
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
@@ -1889,6 +1904,14 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         var getSmartCityAPIData = null;
         var getShapeSmartCityAPIData = null;
         var geoJsonLayerShape, bimShapeOnMap, descBim = null;
+
+        function getWidgetCode(fallbackCode) {
+            if (hostFile === "config" && widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+                return widgetCodeFromDb;
+            }
+
+            return fallbackCode;
+        }
 
         var spinIcon = (window.location.href.includes("view/index.php") || window.location.href.includes("management/dashboard_configdash.php")) ? 'fa fa-circle-o-notch fa-spin' : 'fa-solid fa-circle-notch fa-spin';
 
@@ -18089,6 +18112,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     let points = passedData[j].points
                     let prevlat = -1;
                     let prevlng = -1;
+                    //BOLOGNA 07/05/26 funzione per ottimizzare 
+                    if (points.length > 2000){
+                    points = simplifyTrajectoryByZoom(points, map.defaultMapRef );
+                    }
 
                     for (let o = 0; o < points.length; o++) { // per ogni punto 
                         await delay(0.1).then(async () => {
@@ -30162,7 +30189,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 heatmapUrl = widgetData.heatmapUrl;
                 nodeRedInputName = widgetData.params.name;
                 nrInputId = widgetData.params.nrInputId;
-                code = widgetData.params.code;
+                code = getWidgetCode(widgetData.params.code);
                 connections = widgetData.params.connections;
                 widgetParams = widgetData.params;
 
@@ -30208,8 +30235,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').off('resizeWidgets');
                 $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_div').parents('li.gs_w').on('resizeWidgets', resizeWidget);
 
-                if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && widgetData.params.code != null && widgetData.params.code != "null") {
-                    code = widgetData.params.code;
+                if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code != null && code != "null") {
                     var text_ck_area = document.createElement("text_ck_area");
                     text_ck_area.innerHTML = code;
                     var newInfoDecoded = text_ck_area.innerText;
@@ -30360,12 +30386,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
                     }
                 }
-                if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && widgetData.params.code != null && widgetData.params.code != "null") {
+                if (widgetParameters.mode && widgetParameters.mode == "ckeditor" && code != null && code != "null") {
                     map.defaultMapRef.on('click', getCoordsClick);
                 }
 
-                if (widgetData.params.code != null && widgetData.params.code != "null") {
-                    let code = widgetData.params.code;
+                if (code != null && code != "null") {
                     var text_ck_area = document.createElement("text_ck_area");
                     text_ck_area.innerHTML = code;
                     var newInfoDecoded = text_ck_area.innerText;
@@ -33709,6 +33734,73 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 }  
      }
 
+
+function simplifyTrajectoryByZoom(points, map) {
+
+    const zoom = map.getZoom();
+
+    let minPixelDistance;
+
+    if (zoom <= 8) minPixelDistance = 12;
+    else if (zoom <= 10) minPixelDistance = 8;
+    else if (zoom <= 13) minPixelDistance = 5;
+    else minPixelDistance = 2;
+
+    if (points.length <= 2)
+        return points;
+
+    const simplified = [];
+    let lastPixelPoint = null;
+    for (let i = 0; i < points.length; i++) {
+
+        const point = points[i];
+
+        const gps = point.position.gps;
+
+        const pixelPoint = map.latLngToLayerPoint([
+            gps.lat,
+            gps.lng
+        ]);
+
+        if (!lastPixelPoint) {
+
+            simplified.push(point);
+
+            lastPixelPoint = pixelPoint;
+
+            continue;
+        }
+
+        const dx = pixelPoint.x - lastPixelPoint.x;
+        const dy = pixelPoint.y - lastPixelPoint.y;
+        const distSq = dx * dx + dy * dy;
+
+        if (distSq >= minPixelDistance * minPixelDistance) {
+
+            simplified.push(point);
+
+            lastPixelPoint = pixelPoint;
+        }
+    }
+
+
+    const last = points[points.length - 1];
+    const lastInserted =
+        simplified[simplified.length - 1];
+
+    if (lastInserted !== last) {
+
+        simplified.push(last);
+    }
+
+    console.log(
+        'original:',
+        points.length,
+        'simplified:',
+        simplified.length
+    );
+    return simplified;
+}
 </script>
 
 <style>

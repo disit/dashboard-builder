@@ -2,17 +2,16 @@
 /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include('../config.php');
     $stopFlag = 1;
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
@@ -29,8 +28,23 @@
                 eventLog("Returned the following ERROR in widgetButton.php for the widget ".escapeForHTML($_REQUEST['name_w'])." is not instantiated or allowed in this dashboard.");
                 exit();
             }
+
+            $widgetCodeFromDb = null;
+            if ((isset($_REQUEST['hostFile'])) && ($_REQUEST['hostFile'] === 'config')) {
+                $widgetNameSql = mysqli_real_escape_string($link, $_REQUEST['name_w']);
+                $dashboardIdSql = mysqli_real_escape_string($link, $_REQUEST['id_dashboard']);
+                $widgetCodeQuery = "SELECT code FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetNameSql' AND id_dashboard = '$dashboardIdSql' LIMIT 1";
+                $widgetCodeResult = mysqli_query($link, $widgetCodeQuery);
+                if ($widgetCodeResult) {
+                    $widgetCodeRow = mysqli_fetch_assoc($widgetCodeResult);
+                    if ($widgetCodeRow && array_key_exists('code', $widgetCodeRow)) {
+                        $widgetCodeFromDb = $widgetCodeRow['code'];
+                    }
+                }
+            }
         ?>
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
+        var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
     //    console.log("Button: " + widgetName);
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
@@ -55,6 +69,16 @@
             originalHeaderFontColor, styleParameters, innerWidth, innerHeight, innerTop, innerLeft,
             outerMinDim, innerMinDim, outerBorderRadius, innerBorderRadius, widgetWidthCells, widgetHeightCells,
             minDim, minDimCells, minDimName, showHeader, buttonPercentWidth, buttonPercentHeight, target = null;
+        var code = null;
+
+        function getWidgetCode(fallbackCode)
+        {
+            if (hostFile === "config" && widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
+                return widgetCodeFromDb;
+            }
+
+            return fallbackCode;
+        }
 
         console.log("Entrato in widgetButton --> " + widgetName);
 
@@ -509,9 +533,8 @@
                }
            }
            ////////////////
-           if (widgetProperties.param.code != null && widgetProperties.param.code != "null") {
-						
-                        code = widgetProperties.param.code;
+           code = getWidgetCode(widgetProperties.param.code);
+           if (code != null && code != "null") {
                         var text_ck_area = document.createElement("text_ck_area");
                         text_ck_area.innerHTML = code;
                         var newInfoDecoded = text_ck_area.innerText;
