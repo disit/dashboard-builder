@@ -615,9 +615,9 @@ function redirect_on_login() {
         $host=$_SERVER['HTTP_X_FORWARDED_HOST'];
     }
     if ($host=='localhost') {
-        header("Location: ../management/ssoLogin.php?redirect=http://$host" . $_SERVER['REQUEST_URI']);
+        header("Location: ../management/ssoLogin.php?redirect=http://$host" . urlencode($_SERVER['REQUEST_URI']));
     } else {
-        header("Location: ../management/ssoLogin.php?redirect=https://$host" . $_SERVER['REQUEST_URI']);
+        header("Location: ../management/ssoLogin.php?redirect=https://$host" . urlencode($_SERVER['REQUEST_URI']));
     }
     exit();
 }
