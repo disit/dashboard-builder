@@ -245,19 +245,19 @@
         {
             //Ok
             case "public":
-                if($allowedByACL)
-                {
+                //if($allowedByACL)
+                //{
                     $response["detail"] = "Ok";
                     $response["context"] = "View";
                     $response["dashboardParams"] = getDashboardParams($link);
                     $response["dashboardWidgets"] = getDashboardWidgets($link);
-                }
-                else
-                {
-                    $response["detail"] = "Ko";
-                    $response["error"] = $acl_auth_result['error'];
-                    error_log("Access to dashboard Id ".$dashboardId." denied by ACL for public visibility ".", reason: " . json_encode($acl_auth_result['debug']));
-                }
+                //}
+                //else
+                //{
+                //    $response["detail"] = "Ko";
+                //    $response["error"] = $acl_auth_result['error'];
+                //    error_log("Access to dashboard Id ".$dashboardId." denied by ACL for public visibility ".", reason: " . json_encode($acl_auth_result['debug']));
+                //}
                 break;
 
             //VISIBILITA' RISTRETTA 
@@ -367,13 +367,20 @@
                    //OK - Utente collegato all'applicazione
                    if((isset($_SESSION['loggedUsername']))&&($_REQUEST['loggedUserFirstAttempt'] == "true"))
                    {
-                       //Controlliamo se è autore
-                       if($_SESSION['loggedUsername'] == $authorUsername)
-                       {
+                       //Controllo ACL
+                       if($allowedByACL)
+                        {
+                            $proceed = true;
+                        }
+                        else
+                        {
+                          //Controlliamo se è autore
+                         if($_SESSION['loggedUsername'] == $authorUsername)
+                         {
                            $proceed = true;
-                       }
-                       else
-                       {
+                         }
+                         else
+                         {
                            //Se non è autore, o è RootAdmin o ha la delega
                            if($_SESSION['loggedRole'] == 'RootAdmin')
                            {
@@ -419,7 +426,9 @@
                                     $proceed = false;
                                 }
                            }
-                       }                       
+                         }
+                       }
+                                              
                        
                    }
                    //Utente NON collegato all'applicazione
@@ -429,7 +438,7 @@
                        //header("Location: ../management/ssoLogin.php?redirect=https://main.snap4city.org/view/index.php?iddasboard=NDc4");
                        
                    }//Fine else utente NON collegato all'applicazione
-                   if($proceed || $allowedByACL)
+                   if($proceed)
                    {
                         $response["detail"] = "Ok";
                         $response["context"] = "View";

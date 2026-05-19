@@ -518,9 +518,9 @@ function ACLAPI_check_dashboard($data = []): array {
             ];
         }
 
-        $debug[] = "No AccessDefinition for dashboard, allowing anonymous access";
+        $debug[] = "No AccessDefinition for dashboard, not allowing anonymous access";
         return [
-            'authorized' => true,
+            'authorized' => false,
             'debug'      => $debug
         ];
     }
@@ -656,7 +656,7 @@ function ACLAPI_check_dashboard($data = []): array {
     if (! $hitAny) {
         $debug[] = "No AccessDefinition matched dashboardID";
         return [
-        'authorized' => true,
+        'authorized' => false,
         'debug'      => $debug
     ];
     }
@@ -809,7 +809,7 @@ function ACLAPI_check_collection($data = []): array {
     if (! $hitAny) {
         $debug[] = "→ No AccessDefinition matched collectionID";
         return [
-        'authorized' => true,
+        'authorized' => false,
         'debug'      => $debug
     ];
     }
