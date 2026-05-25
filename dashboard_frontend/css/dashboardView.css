@@ -82,6 +82,8 @@
     height: 70%; 
   /*  width: 100%;  */
     width: 175px;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
 }
 
@@ -237,6 +239,77 @@
 .footerLogo img
 {
     height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+}
+
+#footerLogoId
+{
+    max-height: 7vh;
+    overflow: hidden;
+}
+
+#footerLogoId > div
+{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    max-width: 100%;
+    max-height: 7vh;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+#footerLogoImg
+{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    max-width: 100%;
+    max-height: 7vh;
+    overflow: hidden;
+}
+
+#footerLogoImg .footerLogo,
+#footerLogoImg .footerLogo:link,
+#footerLogoImg .footerLogo:visited,
+#footerLogoImg .footerLogo:active,
+#footerLogoImg .footerLogo:hover
+{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    float: none;
+}
+
+#footerLogoId .footerLogo,
+#footerLogoId .footerLogo:link,
+#footerLogoId .footerLogo:visited,
+#footerLogoId .footerLogo:active,
+#footerLogoId .footerLogo:hover
+{
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    float: none;
+}
+
+#footerLogoId .footerLogo img,
+#footerLogoImg img
+{
+    display: block;
+    width: auto !important;
+    max-width: 100%;
+    max-height: 7vh;
+    height: auto !important;
+    object-fit: contain;
 }
 
 .footerNavMenu

@@ -2256,7 +2256,11 @@
                 </span>
             </div>
             <div id="headerLogo">
-                <img id="headerLogoImg" src="../img/applicationLogos/snap4city-logo.png" />
+                <?php
+                $dashboardHeaderLogoImageValue = s4cConfigValue('dashboardLogoImage', '../img/applicationLogos/snap4city-logo.png');
+                $dashboardHeaderLogoAltValue = s4cConfigValue('dashboardLogoAlt', 'Snap4City.org');
+                ?>
+                <img id="headerLogoImg" src="<?php echo s4cHtmlAttr($dashboardHeaderLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($dashboardHeaderLogoAltValue); ?>" />
                 <!-- <i class="fa fa-comment-o" id="chatBtn" data-status="closed" style="display: none"></i> <!-- style="display: none !important" -->
                 <!-- <i class="fa fa-comment" id="chatBtnNew" data-status="closed" style="display: none"></i> --> 
                 <!--<i class="fas fa-bullhorn" id="chatBtn" data-status="closed" style="display: none"></i>-->

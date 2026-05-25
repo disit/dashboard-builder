@@ -1,4 +1,9 @@
 <hr id="horizontalFooterLine" style="height:1px;width:75%;border:none;color:#333;background-color:#333;margin-bottom:-10px;" />
+<?php
+$dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', $domainLink);
+$dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', '/dashboardSmartCity/img/applicationLogos/disitLogoTransparent.png');
+$dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'Mountains');
+?>
 <div class="footerNavRow">
     <div id="firstColumnFooter" class="footerNavColumn">
         <!-- empty -->
@@ -13,7 +18,7 @@
     </div>
     <div id="footerLogoId" class="footerNavColumn">
         <div id="footerLogoImg" style="width:68%;float:right;">
-            <a title='<?php echo $domainLinkName ?>' href='<?php echo $domainLink ?>' target="_new" class="footerLogo"><img src="/dashboardSmartCity/img/applicationLogos/disitLogoTransparent.png" alt="Mountains" style="width:100%"></a>
+            <a href="<?php echo s4cHtmlAttr($dashboardFooterLogoLinkValue); ?>" target="_new" class="footerLogo"><img src="<?php echo s4cHtmlAttr($dashboardFooterLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($dashboardFooterLogoAltValue); ?>" style="width:100%"></a>
         </div>
     </div>
 </div>

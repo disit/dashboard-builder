@@ -1,10 +1,26 @@
 <div class="footer">
+<?php
+$menuFooterLogoImageValue = s4cConfigValue('menuFooterLogoImage', '');
+$menuFooterLogoLinkValue = s4cConfigValue('menuFooterLogoLink', 'https://www.disit.org/');
+$menuFooterLogoAltValue = s4cConfigValue('menuFooterLogoAlt', 'Universita degli Studi di Firenze');
+$dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', '');
+$dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', $domainLink);
+$dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'DISIT');
+?>
   <div class="footerNavRow-1">
 	  <div class="UNIFIfooterLogo">
+		  <?php if ($menuFooterLogoImageValue !== '') : ?>
+		  <a href="<?php echo s4cHtmlAttr($menuFooterLogoLinkValue); ?>" target="_blank" class="footerLogo"><img id="unifiLogo" src="<?php echo s4cHtmlAttr($menuFooterLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($menuFooterLogoAltValue); ?>"></a>
+		  <?php else : ?>
 		  <?php include('snap4city-unifi-footer-logo-PA.html');?>
+		  <?php endif; ?>
 	  </div>
 	  <div class="S4CfooterLogo">
+		  <?php if ($dashboardFooterLogoImageValue !== '') : ?>
+		  <a href="<?php echo s4cHtmlAttr($dashboardFooterLogoLinkValue); ?>" target="_new" class="footerLogo"><img src="<?php echo s4cHtmlAttr($dashboardFooterLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($dashboardFooterLogoAltValue); ?>"></a>
+		  <?php else : ?>
 		  <?php include('snap4city-footer-logo-PA.html');?>
+		  <?php endif; ?>
 	  </div>
   </div>
   <div class="footerNavRow-2">

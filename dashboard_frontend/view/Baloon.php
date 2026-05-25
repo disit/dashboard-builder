@@ -1889,9 +1889,7 @@
     <div class="menu-btn"><span class="material-icons"></span></div>
 		<nav id="s4c-sidebar" class="sidebar-menu" role="navigation">
 			<div class="sidebar-container">
-				<div id="snapLogo">
-	        		<a title="Snap4City" href="https://www.snap4city.org" target="_blank"><img id="snapLogoImg" src="../img/applicationLogos/snap4city-logo.png" alt="Snap4City.org" /></a>
-	        	</div>
+				<?php include('dashboardLogo.php');?>
 	        	<ul class="main-menu">
                 <!--    <li class="s4chome"><a href="#"><span class="material-icons menu-icon">home</span><span class="menu-item">SNAP4CITY.ORG</span></a></li> -->
                 <?php
@@ -2217,6 +2215,11 @@
             <ul id="gridsterUl"></ul>            
         </div>
 
+        <?php
+        $dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', 'https://www.snap4city.org');
+        $dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', 'https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png');
+        $dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'Mountains');
+        ?>
         <hr id="horizontalFooterLine" style="height:1px;width:75%;border:none;color:#333;background-color:#333;margin-bottom:-10px;" />
         <div class="footerNavRow">
             <div id="firstColumnFooter" class="footerNavColumn">
@@ -2224,15 +2227,15 @@
             </div>
             <div id="footerPolicyId" class="footerNavColumn">
                 <ul class="menu nav">
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/49" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Privacy Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/node/48" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Cookies Policy</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/legal" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Terms and Conditions</a></li>
-                    <li class="footerNavMenu"><a href="https://www.snap4city.org/drupal/contact" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title="">Contact us</a></li>
+                    <li class="footerNavMenu"><a href="<?php echo s4cHtmlAttr($privacyPolicyLink); ?>" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo s4cHtmlText($privacyPolicyLinkName); ?></a></li>
+                    <li class="footerNavMenu"><a href="<?php echo s4cHtmlAttr($cookiesPolicyLink); ?>" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo s4cHtmlText($cookiesPolicyLinkName); ?></a></li>
+                    <li class="footerNavMenu"><a href="<?php echo s4cHtmlAttr($termsAndConditionsLink); ?>" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo s4cHtmlText($termsAndConditionsLinkName); ?></a></li>
+                    <li class="footerNavMenu"><a href="<?php echo s4cHtmlAttr($contactUsLink); ?>" target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo s4cHtmlText($contactUsLinkName); ?></a></li>
                 </ul>
             </div>
             <div id="footerLogoId" class="footerNavColumn">
                 <div style="width:68%;float:right;">
-                <a title="Disit" href="https://www.snap4city.org" target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" alt="Mountains" style="width:100%"></a>
+                <a href="<?php echo s4cHtmlAttr($dashboardFooterLogoLinkValue); ?>" target="_new" class="footerLogo"><img src="<?php echo s4cHtmlAttr($dashboardFooterLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($dashboardFooterLogoAltValue); ?>" style="width:100%"></a>
                 </div>
             </div>
         </div>

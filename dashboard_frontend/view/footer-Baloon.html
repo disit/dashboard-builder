@@ -1,3 +1,11 @@
+<?php
+$dashboardProfileButtonTitleValue = s4cConfigValue('dashboardProfileButtonTitle', $domainLinkName);
+$dashboardProfileButtonLinkValue = s4cConfigValue('dashboardProfileButtonLink', $domainLink);
+$dashboardProfileButtonLabelValue = s4cConfigValue('dashboardProfileButtonLabel', 'My Profile');
+$dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', $domainLink);
+$dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', 'https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png');
+$dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'DISIT');
+?>
 <ul class="secondary-menu">
     <li class="footerNavMenu"><a href='<?php echo $privacyPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $privacyPolicyLinkName ?></a></li>
     <li class="footerNavMenu"><a href='<?php echo $cookiesPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $cookiesPolicyLinkName ?></a></li>
@@ -5,8 +13,8 @@
     <li class="footerNavMenu"><a href='<?php echo $contactUsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $contactUsLinkName ?></a></li>
 </ul>
 <div class="footerLogo">
-	<a title='<?php echo $domainLinkName ?>' href='<?php echo $domainLink ?>' target="_new" class="footerLogo"><img src="https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png" alt="DISIT"></a>
+	<a href="<?php echo s4cHtmlAttr($dashboardFooterLogoLinkValue); ?>" target="_new" class="footerLogo"><img src="<?php echo s4cHtmlAttr($dashboardFooterLogoImageValue); ?>" alt="<?php echo s4cHtmlAttr($dashboardFooterLogoAltValue); ?>"></a>
 </div>
 <div class="profileButton">
-	<a title='<?php echo $domainLinkName ?>' href='<?php echo $domainLink ?>' target="_blank"><span class="material-icons">person</span>My Profile</a>
+	<a title="<?php echo s4cHtmlAttr($dashboardProfileButtonTitleValue); ?>" href="<?php echo s4cHtmlAttr($dashboardProfileButtonLinkValue); ?>" target="_blank"><span class="material-icons">person</span><?php echo s4cHtmlText($dashboardProfileButtonLabelValue); ?></a>
 </div>

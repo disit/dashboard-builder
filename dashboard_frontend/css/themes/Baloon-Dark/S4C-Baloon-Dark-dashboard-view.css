@@ -286,6 +286,10 @@ div#headerLogo{
 
 #headerLogoImg {
     max-width: 200px;
+    max-height: 10vh;
+    height: auto;
+    object-fit: contain;
+    box-sizing: border-box;
     border-radius: 20px;
     box-shadow: 4px 0px 10px #00000019;
     border: 20px solid #FFF;
@@ -324,6 +328,10 @@ div#headerLogo{
 
 #snapLogoImg{
 	width: 10vw;
+  max-width: 100%;
+  max-height: 4.5vh;
+  height: auto;
+  object-fit: contain;
 }
 
 .sidebar-menu{
@@ -533,6 +541,9 @@ nav#s4c-sidebar ul.secondary-menu li a{
 
 .footerLogo img{
 	max-width: 20vw;
+  max-height: 4.5vh;
+  height: auto;
+  object-fit: contain;
 }
 
 .profileButton a {

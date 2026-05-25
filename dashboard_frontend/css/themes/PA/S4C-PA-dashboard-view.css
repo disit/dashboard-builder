@@ -243,6 +243,10 @@ div#headerLogo{
 
 #headerLogoImg {
     max-width: 100px;
+    max-height: 10vh;
+    height: auto;
+    object-fit: contain;
+    box-sizing: border-box;
     border-radius: 50%;
     box-shadow: 0px 2px 5px #26334d08;
     border: 20px solid #FFF;
@@ -290,6 +294,10 @@ div#headerLogo{
 
 #snapLogoImg{
 	width: 12vw;
+  max-width: 100%;
+  max-height: 7vh;
+  height: auto;
+  object-fit: contain;
 }
 
 .logo_menu_container svg{
@@ -541,6 +549,38 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
   background: #fff;
   border-radius: 4px;
   display: flex;
+}
+
+.UNIFIfooterLogo,
+.S4CfooterLogo{
+  display: flex;
+  align-items: center;
+  max-width: 45%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.UNIFIfooterLogo .footerLogo,
+.S4CfooterLogo .footerLogo{
+  display: flex;
+  align-items: center;
+  max-width: 100%;
+  max-height: 9vh;
+  height: auto;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.UNIFIfooterLogo img,
+.S4CfooterLogo img,
+.UNIFIfooterLogo svg,
+.S4CfooterLogo svg{
+  display: block;
+  width: auto !important;
+  max-width: 100% !important;
+  max-height: 7vh !important;
+  height: auto !important;
+  object-fit: contain;
 }
 
 

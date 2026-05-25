@@ -13,6 +13,21 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+function s4cConfigValue($name, $default = '')
+{
+    return isset($GLOBALS[$name]) && $GLOBALS[$name] !== '' ? $GLOBALS[$name] : $default;
+}
+
+function s4cHtmlAttr($value)
+{
+    return htmlspecialchars($value ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+function s4cHtmlText($value)
+{
+    return htmlspecialchars($value ?? '', ENT_NOQUOTES, 'UTF-8');
+}
+
 /*function buildMenuTagLegacy($linkUrl, $linkId, $parentLinkId, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, $isOpen)
 {
     $isIframe = $externalApp == 'yes' && $openMode == "iframe";
@@ -227,6 +242,9 @@ function buildMenu($link, $domainId, $linkId, $context, $curr_lang) {
                 if($allowedOrgs=='*' || strpos($allowedOrgs, "'".$organizationSql) !== false || $_SESSION['loggedRole'] == 'RootAdmin') {
                     $text =  translate_string($text, $curr_lang, $link);
                     if (strcmp($linkId, "snap4cityPortalLink") == 0) {
+                        $text = s4cConfigValue('menuSnap4CityPortalLabel', $text);
+                        $linkUrl = s4cConfigValue('menuSnap4CityPortalLink', $linkUrl);
+                        $pageTitle = s4cConfigValue('menuSnap4CityPortalTitle', $pageTitle);
                         $newItem = buildMenuTag($linkUrl, $linkId, null, $openMode, $pageTitle, $externalApp, $icon, $iconColor, $text, true, 'smallBtnMySnap');
                     }
                     if (strcmp($linkId, "resettour") == 0) {

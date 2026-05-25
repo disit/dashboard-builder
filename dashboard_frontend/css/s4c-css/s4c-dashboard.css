@@ -2095,8 +2095,19 @@ body.dashboardViewBodyAuth
 
 /* Basic Structure */
 
-#snapLogoImg svg{
+#snapLogoImg{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+}
+
+#snapLogoImg svg, #snapLogoImg img{
   width: 80%;
+  max-width: 100%;
+  max-height: 80px;
+  height: auto;
+  object-fit: contain;
 }
 
 #mobLogo{
@@ -3594,6 +3605,22 @@ input[type="text"]:disabled
   padding-right: 10px;
 }
 
+.unifiLogoWrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+}
+
+.unifiLogoWrap #unifiLogo{
+  display: block;
+  width: 80%;
+  max-width: 100%;
+  max-height: 50px;
+  height: auto;
+  object-fit: contain;
+}
+
 .dark #unifiLogo .st0, .dark #unifiLogo .st1, .dark #unifiLogo .st2{
   fill: var(--menu-color-);
 }
@@ -4414,6 +4441,10 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
   
   .unifiLogoWrap #unifiLogo{
     width: 80%;
+    max-width: 100%;
+    max-height: 100%;
+    height: auto;
+    object-fit: contain;
   }
   
   #mainContentCnt, #iframeApp{

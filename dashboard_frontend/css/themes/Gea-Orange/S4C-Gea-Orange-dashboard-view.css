@@ -294,6 +294,10 @@ div#headerLogo{
 
 #headerLogoImg {
     max-width: 5vw;
+    max-height: 10vh;
+    height: auto;
+    object-fit: contain;
+    box-sizing: border-box;
     border-radius: 10px;
     box-shadow: 0px 2px 5px #26334d08;
     border: 5px solid #FFF;
@@ -339,6 +343,10 @@ div#headerLogo{
 
 #snapLogoImg{
 	width: 10vw;
+  max-width: 100%;
+  max-height: 4.5vh;
+  height: auto;
+  object-fit: contain;
 }
 
 .sidebar-menu{
@@ -567,6 +575,9 @@ nav#s4c-sidebar ul.main-menu li a span.rotate{
 
 .footerLogo img{
   max-width: 20vw;
+  max-height: 4.5vh;
+  height: auto;
+  object-fit: contain;
   mix-blend-mode: darken;
 }
 

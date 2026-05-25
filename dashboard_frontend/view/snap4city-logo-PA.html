@@ -1,5 +1,15 @@
+<?php
+$dashboardLogoLinkValue = s4cConfigValue('dashboardLogoLink', 'https://www.snap4city.org');
+$dashboardLogoImageValue = s4cConfigValue('dashboardLogoImage', '');
+$dashboardLogoAltValue = s4cConfigValue('dashboardLogoAlt', 'Snap4City.org');
+
+if ($dashboardLogoImageValue !== '') {
+    echo '<div id="snapLogo" class="svg_logo"><a href="' . s4cHtmlAttr($dashboardLogoLinkValue) . '" target="_blank"><img id="snapLogoImg" src="' . s4cHtmlAttr($dashboardLogoImageValue) . '" alt="' . s4cHtmlAttr($dashboardLogoAltValue) . '"></a></div>';
+    return;
+}
+?>
 <div id="snapLogo" class="svg_logo">
-	<a title="Snap4City" href="https://www.snap4city.org" target="_blank"><svg version="1.1" id="snapLogoImg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	<a href="<?php echo s4cHtmlAttr($dashboardLogoLinkValue); ?>" target="_blank"><svg version="1.1" id="snapLogoImg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	   viewBox="0 0 153.9 39.2" style="enable-background:new 0 0 153.9 39.2;" xml:space="preserve">
 	<style type="text/css">
 	  .st0{fill:currentColor;}

@@ -1,4 +1,15 @@
-<a title="Snap4City" id="snapLogoImg" href="https://www.snap4city.org">
+<?php
+$menuLogoTitleValue = s4cConfigValue('menuLogoTitle', 'Snap4City');
+$menuLogoLinkValue = s4cConfigValue('menuLogoLink', 'https://www.snap4city.org');
+$menuLogoImageValue = s4cConfigValue('menuLogoImage', '');
+$menuLogoAltValue = s4cConfigValue('menuLogoAlt', 'Snap4City');
+
+if ($menuLogoImageValue !== '') {
+    echo '<a title="' . s4cHtmlAttr($menuLogoTitleValue) . '" id="snapLogoImg" href="' . s4cHtmlAttr($menuLogoLinkValue) . '"><img src="' . s4cHtmlAttr($menuLogoImageValue) . '" alt="' . s4cHtmlAttr($menuLogoAltValue) . '"></a>';
+    return;
+}
+?>
+<a title="<?php echo s4cHtmlAttr($menuLogoTitleValue); ?>" id="snapLogoImg" href="<?php echo s4cHtmlAttr($menuLogoLinkValue); ?>">
 <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 254.837 80.046" enable-background="new 0 0 254.837 80.046" xml:space="preserve">
 <path fill="#5B6368" d="M237.675,67.833l8.746-21.501h-5.317l-3.748,9.269l-4.388-9.269h-5.433l7.293,15.458l-2.47,6.043H237.675z

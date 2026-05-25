@@ -12,6 +12,7 @@
                 mysqli_select_db($link, $dbname);
                 
                 $domainId = null;
+                $headerClaimContent = 'Claim';
                 
                 $currDom = $_SERVER['HTTP_HOST'];                
                 //echo ($currDom);
@@ -25,17 +26,19 @@
                     {
                         $row = mysqli_fetch_assoc($r);
                         $domainId = $row['id'];
-                        echo $row['claim'];
+                        $headerClaimContent = $row['claim'];
                     }
                     else
                     {
-                        echo 'Claim';
+                        $headerClaimContent = 'Claim';
                     }
                 }
                 else
                 {
-                    echo 'Claim';
+                    $headerClaimContent = 'Claim';
                 }
+
+                echo s4cConfigValue('legacyHeaderClaimContent', $headerClaimContent);
                 
               // $curr_lang ="";
                if ($localizationEnabled){
@@ -270,6 +273,11 @@ EOT;
                                     }
                                 } */
                                $text =  translate_string($text, $curr_lang, $link);
+                                if (strcmp($linkId, "snap4cityPortalLink") == 0) {
+                                    $text = s4cConfigValue('menuSnap4CityPortalLabel', $text);
+                                    $linkUrl = s4cConfigValue('menuSnap4CityPortalLink', $linkUrl);
+                                    $pageTitle = s4cConfigValue('menuSnap4CityPortalTitle', $pageTitle);
+                                }
                                 //echo($text);
                                 $newItem = buildMenuTagLegacy($linkUrl,$linkId,null,$openMode,$pageTitle,$externalApp,$icon,$iconColor,$text,true, 'menu');
                             }
@@ -488,6 +496,12 @@ EOT;
         });
 
         $('#headerClaimCnt').click(function(){
+            var configuredHeaderClaimLink = <?php echo json_encode(s4cConfigValue('legacyHeaderClaimLink', '')); ?>;
+            var configuredHeaderClaimTarget = <?php echo json_encode(s4cConfigValue('legacyHeaderClaimTarget', '_self')); ?>;
+            if (configuredHeaderClaimLink !== '') {
+                window.open(configuredHeaderClaimLink, configuredHeaderClaimTarget || "_self");
+                return;
+            }
             var hostHomeUrl = window.location.hostname;
             if (hostHomeUrl.includes("localhost")) {
                 hostHomeUrl = hostHomeUrl + "/dashboardSmartCity/";
