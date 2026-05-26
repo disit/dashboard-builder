@@ -26,7 +26,116 @@ if ($method === 'POST') {
    } else {
       $input = $_POST;
    }
+   if (!isset($input['action'])) {
+      http_response_code(400);
+      echo json_encode(buildResponse("Missing required parameter: action", "400"));
+      exit;
+   }
+   switch ($input['action']) {
+      case 'create_acl_profile_group':
+         createACLProfileGroup($input);
+         break;
+      case 'share_acl_in_new_profile_group':
+         shareACLInNewProfileGroup($input);
+         break;
+      default:
+         http_response_code(400);
+         echo json_encode(buildResponse("Invalid action: " . $input['action'], "400"));
+         exit;
+   }   
+} elseif ($method === 'OPTIONS') {
+   // CORS preflight response
+   header('Access-Control-Allow-Methods: POST, OPTIONS');
+   header('Access-Control-Allow-Headers: Content-Type');
+   http_response_code(204); // No Content
+   exit;
+} else {
+   http_response_code(405);
+   echo json_encode(buildResponse("Method not allowed", "405"));
+   exit;
+}
 
+function shareACLInNewProfileGroup($input){
+   if (!isset($input['profilename'])) {
+      http_response_code(400);
+      echo json_encode(buildResponse("Missing required parameter: profilename", "400"));
+      exit;
+   }
+   if (!isset($input['organization'])) {
+      http_response_code(400);
+      echo json_encode(buildResponse("Missing required parameter: organization", "400"));
+      exit;
+   }
+   if (empty($input['acls']) || !is_array($input['acls'])) {
+      http_response_code(400);
+      echo json_encode(buildResponse("Missing required parameter: acls", "400"));
+      exit;
+   }
+
+   try{
+      //build response
+      $process_result = [];
+      $message = [];
+
+      global $link;
+      if(checkIfNameAlreadyExists($link, $input["profilename"])){
+         http_response_code(400);
+         echo json_encode(buildResponse("Profile name already exists. Please change it.", "400"));
+         exit;
+      }
+
+      //find acl
+      $aclResultFail = [];
+      $aclResultSuccess = [];
+      foreach($input["acls"] as $acl){
+         $acl_result = findACL($acl);
+         if(isset($acl_result['error']))
+            $aclResultFail[$acl] = $acl_result;
+         else
+            $aclResultSuccess[$acl] = $acl_result;
+      }
+      if(!empty($aclResultFail)){
+         $process_result["acls"] = $aclResultFail;
+         $message["acls"] = "Error adding ACLs";
+      }else{
+         $message["acls"] = "ACLs successfully found";
+      }
+      if(empty($aclResultSuccess)){
+         http_response_code(400);
+         echo json_encode(buildResponse("No valid ACLs provided", "400", "ko", $process_result));
+         exit;
+      }
+      //create profile
+      $profile_result = createProfile($input["profilename"], $aclResultSuccess);
+      if(isset($profile_result['error'])){
+         $process_result["profile"] = $profile_result;
+         $message["profile"] = "Error creating profile";
+      }else{
+         $message["profile"] = "Profile created successfully";
+      }
+
+      if(isset($input["groupname"])){
+         //create group
+         $group_result = createGroup($input["groupname"], $input["organization"]);
+         if(isset($group_result['error'])){
+            $process_result["group"] = $group_result;
+            $message["group"] = "Error creating group";
+         }else{
+            $message["group"] = "Group created successfully";
+         }
+      }
+
+      http_response_code(200);
+      echo json_encode(buildResponse(implode("; ", $message), "200", "ok", $process_result));
+      exit;
+   } catch (Exception $e) {
+      http_response_code(400);
+      echo json_encode(buildResponse($e->getMessage(), "400"));
+      exit;
+   }
+}
+
+function createACLProfileGroup($input){
    //check if input params are defined
    if (!isset($input['profilename'])) {
       http_response_code(400);
@@ -40,7 +149,7 @@ if ($method === 'POST') {
    }
    if (empty($input['acls']) || !is_array($input['acls'])) {
       http_response_code(400);
-      echo json_encode(buildResponse("Missing required parameter: profilename", "400"));
+      echo json_encode(buildResponse("Missing required parameter: acls", "400"));
       exit;
    }
    //check organization
@@ -96,16 +205,28 @@ if ($method === 'POST') {
       echo json_encode(buildResponse($e->getMessage(), "400"));
       exit;
    }
-} elseif ($method === 'OPTIONS') {
-   // CORS preflight response
-   header('Access-Control-Allow-Methods: POST, OPTIONS');
-   header('Access-Control-Allow-Headers: Content-Type');
-   http_response_code(204); // No Content
-   exit;
-} else {
-   http_response_code(405);
-   echo json_encode(buildResponse("Method not allowed", "405"));
-   exit;
+}
+
+function findACL(string $acl): array {
+   global $link;
+   $result = [];
+   $sql = "SELECT ID FROM AccessDefinitions WHERE authname = ?";
+   $stmt = mysqli_prepare($link, $sql);
+   if (! $stmt) {
+      throw new Exception("checkIfNameAlreadyExists(): " . mysqli_error($link));
+   }
+   mysqli_stmt_bind_param($stmt, "s", $acl);
+   if (! mysqli_stmt_execute($stmt)) {
+      throw new Exception("checkIfNameAlreadyExists(): " . mysqli_error($link));
+   }
+   mysqli_stmt_bind_result($stmt, $aclId);
+   if (mysqli_stmt_fetch($stmt)) {
+      $result["id"] = $aclId;
+   }else{
+      $result["error"] = "ACL not found";
+   }
+   mysqli_stmt_close($stmt);
+   return $result;
 }
 
 function createACL(array $acl): array {
