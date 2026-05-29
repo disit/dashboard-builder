@@ -30,6 +30,24 @@ $ssoEndpoint = $ssoContent["ssoEndpoint"][$genFileContent['environment']['value'
 //$init_flag = 1;
 session_start();
 
+function resolveDashboardWizardOrganization($defaultOrganization)
+{
+    $requestedOrganization = null;
+    if (isset($_REQUEST['filterOrg']) && $_REQUEST['filterOrg'] !== '') {
+        $requestedOrganization = $_REQUEST['filterOrg'];
+    } else if (isset($_REQUEST['organization']) && $_REQUEST['organization'] !== '') {
+        $requestedOrganization = $_REQUEST['organization'];
+    } else if (isset($_REQUEST['orgFilter']) && $_REQUEST['orgFilter'] !== '') {
+        $requestedOrganization = $_REQUEST['orgFilter'];
+    }
+
+    if ($requestedOrganization !== null && isset($_SESSION['loggedOrganizations']) && is_array($_SESSION['loggedOrganizations']) && in_array($requestedOrganization, $_SESSION['loggedOrganizations'], true)) {
+        return $requestedOrganization;
+    }
+
+    return $defaultOrganization;
+}
+
 //Te la gestisci in base al grado di gestione d'errore che ti serve
 //error_reporting(E_ALL);
 //set_error_handler("exception_error_handler");
@@ -75,7 +93,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
         exit();
     }
     // CHECK IF $globalSqlFilter IS ARRAY ? OR OBJECT ?
-    $orgFilter = $_REQUEST['orgFilter'];
+    $orgFilter = resolveDashboardWizardOrganization($_SESSION['loggedOrganization'] ?? 'Other');
 
     // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
     for ($k = 0; $k < sizeof($_REQUEST['globalSqlFilter']); $k++) {
@@ -352,7 +370,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
         //    $sql_filter = "high_level_type";
             exit();
         }
-        $org = $_REQUEST['filterOrg'];
+        $org = resolveDashboardWizardOrganization($_SESSION['loggedOrganization'] ?? 'Other');
         $link = mysqli_connect($host, $username, $password);
       //  $sql_filter = escapeForSQL($sql_filter, $link);     // $link OK
         $org = escapeForSQL($org, $link);
@@ -436,6 +454,7 @@ if (!empty($_REQUEST["filterDistinct"])) {
         $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
         $dashUserRole = $_SESSION['loggedRole'];
         $organizationName = $_SESSION['loggedOrganization'];
+        $organizationName = resolveDashboardWizardOrganization($organizationName);
 
     /*    $myPOIQueryString = "";
 
@@ -907,6 +926,7 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
         } else {
             $organizationName = $organization;
         }
+        $organizationName = resolveDashboardWizardOrganization($organizationName);
 
         $myPOIQueryString = "";
         

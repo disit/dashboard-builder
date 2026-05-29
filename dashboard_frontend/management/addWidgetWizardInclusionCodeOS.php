@@ -477,6 +477,19 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                         <button type="button" class="btn cancelBtn" id="resetButton"><?= _("Reset filters")?></button>
                     </div> 
 
+                    <?php if(isset($_SESSION['loggedOrganizations']) && is_array($_SESSION['loggedOrganizations']) && count($_SESSION['loggedOrganizations']) > 1) { ?>
+                    <div class="widgetWizardOrgSelectorPending addWidgetWizardTableLbl" id="widgetWizardOrgSelectorCnt">
+                        <label for="widgetWizardOrgSelect" class="widgetWizardOrgSelectorLabel">Org:</label>
+                        <select id="widgetWizardOrgSelect" class="form-control input-sm widgetWizardOrgSelectorSelect">
+                            <?php foreach($_SESSION['loggedOrganizations'] as $widgetWizardOrg) {
+                                $selected = ($widgetWizardOrg == ($_SESSION['loggedOrganization'] ?? '')) ? 'selected' : '';
+                            ?>
+                                <option value="<?= htmlspecialchars($widgetWizardOrg, ENT_QUOTES, 'UTF-8') ?>" <?= $selected ?>><?= htmlspecialchars($widgetWizardOrg, ENT_QUOTES, 'UTF-8') ?></option>
+                            <?php } ?>
+                        </select>
+                    </div>
+                    <?php } ?>
+
                     <div id="widgetWizardTableSelectedRowsCounter" data-selectedRows="0" class="addWidgetWizardIconsCntLabel addWidgetWizardTableLbl col-xs-12 col-md-2 centerWithFlex">
                         <?= _("Selected rows: 0")?>
                     </div> 
@@ -623,7 +636,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
         var firstTabIndex = 0;
         var tabsQt = 3;
         var invisibleCols;
-        var orgFilter = "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>";
+        var orgFilter = <?= json_encode($_SESSION['loggedOrganization'] ?? "Other") ?>;
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
         orgId = null;
@@ -655,34 +668,102 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
             $("#modal_tab_wiz").removeClass("modal_wrapper_wizard");
         }
 
-        // Check LDAP Organization to centre Wizard Map
-        $.ajax({
-            url: "../controllers/getOrganizationParameters.php",
-            type: "GET",
-            data: {
-                action: "getAllParameters"
-            },
-            async: true,
-            dataType: 'json',
-            success: function (data)
-            {
-                if (data.detail === 'GetOrganizationParameterOK') {
-                    orgId = data.orgId;
-                    orgName = data.orgName;
-                    orgKbUrl = data.orgKbUrl;
-                    orgGpsCentreLatLng = data.orgGpsCentreLatLng;
-                    orgZoomLevel = data.orgZoomLevel;
-                } else {
-                
-                }
+        function refreshWidgetWizardOrganizationParameters(callback)
+        {
+            $.ajax({
+                url: "../controllers/getOrganizationParameters.php",
+                type: "GET",
+                data: {
+                    action: "getSpecificOrgParameters",
+                    param: orgFilter
+                },
+                async: true,
+                dataType: 'json',
+                success: function (data)
+                {
+                    if (data.detail === 'GetOrganizationParameterOK') {
+                        orgId = data.orgId;
+                        orgName = data.orgName;
+                        orgKbUrl = data.orgKbUrl;
+                        orgGpsCentreLatLng = data.orgGpsCentreLatLng;
+                        orgZoomLevel = data.orgZoomLevel;
+                        if (orgName != null && orgName !== '') {
+                            orgFilter = orgName;
+                            $('#widgetWizardOrgSelect').val(orgFilter);
+                        }
+                        if (addWidgetWizardMapRef != null && orgGpsCentreLatLng != null && orgGpsCentreLatLng !== '') {
+                            var orgGpsParts = orgGpsCentreLatLng.split(",");
+                            if (orgGpsParts.length >= 2) {
+                                addWidgetWizardMapRef.setView(L.latLng(orgGpsParts[0].trim(), orgGpsParts[1].trim()), orgZoomLevel || 11);
+                            }
+                        }
+                    } else {
+                    
+                    }
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
 
-            },
-            error: function (data)
-            {
-                console.log("Error in retrieving Organization Parameters:");
-                console.log(JSON.stringify(data));
+                },
+                error: function (data)
+                {
+                    console.log("Error in retrieving Organization Parameters:");
+                    console.log(JSON.stringify(data));
+                    if (typeof callback === 'function') {
+                        callback();
+                    }
+                }
+            });
+        }
+
+        function applyWidgetWizardOrganization(org)
+        {
+            if (org == null || org === '' || org === orgFilter) {
+                return;
             }
+
+            orgFilter = org;
+            refreshWidgetWizardOrganizationParameters(function() {
+                if (typeof resetFilter === 'function' && widgetWizardTable != null) {
+                    resetFilter();
+                } else if (widgetWizardTable != null) {
+                    widgetWizardSelectedRows = {};
+                    if (widgetWizardSelectedRowsTable != null) {
+                        widgetWizardSelectedRowsTable.clear().draw(false);
+                    }
+                    widgetWizardTable.ajax.reload(null, true);
+                }
+            });
+        }
+
+        function placeWidgetWizardOrgSelector()
+        {
+            var orgSelector = $('#widgetWizardOrgSelectorCnt');
+            var tableFilter = $('#widgetWizardTable_filter');
+
+            if (orgSelector.length > 0 && tableFilter.length > 0) {
+                orgSelector.insertBefore(tableFilter.find('label').first());
+                tableFilter.addClass('widgetWizardFilterWithOrg');
+                orgSelector.removeClass('widgetWizardOrgSelectorPending');
+            }
+        }
+
+        function parkWidgetWizardOrgSelector()
+        {
+            var orgSelector = $('#widgetWizardOrgSelectorCnt');
+
+            if (orgSelector.length > 0) {
+                orgSelector.addClass('widgetWizardOrgSelectorPending');
+                $('#widgetWizardTableCommandsContainer').append(orgSelector);
+            }
+        }
+
+        $(document).on('change', '#widgetWizardOrgSelect', function() {
+            applyWidgetWizardOrganization($(this).val());
         });
+
+        // Check Organization to centre Wizard Map
+        refreshWidgetWizardOrganizationParameters();
 
         // Check Orion Broker Value types
         $.ajax({
@@ -811,6 +892,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                 //    widgetWizardSelectedSingleRow=null;
            //     }
                 resetFilter();
+                parkWidgetWizardOrgSelector();
                widgetWizardTable.clear().destroy();
             var oi=document.getElementById('widgetWizardTable_paginate');
             oi.outerHTML="";
@@ -833,7 +915,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                 data: function(d){
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>";
                     d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>";
-                    d.filterOrg = orgFilter,
+                    d.filterOrg = orgFilter;
                     d.poiFlag = noPOIFlag;
                     d.synMode = "<?=$synMode?$synMode:0?>";
                     d.search_bar = using_search_bar;
@@ -936,6 +1018,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
             $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
             $("#widgetWizardTable_filter").addClass("col-xs-12");
             $("#widgetWizardTable_filter").addClass("col-md-3");
+            placeWidgetWizardOrgSelector();
             $("#widgetWizardTable_filter input").attr("placeholder", "Search");
             $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
             $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
@@ -957,6 +1040,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                var southWestPointLng = bounds._southWest.lng;
                var southWestPointLng2 = southWestPointLng.toString();
                resetFilter();
+               parkWidgetWizardOrgSelector();
                widgetWizardTable.clear().destroy();//la mappa viene distrutta e ricreata ad ogni volta che viene azionato il bottone
                var oi=document.getElementById('widgetWizardTable_paginate');
                oi.outerHTML="";
@@ -1082,6 +1166,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                         $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
                         $("#widgetWizardTable_filter").addClass("col-xs-12");
                         $("#widgetWizardTable_filter").addClass("col-md-3");
+                        placeWidgetWizardOrgSelector();
                         $("#widgetWizardTable_filter input").attr("placeholder", "Search");
                         $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
                         $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
@@ -4320,7 +4405,9 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
             for (var singleMarkerKey in addWidgetWizardMapMarkers) {
                 //    addWidgetWizardMapMarkers.forEach(function(marker) {
+                if (addWidgetWizardMapRef != null) {
                     addWidgetWizardMapRef.removeLayer(addWidgetWizardMapMarkers[singleMarkerKey]);
+                }
                     delete addWidgetWizardMapMarkers[singleMarkerKey];
             }
 
@@ -4443,7 +4530,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                     dataType: 'json',
                     data:
                     {
-                        orgFilter: "<?php if (isset($_SESSION['loggedOrganization'])){echo $_SESSION['loggedOrganization'];} else {echo "Other";} ?>",
+                        orgFilter: orgFilter,
                         globalSqlFilter: globalSqlFilter,
                         nActive: nActive,
                         n: n,
@@ -4627,7 +4714,9 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
             for(var layerKey in gisLayersOnMap)
             {
-                addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
+                if (addWidgetWizardMapRef != null) {
+                    addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
+                }
             }
             clearAllMarkers();
             deselectAllIcons();
@@ -4988,7 +5077,9 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 
             for(var layerKey in gisLayersOnMap)
             {
-                addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
+                if (addWidgetWizardMapRef != null) {
+                    addWidgetWizardMapRef.removeLayer(gisLayersOnMap[layerKey]);
+                }
             }
             clearAllMarkers();
             deselectAllIcons();
@@ -5135,13 +5226,14 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 			"ajax": {
                 async: true, 
                 url: "../controllers/dashboardWizardControllerOS.php?initSynVarPresel=true&northEastPointLat=true",
-                data: {
-                    dashUsername: "<?= $_SESSION['loggedUsername'] ?>",
-                    dashUserRole: "<?= $_SESSION['loggedRole'] ?>",
-                    organization: "<?= $_SESSION['loggedOrganization'] ?>",
-		            northEastPointLat: "<?= $_SESSION['northEastPointLat'] ?>",
-                    poiFlag: getPOIFlag(),
-					synMode: "<?=$synMode?$synMode:0?>"
+                data: function ( d ) {
+                    d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>";
+                    d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>";
+                    d.organization = orgFilter;
+                    d.filterOrg = orgFilter;
+		 		    d.northEastPointLat = "<?= $_SESSION['northEastPointLat'] ?>";
+                    d.poiFlag = getPOIFlag();
+					d.synMode = "<?=$synMode?$synMode:0?>";
                 }
             },
             "createdRow": function (row, data, index) {
@@ -5302,7 +5394,8 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                 data: function ( d ) {
                     d.dashUsername = "<?= $_SESSION['loggedUsername'] ?>";
                     d.dashUserRole = "<?= $_SESSION['loggedRole'] ?>";
-                    d.organization = "<?= $_SESSION['loggedOrganization'] ?>";
+                    d.organization = orgFilter;
+                    d.filterOrg = orgFilter;
 		            d.northEastPointLat = "<?= $_SESSION['northEastPointLat'] ?>";
                     d.poiFlag = getPOIFlag();
 					d.synMode = "<?=$synMode?$synMode:0?>";
@@ -7783,6 +7876,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
             $('#widgetWizardTable_filter').appendTo("#widgetWizardTableCommandsContainer");
             $("#widgetWizardTable_filter").addClass("col-xs-12");
             $("#widgetWizardTable_filter").addClass("col-md-3");
+            placeWidgetWizardOrgSelector();
             $("#widgetWizardTable_filter input").attr("placeholder", "Search");
             $("#widgetWizardTable_paginate .pagination").css("margin-top", "0px !important");
             $("#widgetWizardTable_paginate .pagination").css("margin-bottom", "0px !important");
