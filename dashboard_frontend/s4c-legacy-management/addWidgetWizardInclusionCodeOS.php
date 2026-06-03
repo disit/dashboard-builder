@@ -634,6 +634,7 @@
         var tabsQt = 3;
         var invisibleCols;
         var orgFilter = <?= json_encode($_SESSION['loggedOrganization'] ?? "Other") ?>;
+        var widgetWizardPreserveSelectionsOnOrgChange = <?= ($synMode || isCreationWizardUI()) ? 'true' : 'false' ?>;
         addWidgetWizardMapMarkers = {};
         currentMarkerId = 0;
         orgId = null;
@@ -659,6 +660,85 @@
                 if (obj.hasOwnProperty(key)) size++;
             }
             return size;
+        }
+
+        function getWidgetWizardSelectionKey(rowId)
+        {
+            return 'row' + rowId;
+        }
+
+        function getWidgetWizardRowIdFromSelectionKey(key)
+        {
+            return String(key).replace(/^row/, '');
+        }
+
+        function getWidgetWizardRowIdFromDomRow(row)
+        {
+            return $(row).attr('data-rowid');
+        }
+
+        function resetWidgetWizardStatePreservingChosenRows()
+        {
+            var selectedRowsSnapshot = $.extend(true, {}, widgetWizardSelectedRows);
+            var selectedRowsTableDataSnapshot = [];
+            var selectedWidgetSnapshot = null;
+            var selectedWidget = $('.addWidgetWizardIconClickClass[data-selected="true"]').first();
+
+            if (widgetWizardSelectedRowsTable != null) {
+                selectedRowsTableDataSnapshot = widgetWizardSelectedRowsTable.rows().data().toArray();
+            }
+            if (selectedWidget.length > 0) {
+                selectedWidgetSnapshot = {
+                    id: selectedWidget.attr('data-id'),
+                    icon: selectedWidget.attr('data-icon'),
+                    mainWidget: selectedWidget.attr('data-mainwidget')
+                };
+            }
+
+            if (typeof resetFilter === 'function') {
+                resetFilter();
+            } else if (widgetWizardTable != null) {
+                widgetWizardTable.search('');
+                widgetWizardTable.ajax.reload(null, true);
+            }
+
+            widgetWizardSelectedRows = selectedRowsSnapshot;
+
+            if (widgetWizardSelectedRowsTable != null) {
+                widgetWizardSelectedRowsTable.clear();
+                for (var i = 0; i < selectedRowsTableDataSnapshot.length; i++) {
+                    widgetWizardSelectedRowsTable.row.add(selectedRowsTableDataSnapshot[i]);
+                }
+                widgetWizardSelectedRowsTable.search('').draw(false);
+            }
+            if (selectedWidgetSnapshot != null) {
+                var widgetToRestore = $('.addWidgetWizardIconClickClass').filter(function() {
+                    if (selectedWidgetSnapshot.id != null && selectedWidgetSnapshot.id !== '') {
+                        return $(this).attr('data-id') === selectedWidgetSnapshot.id;
+                    }
+                    return $(this).attr('data-icon') === selectedWidgetSnapshot.icon && $(this).attr('data-mainwidget') === selectedWidgetSnapshot.mainWidget;
+                }).first();
+
+                if (widgetToRestore.length > 0 && widgetToRestore.attr('data-selected') !== 'true') {
+                    widgetToRestore.trigger('click');
+                }
+            }
+
+            if (typeof countSelectedRows === 'function') {
+                countSelectedRows();
+            }
+            if (typeof checkBrokerAndNrRowsTogether === 'function') {
+                checkBrokerAndNrRowsTogether();
+            }
+            if (typeof checkAtLeastOneRowSelected === 'function') {
+                checkAtLeastOneRowSelected();
+            }
+            if (typeof checkTab1Conditions === 'function') {
+                checkTab1Conditions(widgetWizardSelectedRows);
+            }
+            if (typeof updateWidgetCompatibleRows === 'function') {
+                updateWidgetCompatibleRows();
+            }
         }
 
         function refreshWidgetWizardOrganizationParameters(callback)
@@ -717,7 +797,9 @@
 
             orgFilter = org;
             refreshWidgetWizardOrganizationParameters(function() {
-                if (typeof resetFilter === 'function' && widgetWizardTable != null) {
+                if (widgetWizardPreserveSelectionsOnOrgChange && widgetWizardTable != null) {
+                    resetWidgetWizardStatePreservingChosenRows();
+                } else if (typeof resetFilter === 'function' && widgetWizardTable != null) {
                     resetFilter();
                 } else if (widgetWizardTable != null) {
                     widgetWizardSelectedRows = {};
@@ -2413,26 +2495,29 @@
 
         function updateWidgetCompatibleRows()
         {
-            var selectedWidget, snap4citytype, snap4citytypeArray, selectedRowUnits, count, globalCount, originalBckColor = null;
+            var selectedWidget, snap4citytype, selectedRowUnits, count, globalCount, selectedMainWidget, enforceValueUnit, firstValueUnit, selectedKeys = null;
             //Repere tipi di dato gestiti dal widget
             if($('.addWidgetWizardIconClickClass[data-selected="true"]').length > 0)
             {
                 selectedWidget = $('.addWidgetWizardIconClickClass[data-selected="true"]');
-                snap4citytype = selectedWidget.attr('data-snap4citytype');
-                snap4citytypeArray = snap4citytype.split(',');
+                snap4citytype = selectedWidget.attr('data-snap4citytype') || "";
+                selectedMainWidget = selectedWidget.attr('data-mainwidget');
+                selectedKeys = Object.keys(widgetWizardSelectedRows);
+                enforceValueUnit = isWidgetWizardValueUnitConstrainedWidget(selectedMainWidget);
+                firstValueUnit = selectedKeys.length > 0 ? normalizeWidgetWizardValueUnit(widgetWizardSelectedRows[selectedKeys[0]].value_unit) : "";
                 globalCount = 0;
                 console.log("Selected Widget: " + $('.addWidgetWizardIconClickClass[data-selected=true]').attr('data-mainwidget'));
                 console.log("Snap4CIty TYPE: " + snap4citytype);
                 
-                if(Object.keys(widgetWizardSelectedRows).length > 0)
+                if(selectedKeys.length > 0)
                 {
-                    for(var key in widgetWizardSelectedRows)
+                    for(var i = 0; i < selectedKeys.length; i++)
                     {
-                        selectedRowUnits = widgetWizardSelectedRows[key].unit.split(',');
+                        var key = selectedKeys[i];
+                        selectedRowUnits = String(widgetWizardSelectedRows[key].unit || "").split(',');
                         console.log("Selected ROW UNITS: " + selectedRowUnits);
                         count = 0;
                         
-                        originalBckColor = $('#widgetWizardSelectedRowsTable tbody tr[data-rowid=' + key.replace('row', '') + ']').css("background-color");
                         for(var j = 0; j < selectedRowUnits.length; j++)
                         {
                             selectedRowUnits[j] = selectedRowUnits[j].trim();
@@ -2443,24 +2528,17 @@
                             }
                         }
                         
-                        if(count > 0)
+                        var isCompatible = count > 0;
+                        if(isCompatible && enforceValueUnit && selectedKeys.length > 1)
                         {
-                            //Riga compatibile
-                            if (($('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetBarSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetCurvedLineSeries" || $('.addWidgetWizardIconClickClass[data-selected="true"]').attr("data-mainwidget") == "widgetPieChart") &&  widgetWizardSelectedRows[key].widgetCompatible == false) {
-                                widgetWizardSelectedRows[key].widgetCompatible = false;
-                            } else {
-                                widgetWizardSelectedRows[key].widgetCompatible = true;
-                            }
-                            $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", originalBckColor);
+                            isCompatible = normalizeWidgetWizardValueUnit(widgetWizardSelectedRows[key].value_unit) === firstValueUnit;
                         }
-                        else
+                        if(!isCompatible)
                         {
                             console.log("Riga Incompatibile !");
-                            //Riga incompatibile
                             globalCount++;
-                            widgetWizardSelectedRows[key].widgetCompatible = false;
-                            $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", "#ffb3b3");
                         }
+                        setWidgetWizardSelectedRowCompatibility(key, isCompatible);
                     }
                     
                     if(globalCount > 0)
@@ -2478,37 +2556,57 @@
                 //Se widget non selezionato le righe son sempre compatibili
                 for(var key in widgetWizardSelectedRows)
                 {
-                    widgetWizardSelectedRows[key].widgetCompatible = true;
-                    if($('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').hasClass('odd'))
-                    {
-                        $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css('background-color', '#f9f9f9');
-                    }
-                    else
-                    {
-                        $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css('background-color', '#ffffff');
-                    }
+                    setWidgetWizardSelectedRowCompatibility(key, true);
                 }
                 $('#wizardNotCompatibleRowsAlert').hide();
             }
         }
 
         function updateBarSeriesWidgetSelectedRows (obj, keyComp) {
-            Object.keys(obj).forEach(key => {
-                let item = obj[key];
-                //if (item.value_unit != (obj[keyComp].value_unit) || item.low_level_type != (obj[keyComp].low_level_type)) {   // Controlla se diversa unità di misura o tipo di metrica
-                if (item.value_unit != (obj[keyComp].value_unit)) {    // Controlla se diversa unità di misura (OK metriche diverse ma con stessa unità di misura)
-                    widgetWizardSelectedRows[key].widgetCompatible = false;
-                    $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", "#ffb3b3");
-                }
-            });
-         /*   for(var item in obj) {
-                if (obj.hasOwnProperty(property)) {
-                    if (item.value_unit != (key)) {
-                        widgetWizardSelectedRows[key].widgetCompatible = false;
-                        $('#widgetWizardSelectedRowsTable tr[data-rowid=' + key.replace('row', '') + ']').css("background-color", "#ffb3b3");
+            updateWidgetCompatibleRows();
+        }
+
+        function isWidgetWizardValueUnitConstrainedWidget(mainWidget)
+        {
+            return mainWidget == "widgetBarSeries" || mainWidget == "widgetCurvedLineSeries" || mainWidget == "widgetPieChart";
+        }
+
+        function normalizeWidgetWizardValueUnit(valueUnit)
+        {
+            return String(valueUnit == null ? "" : valueUnit).trim();
+        }
+
+        function setWidgetWizardSelectedRowCompatibility(key, compatible)
+        {
+            if(!widgetWizardSelectedRows.hasOwnProperty(key))
+            {
+                return;
+            }
+
+            var rowId = getWidgetWizardRowIdFromSelectionKey(key);
+            var selectedRow = $('#widgetWizardSelectedRowsTable tr[data-rowid=' + rowId + ']');
+
+            widgetWizardSelectedRows[key].widgetCompatible = compatible;
+            selectedRow.attr("data-widgetCompatible", compatible ? "true" : "false");
+
+            if(compatible)
+            {
+                selectedRow.each(function()
+                {
+                    if($(this).hasClass('odd'))
+                    {
+                        $(this).css('background-color', '#f9f9f9');
                     }
-                }
-            }*/
+                    else
+                    {
+                        $(this).css('background-color', '#ffffff');
+                    }
+                });
+            }
+            else
+            {
+                selectedRow.css("background-color", "#ffb3b3");
+            }
         }
         
         function updateIconsFromSelectedRows()
@@ -5232,7 +5330,9 @@
                 }
             },
             "createdRow": function (row, data, index) {
-                if (data[15] != null) {
+                if (data[17] != null && widgetWizardSelectedRows.hasOwnProperty(getWidgetWizardSelectionKey(data[17]))) {
+                    $(row).attr('data-rowId', data[17]);
+                } else if (data[15] != null) {
                     $(row).attr('data-rowId', data[15]);
                 } else {
                     $(row).attr('data-rowId', data[17]);
@@ -6645,38 +6745,15 @@
         $('#widgetWizardSelectedRowsTable').on('draw.dt', function () {
             $("#widgetWizardSelectedRowsTable_wrapper").css("overflow-x", "auto");
             $("#widgetWizardSelectedRowsTable_wrapper").css("overflow-y", "hidden");
-            if(Object.keys(widgetWizardSelectedRows).length > 0)
-            {
-                $('#widgetWizardSelectedRowsTable tbody tr').each(function (i) {
-                    var rowId = 'row' + $(this).attr('data-rowid');
-                    //if(widgetWizardSelectedRows[rowId].widgetCompatible)
-                    if($(this).attr('data-widgetCompatible'))
-                    {
-                        if($(this).hasClass('odd'))
-                        {
-                            $(this).css("background-color", "#f9f9f9");
-                        }
-                        else
-                        {
-                            $(this).css("background-color", "#ffffff");
-                        }
-
-                        $(this).attr("data-widgetCompatible", "true");
-                    }
-                    else
-                    {
-                        $(this).css("background-color", "#ffb3b3");
-                        $(this).attr("data-widgetCompatible", "false");
-                    }
-                });
-            }
+            updateWidgetCompatibleRows();
         });
         
         //Settaggio righe selezionate quando si cambia pagina
         $('#widgetWizardTable').on('draw.dt', function () {
             $('#widgetWizardTable tbody tr').each(function (i) {
-                var rowId = 'row' + $(this).attr('data-rowid');
-                if (widgetWizardSelectedRows.hasOwnProperty(rowId))
+                var rowId = getWidgetWizardRowIdFromDomRow(this);
+                var selectionKey = getWidgetWizardSelectionKey(rowId);
+                if (widgetWizardSelectedRows.hasOwnProperty(selectionKey))
                 {
                     $(this).addClass('selected');
                     $(this).attr("data-selected", "true");
@@ -7209,15 +7286,17 @@
 		<?php } else { // handler for row click in synMode ?>
 		$('#widgetWizardTable tbody').on('click', 'tr', function ()
         {
-			currentMarkerId = $(this).attr('data-rowid');
+            var rowId = getWidgetWizardRowIdFromDomRow(this);
+            var selectionKey = getWidgetWizardSelectionKey(rowId);
+			currentMarkerId = rowId;
             //Evidenza grafica di riga selezionata
             if($(this).hasClass('selected'))
             {
 				$(this).removeClass('selected');
-                var delesectedUnit = widgetWizardSelectedRows['row' + $(this).attr('data-rowid')].unit;
-                delete widgetWizardSelectedRows['row' + $(this).attr('data-rowid')];
+                var delesectedUnit = widgetWizardSelectedRows[selectionKey].unit;
+                delete widgetWizardSelectedRows[selectionKey];
 
-                widgetWizardSelectedRowsTable.row('[data-rowid=' + $(this).attr('data-rowid') + ']').remove().draw(false);
+                widgetWizardSelectedRowsTable.row('[data-rowid=' + rowId + ']').remove().draw(false);
                 
                 //Aggiornamento unità selezionate
                 updateSelectedUnits('remove', delesectedUnit);
@@ -7227,7 +7306,7 @@
 				$(this).addClass('selected');
             
 
-                widgetWizardSelectedRows['row' + $(this).attr('data-rowid')] =
+                widgetWizardSelectedRows[selectionKey] =
                 {
                     high_level_type: $(this).attr('data-high_level_type'),
                     nature: $(this).attr('data-nature'),
@@ -7249,7 +7328,7 @@
                     value_unit: $(this).attr('data-valueunit')
                 };
 
-                console.log(widgetWizardSelectedRows,$(this).attr('data-unit'), $(this),widgetWizardSelectedRows['row' + $(this).attr('data-rowid')]);
+                console.log(widgetWizardSelectedRows,$(this).attr('data-unit'), $(this),widgetWizardSelectedRows[selectionKey]);
 
                 <?php if(isCreationWizardUI()):?>
                     widgetWizardSelectedRowsTable.row.add([
@@ -7270,7 +7349,7 @@
                         $(this).find('td').eq(14).html(),
                         $(this).find('td').eq(16).html(),
                         $(this).find('td').eq(17).html(),
-                        $(this).attr('data-rowid'),
+                        rowId,
                         true
                     ]).draw(false);
                 <?php else: ?>
@@ -7290,14 +7369,14 @@
                         $(this).find('td').eq(12).html(),
                         $(this).find('td').eq(13).html(),
                         $(this).find('td').eq(14).html(),
-                        $(this).attr('data-rowid'),
+                        rowId,
                         true
                     ]).draw(false);
                 <?php endif; ?>
 
                 
                     
-                console.log(widgetWizardSelectedRows['row' + $(this).attr('data-rowid')]);
+                console.log(widgetWizardSelectedRows[selectionKey]);
 				
                 
                 //Aggiornamento unità selezionate
