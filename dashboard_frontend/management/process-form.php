@@ -6054,7 +6054,7 @@
         // $link_type = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["linkType"]), FILTER_SANITIZE_STRING));
         $isSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["isSub"]), FILTER_SANITIZE_STRING));
         $link_type = ($isSub == "true")?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
-        $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId'];
+        $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'ignoreDelegation'];
         if($link_type == "DashboardLinkMenuSubmenus"){
             array_push($var_arr, "menuId");
         }
@@ -6085,7 +6085,7 @@
             $wasSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["wasSub"]), FILTER_SANITIZE_STRING)) == "true";
             $link_type = ($isSub)?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
             $id = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["id"]), FILTER_SANITIZE_STRING));
-            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
+            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'ignoreDelegation'];
             if($link_type == "DashboardLinkMenuSubmenus"){
                 array_push($var_arr, "menuId");
             }
@@ -6226,7 +6226,7 @@
             // $sub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["sub"]), FILTER_SANITIZE_STRING));
             // $type = $sub == "true"?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
             $dashboardId = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["dashboardId"]), FILTER_SANITIZE_STRING));
-            $variables = ["DashboardLinkMenu" => ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'], "DashboardLinkMenuSubmenus" => ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', "menuId"]];
+            $variables = ["DashboardLinkMenu" => ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'ignoreDelegation'], "DashboardLinkMenuSubmenus" => ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', "menuId", 'ignoreDelegation']];
             // $vars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
             // $type = "DashboardLinkMenu";
             // $vars = $variables[$type];
@@ -6322,7 +6322,7 @@
             $import_link_obj = json_decode($_REQUEST["importLinkJson"], true);
             $import_sublink_obj = json_decode($_REQUEST["importSubLinkJson"], true);
             $father_new_id = [];
-            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId'];
+            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'ignoreDelegation'];
             $values_arr = [];
             $out_link = [];
             if(count($import_link_obj) > 0){
@@ -6389,7 +6389,7 @@
                 echo json_encode(['response' => "Ok", "sql" => $sql]);
             }
 
-            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'menuId'];
+            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'menuId', 'ignoreDelegation'];
             $values_arr = [];
             foreach($import_sublink_obj as $newLink){
                 $var_strings = [];

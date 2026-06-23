@@ -2883,6 +2883,13 @@
                     <div id ="customLinkFatherDiv" class="input-group" style="display:none">
                         <span class="input-group-addon">Father custom link: </span>
                         <select id="customLinkFather" name="menuId" class="form-control" defaultValue=""></select>
+                    </div><br>
+                    <div id ="customLinkIgnoreDelegationDiv" class="input-group">
+                        <span class="input-group-addon">Show even without delegation: </span>
+                        <select id="customLinkIgnoreDelegation" name="ignoreDelegation" class="form-control" defaultValue=0>
+                            <option value=0 selected>No</option>
+                            <option value=1>Yes</option>
+                        </select>
                     </div>
                     </div>
                     <br>
@@ -3357,12 +3364,13 @@
                     }
                     var linkItem = typeList.find(x => x.id == id)
                     $("#customLinkFather").attr("defaultValue", fatherId)
+                    var getDefaultValue = (x) => ((x.getAttribute("defaultValue") != undefined)?x.getAttribute("defaultValue"):"")
                     if(id == "" || linkItem){
                         $(".customLinkMsg").hide()
                         if(linkItem){
-                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = linkItem[x.name])
+                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = (linkItem[x.name] != undefined && linkItem[x.name]!= null)?linkItem[x.name]:getDefaultValue(x))
                         }else{
-                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = (x.getAttribute("defaultValue") != undefined)?x.getAttribute("defaultValue"):"")
+                            $("#modalCustomLink").find(".form-control").each((i, x) => x.value = getDefaultValue(x))
                         }
                         $("#customLinkConfirm").attr("linkId", id)
                         $("#customLinkType").val((fatherId)?"sublink":"link").change()

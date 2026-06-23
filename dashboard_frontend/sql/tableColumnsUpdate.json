@@ -9,5 +9,11 @@
     {
       "connections": {"type": "MEDIUMTEXT", "extra": ""}
     }
-  ]
+  ],
+  "DashboardLinkMenu": [{
+      "ignoreDelegation": {"type": "TINYINT", "extra": "NULL DEFAULT 0 AFTER `dashboardId`"}
+    }],
+  "DashboardLinkMenuSubmenus": [{
+      "ignoreDelegation": {"type": "TINYINT", "extra": "NULL DEFAULT 0 AFTER `dashboardId`"}
+    }]
 }

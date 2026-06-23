@@ -50,7 +50,7 @@ function checkLink($linkUrl){
 
 if($showMenu){
     $sublinkObj = [];
-    $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'menuId'];
+    $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'menuId', 'ignoreDelegation'];
     $customLinkSql = "SELECT " . join(",", $customLinkVars) . " FROM Dashboard.DashboardLinkMenuSubmenus WHERE dashboardId = $dashId ORDER BY menuOrder ASC";
     
     if (($customLinkStmt = mysqli_prepare($link, $customLinkSql)) && mysqli_stmt_execute($customLinkStmt)) {
@@ -63,7 +63,7 @@ if($showMenu){
             $sublinkObj[$menuId][] = $row;
         }
     }
-    $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
+    $customLinkVars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'ignoreDelegation'];
     $customLinkSql = "SELECT " . join(",", $customLinkVars) . " FROM Dashboard.DashboardLinkMenu WHERE dashboardId = $dashId ORDER BY menuOrder ASC";
     if (($customLinkStmt = mysqli_prepare($link, $customLinkSql)) && mysqli_stmt_execute($customLinkStmt)) {
         $customLinkRefs = [];
@@ -74,49 +74,49 @@ if($showMenu){
         mysqli_stmt_bind_result($customLinkStmt, ...$customLinkRefs);
     
         while ($customLinkStmt->fetch()) {
-            if($role == "RootAdmin" || checkLink($linkUrl)){
-                $target = $openMode == "samePage" ? "" : "target='_blank'";
-                $href = "href='$linkUrl'";
-                $class = "";
-                $subLinks = [];
-                $submenuIndicator = "";
-                $sublinksText = "";
-                if (key_exists($id, $sublinkObj)) {
-                    $subLinks = $sublinkObj[$id];
-                    foreach ($subLinks as $subLink) {
-                        $subLinkUrl = $subLink["linkUrl"];
-                        if ($subLinkUrl != "" && ($role == "RootAdmin" || checkLink($subLinkUrl))){
-                            $subId = $subLink["id"];
-                            $subText = $subLink["text"];
-                            $subOpenMode = $subLink["openMode"];
-                            $subIcon = $subLink["icon"];
-                            $subIconColor = $subLink["iconColor"];
-                            $subTarget = $subOpenMode == "samePage" ? "" : "target='_blank'";
-                            $sublinksText .= "<div class='row customLinkRow sublink' data-linkid='$subId'>" .
-                                "<div class='col-md-12 orgMenuItemCnt' data-fathermenuiddiv='$id' style='display: none;'>" .
-                                "<a title='$subText' href='$subLinkUrl' $subTarget id='subCustomLink_$subId' class='customLink'>" .
-                                "<i class='$subIcon' style='color: $subIconColor'></i><span class='customLinkText'>$subText</span>" .
-                                "</a>" .
-                                "</div></div>";
-                        }
-                    }
-                    if ($sublinksText != "") {
-                        $href = "";
-                        $class = "sublinkFather";
-                        $submenuIndicator = '<i class="fa fa-caret-right submenuIndicator" style="color: rgb(51, 64, 69)"></i>';
+            $target = $openMode == "samePage" ? "" : "target='_blank'";
+            $href = "href='$linkUrl'";
+            $class = "";
+            $subLinks = [];
+            $submenuIndicator = "";
+            $sublinksText = "";
+            if (key_exists($id, $sublinkObj)) {
+                $subLinks = $sublinkObj[$id];
+                foreach ($subLinks as $subLink) {
+                    $subLinkUrl = $subLink["linkUrl"];
+                    $subLinkIgnoreDelegation = $subLink["ignoreDelegation"];
+                    if ($subLinkUrl != "" && ($role == "RootAdmin" || $subLinkIgnoreDelegation || checkLink($subLinkUrl))){
+                        $subId = $subLink["id"];
+                        $subText = $subLink["text"];
+                        $subOpenMode = $subLink["openMode"];
+                        $subIcon = $subLink["icon"];
+                        $subIconColor = $subLink["iconColor"];
+                        $subTarget = $subOpenMode == "samePage" ? "" : "target='_blank'";
+                        $sublinksText .= "<div class='row customLinkRow sublink' data-linkid='$subId'>" .
+                            "<div class='col-md-12 orgMenuItemCnt' data-fathermenuiddiv='$id' style='display: none;'>" .
+                            "<a title='$subText' href='$subLinkUrl' $subTarget id='subCustomLink_$subId' class='customLink'>" .
+                            "<i class='$subIcon' style='color: $subIconColor'></i><span class='customLinkText'>$subText</span>" .
+                            "</a>" .
+                            "</div></div>";
                     }
                 }
-                if ($linkUrl != "" || $sublinksText != "") {
-                    echo "<div class='row customLinkRow $class' data-linkid='$id'>" .
-                        "<div class='col-md-12 orgMenuItemCnt'>" .
-                        "<a title='$text' $href $target id='customLink_$id' class='customLink'>" .
-                        "<i class='$icon' style='color: $iconColor'></i><span class='customLinkText'>$text</span>" .
-                        $submenuIndicator .
-                        "</a>" .
-                        "</div></div>";
-                    echo $sublinksText;
+                if ($sublinksText != "") {
+                    $href = "";
+                    $class = "sublinkFather";
+                    $submenuIndicator = '<i class="fa fa-caret-right submenuIndicator" style="color: rgb(51, 64, 69)"></i>';
                 }
             }
+            if ($sublinksText != "" || ($linkUrl != "" && ($role == "RootAdmin" || $ignoreDelegation || checkLink($linkUrl)))) {
+                echo "<div class='row customLinkRow $class' data-linkid='$id'>" .
+                    "<div class='col-md-12 orgMenuItemCnt'>" .
+                    "<a title='$text' $href $target id='customLink_$id' class='customLink'>" .
+                    "<i class='$icon' style='color: $iconColor'></i><span class='customLinkText'>$text</span>" .
+                    $submenuIndicator .
+                    "</a>" .
+                    "</div></div>";
+                echo $sublinksText;
+            }
         }
+        
     }
 }
