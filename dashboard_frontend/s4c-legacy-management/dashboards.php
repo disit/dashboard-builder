@@ -123,11 +123,10 @@ else
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
         <!-- Chat CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
-        <!--  <link rel="stylesheet" href="../css/shepherd.min.css">  -->
-    <link href="../css/snapTour.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/shepherd.min.css">
+        <link href="../css/snapTour.css" rel="stylesheet">
 
-        <!-- Dual List Box for Dashboard Metadata Classification -->
+            <!-- Dual List Box for Dashboard Metadata Classification -->
         <script src="../js/jquery.bootstrap-duallistbox.min.js"></script>
         <link rel="stylesheet" type="text/css" href="../css/bootstrap-duallistbox.css">
         <link rel="stylesheet" type="text/css" href="../css/dual_list.css">
@@ -1113,8 +1112,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
     </body>
 </html>
 
-<script src="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/js/shepherd.min.js"></script>
-<!-- <script src="../js/shepherd.min.js"></script> -->
+<script src="../js/shepherd.min.js"></script>
 <script src="../js/snapTour.js"></script>
 <script type='text/javascript'>
     $(document).ready(function ()
@@ -1413,7 +1411,7 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 if (editLbl === 'show')
                 {
                 //    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCard"><?php echo _("Edit"); ?></button>';
-                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCardNew"><?php echo _("Edit (New)"); ?></button>';
+                    cardDiv = cardDiv + '<button type="button" class="dashBtnCard editDashBtnCardNew"><?php echo _("Edit"); ?></button>';
                 }
 
                 switch (managementLbl)
@@ -1529,6 +1527,46 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                 }
             });
         }
+
+        function refreshDashboardVisibilityTooltips()
+        {
+            $('#list_dashboard_cards .dashboardsListCardVisibilityDiv').each(function () {
+                var visibilityDiv = this;
+                var $visibilityDiv = $(visibilityDiv);
+                var fullText = $.trim($visibilityDiv.text());
+                var isTruncated = visibilityDiv.scrollWidth > (visibilityDiv.clientWidth + 1);
+
+                if ($visibilityDiv.data('bs.tooltip')) {
+                    $visibilityDiv.tooltip('destroy');
+                }
+
+                $visibilityDiv
+                        .removeClass('dashboardVisibilityTooltipEnabled')
+                        .removeAttr('data-toggle data-placement title data-original-title aria-label tabindex');
+
+                if (isTruncated && fullText.length > 0) {
+                    $visibilityDiv
+                            .addClass('dashboardVisibilityTooltipEnabled')
+                            .attr({
+                                'data-toggle': 'tooltip',
+                                'data-placement': 'top',
+                                'title': fullText,
+                                'aria-label': fullText,
+                                'tabindex': '0'
+                            })
+                            .tooltip({
+                                container: 'body',
+                                trigger: 'hover focus'
+                            });
+                }
+            });
+        }
+
+        var dashboardVisibilityTooltipResizeTimeout = null;
+        $(window).off('resize.dashboardVisibilityTooltips').on('resize.dashboardVisibilityTooltips', function () {
+            clearTimeout(dashboardVisibilityTooltipResizeTimeout);
+            dashboardVisibilityTooltipResizeTimeout = setTimeout(refreshDashboardVisibilityTooltips, 150);
+        });
 
         //Nuova tabella
         $.ajax({
@@ -1703,6 +1741,7 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                     $("#dynatable-query-search-list_dashboard_cards").attr("placeholder", "<?php echo _('Filter by dashboard title, author...') ?>");
                     $("#dynatable-query-search-list_dashboard_cards").css("width", "100%");
                     $("#dynatable-query-search-list_dashboard_cards").addClass("form-control");
+                    refreshDashboardVisibilityTooltips();
 
                     $('#list_dashboard_cards div.dashboardsListCardDiv').each(function (i) {
                         $(this).find('div.dashboardsListCardImgDiv').css("background-image", "url(../img/dashScr/dashboard" + $(this).attr('data-uniqueid') + "/" + $(this).attr('data-screenshotFilename') + ")");

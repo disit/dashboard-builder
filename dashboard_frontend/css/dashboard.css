@@ -3241,12 +3241,30 @@ input[type="text"]:disabled
     margin-bottom: 15px;
 }
 
-.dashboardsListCardVisibilityDiv
+#list_dashboard_cards .dashboardsListCardVisibilityDiv
 {
     color: white;
     font-size: 11px;
     margin-top: 10px;
     margin-bottom: 5px;
+    display: block;
+    width: 100%;
+    line-height: 16px;
+    min-height: 16px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#list_dashboard_cards .dashboardsListCardVisibilityDiv.dashboardVisibilityTooltipEnabled
+{
+    cursor: help;
+}
+
+#list_dashboard_cards .dashboardsListCardVisibilityDiv.dashboardVisibilityTooltipEnabled:focus
+{
+    outline: 1px dotted white;
+    outline-offset: 2px;
 }
 
 .dashboardsListCardIotDiv
