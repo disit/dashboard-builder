@@ -44,6 +44,29 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
     .pag-hidden {
     display: none;
 }
+
+.table-list-header-pag {
+    flex: 0 0 auto;
+}
+
+#<?= $_REQUEST['name_w'] ?>_content {
+   /* height: 100%;*/
+    display: flex;
+    flex-direction: column;
+}
+
+
+table.dataTable tbody tr {
+  height: 40px;
+}
+
+td:.dt-center last-child{
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-items: center;
+}
+
 </style>
 <script type="text/javascript">
     var dataSet_<?= $_REQUEST['name_w'] ?> = [];
@@ -243,13 +266,21 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
     const name_w = '<?= $_REQUEST['name_w'] ?>';
     const $table = $('#maintable_' + name_w);
 
+    const existing = $.fn.DataTable.isDataTable($table);
+
+        if (existing) {
+            window.tables[name_w].destroy();
+            $table.empty();
+        }
+
     // pulizia sicura della table precedente
+    /*
     if ($.fn.DataTable.isDataTable($table)) {
         $table.DataTable().clear().destroy();
         // rimuovo wrapper generato da DataTables (se presente)
         $table.removeClass('dataTable').empty();
     } 
-    $table.empty();
+    $table.empty();*/
 
     //var dataSet = window['dataSet_' + name_w];
 
@@ -329,18 +360,18 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
             title: title_act,
                 render: function (data, type, row, meta) {
                     var body = "";
-                    let hoverIndex = 0; // 👈 indice reale per arrayHover
+                    let hoverIndex = 0; // indice reale per arrayHover
                     Object.entries(dt_actions)
     .filter(([key, value]) => !(key === "pin" && value !== "show"))
     .forEach(([key, value]) => {
 
         let hover = arrayHover[hoverIndex];
         if (key === "pin") {
-            body += '<button id="pin" class="btn actionButton' + name_w + '" style="margin-left:10px"' +
+            body += '<button id="pin" class="btn actionButton' + name_w + '" ' +
                 (hover ? ' title="' + hover + '"' : '') +
                 '><i class="fa fa-map-marker"></i></button>';
         } else {
-            body += '<button id="' + key + '" class="btn actionButton' + name_w + '" style="margin-left:10px"' +
+            body += '<button id="' + key + '" class="btn actionButton' + name_w + '" ' +
                 (hover ? ' title="' + hover + '"' : '') +
                 '><img style="max-width:20px" src="' + value + '" /></button>';
         }
@@ -377,7 +408,25 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
     //console.log('createTable - indexCol:', indexCol);
 
     // init DataTable - uso initComplete per adjust/draw
-    var table = $table.DataTable({
+    
+window.tables = window.tables || {};
+window.tables[name_w] = $table.DataTable({
+    data: dataSet,
+    scrollY: getDynamicScrollY(name_w),
+    scrollCollapse: true,
+    paging: false,
+    info: false,
+    searching: false,
+    ordering: true,
+    order: [[indexCol, order_sort]],
+    columns: arr_col,
+    initComplete: function () {
+        const api = this.api();
+        api.columns.adjust();
+    }
+});
+   
+    /*var table = $table.DataTable({
         data: dataSet,
         scrollResize: true,
         scrollY: '100px',
@@ -396,11 +445,14 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
             // assicurarsi che l'adeguamento delle colonne venga fatto quando la tabella è pronta
             this.api().columns.adjust().draw(false);
         }
-    });
+    });*/
+ 
 
     // event handlers per bottoni azione
     $('.actionButton' + name_w).off('click').on('click', function () {
-        var data = table.row($(this).closest('tr')).data();
+       // var data = table.row($(this).closest('tr')).data();
+       const dt = window.tables?.[name_w];
+            const data = dt?.row($(this).closest('tr'))?.data();
         var order = table.order();
         var ordering = order[0][0];
 
@@ -426,7 +478,12 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
             }
 
             showWidgetContent(widgetName);
-            table.columns.adjust().draw();
+            //table.columns.adjust().draw();
+            const dt = window.tables?.[name_w];
+                if (dt) {
+                    dt.columns.adjust();
+                    dt.draw(false);
+                }
             $("#maintable_<?= $_REQUEST['name_w'] ?>_filter").find("label").css("color", "black");
 			//console.log('current_page: '+current_page_<?= $_REQUEST['name_w'] ?>);
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current_page_<?= $_REQUEST['name_w'] ?>);
@@ -609,7 +666,10 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
 
                                         // CREA comunque la tabella (solo header)
                                         createTable();
-
+                                        initAutoResize(<?= $_REQUEST['name_w'] ?>);
+                                        setTimeout(() => {
+                                            resizeDataTable(<?= $_REQUEST['name_w'] ?>);
+                                        }, 0);
                                         // pulisci paginazione
                                         $('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
                                         return;
@@ -628,6 +688,10 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
                             count--;
                             if (count === 0) {
                                 createTable();
+                                initAutoResize(name_w);
+                                        setTimeout(() => {
+                                            resizeDataTable(name_w);
+                                        }, 0);
                             }
                         }
                     });
@@ -869,7 +933,9 @@ function goToPage(page) {
 
             //$('#tbody_<?= $_REQUEST['name_w'] ?>').on('click', 'td.expand-content', function () {
 			$('#maintable_<?= $_REQUEST['name_w'] ?> tbody').on('click', 'td.expand-content', function () {
-                var data = table.row($(this).parents('tr')).data();
+               // var data = table.row($(this).parents('tr')).data();
+               const dt = window.tables?.[name_w];
+                const data = dt?.row($(this).closest('tr'))?.data();
                 var tr = $(this).closest('tr');
                 var row = table.row(tr);
                 var order = table.order();
@@ -1046,6 +1112,7 @@ function goToPage(page) {
 
         $("#<?= $_REQUEST['name_w'] ?>").on('customResizeEvent', function (event) {
             resizeWidget();
+            resizeDataTable(widgetName);
         });
 
         $("#<?= $_REQUEST['name_w'] ?>").off('updateFrequency');
@@ -1296,6 +1363,80 @@ function goToPage(page) {
         }
 
     });
+
+    //Calcola dimensione div
+    
+function getDynamicScrollY(name_w) {
+    const el = document.getElementById(name_w + "_content");
+    if (!el) return "250px";
+
+    const rect = el.getBoundingClientRect();
+
+    // elementi UI da sottrarre (header + controlli + paginazione)
+    const reservedSpace = 100;
+
+    const height = rect.height - reservedSpace;
+
+    return Math.max(110, height) + "px";
+}
+
+function resizeDataTable(name_w) {
+    const table = window.tables?.[name_w];
+    if (!table) return;
+
+    const newHeight = getDynamicScrollY(name_w);
+
+    const settings = table.settings()[0];
+
+    // evita redraw inutili
+    if (settings.oScroll.sY === newHeight) return;
+
+    settings.oScroll.sY = newHeight;
+
+    table.columns.adjust();
+    table.draw(false);
+}
+
+function initAutoResize(name_w) {
+    const el = document.getElementById(name_w + "_content");
+    if (!el) return;
+
+    if (!window.resizeObservers) window.resizeObservers = {};
+
+    // evita duplicati
+    if (window.resizeObservers[name_w]) {
+        window.resizeObservers[name_w].disconnect();
+    }
+
+    const observer = new ResizeObserver(() => {
+        resizeDataTable(name_w);
+    });
+
+    observer.observe(el);
+
+    window.resizeObservers[name_w] = observer;
+}
+
+window.addEventListener("resize", () => {
+    if (!window.tables) return;
+
+    Object.keys(window.tables).forEach(name_w => {
+        resizeDataTable(name_w);
+    });
+});
+
+function safeAdjust(name_w) {
+    const dt = window.tables?.[name_w];
+
+    if (!dt || !dt.columns) return;
+
+    try {
+        dt.columns.adjust();
+        dt.draw(false);
+    } catch (e) {
+        console.warn("DataTable not ready yet", e);
+    }
+}
 	</script>
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
