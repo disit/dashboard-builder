@@ -50,21 +50,87 @@ if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
 }
 
 #<?= $_REQUEST['name_w'] ?>_content {
-   /* height: 100%;*/
     display: flex;
     flex-direction: column;
+    height: 100%;
+    overflow-y: auto;
+    overflow-x: hidden !important;
 }
 
-
 table.dataTable tbody tr {
-  height: 40px;
+  height: 25px;
 }
 
 td:.dt-center last-child{
-    display: flex;
+    /*display: flex;*/
     flex-wrap: nowrap;
-    justify-content: center;
+    /*justify-content: center;
+    align-items: center;*/
+}
+
+tbody {
+    padding-bottom: 20px;
+}
+
+.dataTables_scroll {
+    flex: 1 1 auto !important;
+    min-height: 0;
+    
+}
+
+.dataTables_scrollBody {
+    flex: 1 1 auto;
+    overflow: auto !important;
+}
+.widget {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.ui-widget-content {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.dataTables_wrapper {
+    flex: 1;
+    min-height: 0;
+    /*display: flex;
+    flex-direction: column;*/
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Colonna Actions */
+td.dt-center:last-child,
+td.dt-center:last-child > div {
+    white-space: nowrap;
+}
+
+
+
+td.dt-center:last-child {
+    white-space: nowrap;
+}
+
+.actions-column {
+    white-space: nowrap;
+}
+
+.actions-column .actionButton<?= $_REQUEST['name_w'] ?> {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    margin: 0 2px;
 }
 
 </style>
@@ -102,7 +168,7 @@ td:.dt-center last-child{
 	var columns_list_<?= $_REQUEST['name_w'] ?> = [];
 	//url_<?= $_REQUEST['name_w'] ?> var responsive_table_<?= $_REQUEST['name_w'] ?> = true;
 	var columnTitles_<?= $_REQUEST['name_w'] ?>= [];
-	var rowsToShow_<?= $_REQUEST['name_w'] ?> = [5,10,20];
+	var rowsToShow_<?= $_REQUEST['name_w'] ?> = [5,10,20,50];
 	
 
     var dt_actions_<?= $_REQUEST['name_w'] ?> = {
@@ -240,6 +306,7 @@ td:.dt-center last-child{
 					action_<?= $_REQUEST['name_w'] ?> = 'ChangeNumberRows';
 					maintable_length = parseInt($('#n_rows_<?= $_REQUEST['name_w'] ?>').val());
 					current_page_<?= $_REQUEST['name_w'] ?> = 0;
+                    $('#start_value_<?= $_REQUEST['name_w'] ?>').val(0);
 					//$('#maintable_<?= $_REQUEST['name_w'] ?>').DataTable().destroy();
 					$('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
 					populateWidget(save_value_<?= $_REQUEST['name_w'] ?>_);
@@ -265,7 +332,7 @@ td:.dt-center last-child{
 	function createTable() {
     const name_w = '<?= $_REQUEST['name_w'] ?>';
     const $table = $('#maintable_' + name_w);
-
+    console.log('createTable');
     const existing = $.fn.DataTable.isDataTable($table);
 
         if (existing) {
@@ -355,7 +422,7 @@ td:.dt-center last-child{
         console.log('dt_actions', dt_actions);
         arr_col.push({
             data: "actions",
-            className: "all dt-center",
+            className: "all dt-center actions-column",
             orderable: false,
             title: title_act,
                 render: function (data, type, row, meta) {
@@ -413,6 +480,7 @@ window.tables = window.tables || {};
 window.tables[name_w] = $table.DataTable({
     data: dataSet,
     scrollY: getDynamicScrollY(name_w),
+    //scrollY:  '100%',
     scrollCollapse: true,
     paging: false,
     info: false,
@@ -420,13 +488,46 @@ window.tables[name_w] = $table.DataTable({
     ordering: true,
     order: [[indexCol, order_sort]],
     columns: arr_col,
+    rowCallback: function (row, data, index) {
+            $('.dataTables_scrollBody').css('overflow-x', 'hidden');
+        },
     initComplete: function () {
-        const api = this.api();
-        api.columns.adjust();
-    }
+                const dt = this.api();
+
+                let attempts = 0;
+
+                const interval = setInterval(() => {
+                    const newHeight = getDynamicScrollY(name_w);
+
+                    dt.settings()[0].oScroll.sY = newHeight;
+
+                    dt.columns.adjust(false);
+
+                    attempts++;
+
+                    // condizione di stabilità
+                    const scrollBody = document.querySelector(
+                        '#maintable_' + name_w + '_wrapper .dataTables_scrollBody'
+                    );
+
+                    if (scrollBody) {
+                        const h = scrollBody.clientHeight;
+
+                        // se ha una height reale stabile → fermati
+                        if (h > 0 && attempts > 2) {
+                            clearInterval(interval);
+                        }
+                    }
+
+                    if (attempts > 10) {
+                        clearInterval(interval);
+                    }
+
+                }, 50);
+            }
 });
-   
-    /*var table = $table.DataTable({
+   /*
+    var table = $table.DataTable({
         data: dataSet,
         scrollResize: true,
         scrollY: '100px',
@@ -453,8 +554,10 @@ window.tables[name_w] = $table.DataTable({
        // var data = table.row($(this).closest('tr')).data();
        const dt = window.tables?.[name_w];
             const data = dt?.row($(this).closest('tr'))?.data();
-        var order = table.order();
-        var ordering = order[0][0];
+        //var order = table.order();
+        //var ordering = order[0][0];
+        const order = dt?.order?.() || [[0, 'asc']];
+        const ordering = order?.[0]?.[0] ?? 0;
 
         var dataToSend = {
             device: data ? data.device : null,
@@ -668,7 +771,7 @@ window.tables[name_w] = $table.DataTable({
                                         createTable();
                                         initAutoResize(<?= $_REQUEST['name_w'] ?>);
                                         setTimeout(() => {
-                                            resizeDataTable(<?= $_REQUEST['name_w'] ?>);
+                                            window.tables[name_w].columns.adjust();
                                         }, 0);
                                         // pulisci paginazione
                                         $('#paging_table_<?= $_REQUEST['name_w'] ?>').empty();
@@ -690,7 +793,7 @@ window.tables[name_w] = $table.DataTable({
                                 createTable();
                                 initAutoResize(name_w);
                                         setTimeout(() => {
-                                            resizeDataTable(name_w);
+                                            window.tables[name_w].columns.adjust();
                                         }, 0);
                             }
                         }
@@ -1365,20 +1468,14 @@ function goToPage(page) {
     });
 
     //Calcola dimensione div
-    
+   
 function getDynamicScrollY(name_w) {
     const el = document.getElementById(name_w + "_content");
     if (!el) return "250px";
-
-    const rect = el.getBoundingClientRect();
-
-    // elementi UI da sottrarre (header + controlli + paginazione)
-    const reservedSpace = 100;
-
-    const height = rect.height - reservedSpace;
-
-    return Math.max(110, height) + "px";
+    const height = el.clientHeight;
+    return Math.max(250, Math.floor(height * 0.75)) + "px";
 }
+
 
 function resizeDataTable(name_w) {
     const table = window.tables?.[name_w];
@@ -1399,6 +1496,15 @@ function resizeDataTable(name_w) {
 
 function initAutoResize(name_w) {
     const el = document.getElementById(name_w + "_content");
+    new ResizeObserver(() => {
+    const dt = window.tables?.[name_w];
+    if (!dt) return;
+
+    const newHeight = getDynamicScrollY(name_w);
+
+    dt.settings()[0].oScroll.sY = newHeight;
+    dt.columns.adjust();
+}).observe(el);
     if (!el) return;
 
     if (!window.resizeObservers) window.resizeObservers = {};
@@ -1437,6 +1543,14 @@ function safeAdjust(name_w) {
         console.warn("DataTable not ready yet", e);
     }
 }
+
+window.addEventListener('resize', function () {
+    Object.values(window.tables).forEach(dt => {
+        if (dt) {
+            dt.columns.adjust();
+        }
+    });
+});
 	</script>
 <div class="widget" id="<?= $_REQUEST['name_w'] ?>_div">
     <div class='ui-widget-content'>
@@ -1465,11 +1579,11 @@ function safeAdjust(name_w) {
 					<br>total results: <input type="text" id="totalResults_<?= $_REQUEST['name_w'] ?>">
 			</div>
 <div class="table-list-header-pag">
-<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option></select> </label>
+<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option><option value=50>50</option></select> </label>
          <div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label>Search:<input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
 			<div id="paging_table_<?= $_REQUEST['name_w'] ?>" class="mod2"></div>
 </div>
-            <table id="maintable_<?= $_REQUEST['name_w'] ?>" class="table table-striped table-bordered display responsive" cellspacing="0" style="width:100%">
+            <table id="maintable_<?= $_REQUEST['name_w'] ?>" class="table table-striped table-bordered display responsive" cellspacing="0" style="width:100%;">
 				   </table>
         </div>
     </div>
