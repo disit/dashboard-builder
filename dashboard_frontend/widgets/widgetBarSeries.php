@@ -268,6 +268,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 		
 		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
             showTodayButton: true,
+            useCurrent: false,
             widgetPositioning:{
                 horizontal: 'auto',
                 vertical: 'bottom',
@@ -1112,6 +1113,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 				 fromDate = y +'-'+m+'-'+d+'T'+h+':'+s+':00';
 				 //console.log(fromDate);
 			}
+            if (fromDate != null) {
+                setupLoadingPanel(widgetName, widgetContentColor, true);
+            }
 
             seriesDataArray = [];
 
