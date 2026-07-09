@@ -31649,22 +31649,24 @@
                                             newLabel.show();
                                             newInnerDiv.show();
                                             newInput.show();
-
-                                            // Show Content on Load
-                                            newLabel = $('<label for="showContentLoadM" class="col-md-1 control-label"><?php echo _("Show CSBL Content on Load"); ?></label>');
-                                            newInnerDiv = $('<div class="col-md-1"></div>');
-                                            newSelect = $('<select class="form-control" id="showContentLoadM" name="showContentLoadM">');
-                                            newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
-                                            newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
-                                            newSelect.val(styleParameters.showContentLoadM);
-                                            newInnerDiv.append(newSelect);
-                                            newFormRow.append(newLabel);
-                                            newFormRow.append(newInnerDiv);
-                                            newLabel.show();
-                                            newInnerDiv.show();
-                                            newSelect.show();
                                             
                                         }
+
+                                        // Show Content on Load
+                                        newFormRow = $('<div class="row"></div>');
+                                        $("#specificParamsM").append(newFormRow);
+                                        newLabel = $('<label for="showContentLoadM" class="col-md-2 control-label"><?php echo _("Show CSBL Content on Load"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="showContentLoadM" name="showContentLoadM">');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                        newSelect.val(styleParameters.showContentLoadM);
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        newLabel.show();
+                                        newInnerDiv.show();
+                                        newSelect.show();
 
                                         if (document.getElementById("groupByAttrM").value == "value name") {
                                             let elems = document.getElementsByClassName("deviceLab");
