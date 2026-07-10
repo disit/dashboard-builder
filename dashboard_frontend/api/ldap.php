@@ -115,9 +115,15 @@ else if($action == 'get_logged_ou')
                 $result['log'] .= '\n\r action:get_logged_ou. Error: No LDAP organization Unit found for user '.$userDN;
         }
         else{
+                $allOu = array();
+                for ($i = 0; $i < $entries["count"]; $i++) {
+                        if (isset($entries[$i]["ou"][0]) && !in_array($entries[$i]["ou"][0], $allOu)) {
+                                $allOu[] = $entries[$i]["ou"][0];
+                        }
+                }
                 $result["status"] = 'ok';
-                $result["content"] =  $entries["0"]["ou"][0];
-                $result["log"] .= "\n\r action:get_logged_ou. Ok, got ".$entries["0"]["ou"][0];
+                $result["content"] =  $allOu;
+                $result["log"] .= "\n\r action:get_logged_ou. Ok, got n-entries: ".count($allOu);
         }
         //my_log($result);
         echo json_encode($result);

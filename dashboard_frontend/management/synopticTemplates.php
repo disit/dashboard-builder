@@ -1910,6 +1910,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 									$.each(data['content'], function() {
 										$dropdown.append($("<option />").val(this).text(this));
 									});
+									$dropdown.append($("<option />").val("No Organization").text("No Organization"));
 								}
 							},
 							error: function (data)
@@ -1940,7 +1941,11 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
 								else if(data["status"] === 'ok')
 								{
 									var $dropdown = $("#newDelegationOrganization");
-									$dropdown.append($("<option/>").val(data['content']).text(data['content']));
+									var organizations = Array.isArray(data['content']) ? data['content'] : [data['content']];
+									$.each(organizations, function () {
+										$dropdown.append($("<option/>").val(this).text(this));
+									});
+									$dropdown.append($("<option/>").val("No Organization").text("No Organization"));
 								}
 							},
 							error: function (data)

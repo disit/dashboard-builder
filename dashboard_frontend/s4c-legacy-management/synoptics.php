@@ -2109,9 +2109,18 @@
 								else if (data["status"] === 'ok')
 								{
 									var $dropdown = $("#newDelegationOrganization");
+									$dropdown.empty();
+									var addedOrganizations = {};
 									$.each(data['content'], function() {
-										$dropdown.append($("<option />").val(this).text(this));
+										var organization = $.trim(String(this));
+										if (organization !== '' && !addedOrganizations[organization]) {
+											addedOrganizations[organization] = true;
+											$dropdown.append($("<option />").val(organization).text(organization));
+										}
 									});
+									if (!addedOrganizations["No Organization"]) {
+										$dropdown.append($("<option />").val("No Organization").text("No Organization"));
+									}
 								}
 							},
 							error: function (data)
@@ -2142,7 +2151,19 @@
 								else if(data["status"] === 'ok')
 								{
 									var $dropdown = $("#newDelegationOrganization");
-									$dropdown.append($("<option/>").val(data['content']).text(data['content']));
+									$dropdown.empty();
+									var addedOrganizations = {};
+									var organizations = Array.isArray(data['content']) ? data['content'] : [data['content']];
+									$.each(organizations, function () {
+										var organization = $.trim(String(this));
+										if (organization !== '' && !addedOrganizations[organization]) {
+											addedOrganizations[organization] = true;
+											$dropdown.append($("<option/>").val(organization).text(organization));
+										}
+									});
+									if (!addedOrganizations["No Organization"]) {
+										$dropdown.append($("<option/>").val("No Organization").text("No Organization"));
+									}
 								}
 							},
 							error: function (data)

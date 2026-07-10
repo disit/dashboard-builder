@@ -133,9 +133,8 @@ else
         <!-- Custom scripts -->
         <script type="text/javascript" src="../js/dashboard_mng.js"></script>
         <!-- Chat CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/css/shepherd.min.css">
-        <!--  <link rel="stylesheet" href="../css/shepherd.min.css">  -->
-    <link href="../css/s4c-css/s4c-snapTour.css" rel="stylesheet">
+        <link rel="stylesheet" href="../css/shepherd.min.css">
+        <link href="../css/s4c-css/s4c-snapTour.css" rel="stylesheet">
 
         <!-- Dual List Box for Dashboard Metadata Classification -->
         <script src="../js/jquery.bootstrap-duallistbox.min.js"></script>
@@ -1126,8 +1125,7 @@ if (isset($_GET['pageTitle'])) {
     </body>
 </html>
 
-<script src="https://cdn.jsdelivr.net/npm/shepherd.js@8/dist/js/shepherd.min.js"></script>
-<!-- <script src="../js/shepherd.min.js"></script> -->
+<script src="../js/shepherd.min.js"></script>
 <script src="../js/snapTour.js"></script>
 <script type='text/javascript'>
     $(document).ready(function ()
@@ -3494,6 +3492,7 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                         $.each(data['content'], function () {
                             $dropdown.append($("<option />").val(this).text(this));
                         });
+                        $dropdown.append($("<option />").val("No Organization").text("No Organization"));
                     }
                 },
                 error: function (data)
@@ -3523,7 +3522,11 @@ if (isset($_GET['newDashId']) && isset($_GET['newDashAuthor']) && isset($_GET['n
                     } else if (data["status"] === 'ok')
                     {
                         var $dropdown = $("#newDelegationOrganization");
-                        $dropdown.append($("<option/>").val(data['content']).text(data['content']));
+                        var organizations = Array.isArray(data['content']) ? data['content'] : [data['content']];
+                        $.each(organizations, function () {
+                            $dropdown.append($("<option/>").val(this).text(this));
+                        });
+                        $dropdown.append($("<option/>").val("No Organization").text("No Organization"));
                     }
                 },
                 error: function (data)
