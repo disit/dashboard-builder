@@ -2231,7 +2231,10 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                                         if (orgDel != "") {
                                             if (groupDel != null && groupDel != undefined) {
                                                 if (groupDel != "" && groupDel != "All Groups") {
-                                                    newDelegatedString = "cn=" + groupDel + ",ou=" + orgDel + ",<?= $ldapBaseDN ?>";
+                                                    if (orgDel === "No Organization")
+                                                        newDelegatedString = "cn=" + groupDel + ",<?= $ldapBaseDN ?>";
+                                                    else
+                                                        newDelegatedString = "cn=" + groupDel + ",ou=" + orgDel + ",<?= $ldapBaseDN ?>";
                                                 } else {
                                                     newDelegatedString = "ou=" + orgDel + ",<?= $ldapBaseDN ?>";
                                                 }
