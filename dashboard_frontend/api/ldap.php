@@ -132,8 +132,12 @@ else if($action == 'get_logged_ou')
 else if($action == 'get_group_for_ou')
 {
         $connection = ldap_connect($ldapServer, $ldapPort);
-        if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true || preg_match('/^[\w\-\s\p{L}]+$/', $_REQUEST['ou'])) {
-            $resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
+	if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true || preg_match('/^[\w\-\s\p{L}]+$/', $_REQUEST['ou'])) {
+	    if($_REQUEST['ou']=='No Organization') {
+                $resultldap = ldap_list($connection, $ldapBaseDN, '(objectClass=groupOfNames)');
+            } else {
+                $resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
+	    }
             $entries = ldap_get_entries($connection, $resultldap);
         } else {
             eventLog("Returned the following ERROR in ldap.php: organization '" . escapeForHTML($_REQUEST['ou']) ."' is not an alpha-numeric string.");
@@ -144,7 +148,9 @@ else if($action == 'get_group_for_ou')
 	$allGroupsUserOu=array();
 
 	for ($i = 0; $i<$entries["count"]; $i++) {
-		$allGroupsUserOu[$i]=$entries[$i]["cn"][0];
+		$group = $entries[$i]["cn"][0];
+		if(!in_array($group, ["Dashboard","IoTDirectory","ProcessLoader"]))
+			$allGroupsUserOu[$i]=$group;
         }
         
         $result['status'] = 'ok';
