@@ -18701,6 +18701,22 @@
                         }, 800);*/
                     });
 
+                    function sanitizeExportFilename(value, fallback) {
+                        let filename = (value || fallback)
+                            .toString()
+                            .trim()
+                            .replace(/[\\/:*?"<>|\x00-\x1F]+/g, '_')
+                            .replace(/\s+/g, '_')
+                            .replace(/[. ]+$/g, '')
+                            .substring(0, 120);
+
+                        if (!filename || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(filename)) {
+                            filename = fallback;
+                        }
+
+                        return filename;
+                    }
+
                     $('#export-dashboard').click(function () {
                         $.ajax({
                             url: '../management/export.php',
@@ -18722,7 +18738,8 @@
                                   // Crea un elemento <a> per il download
                                   let a = document.createElement('a');
                                   a.href = url;
-                                  a.download = 'export.json';
+                                  let dashboardName = response.Dashboard ? response.Dashboard.name_dashboard : null;
+                                  a.download = 'export_' + sanitizeExportFilename(dashboardName, 'dashboard') + '.json';
                                   a.click();
 
                                   // Rilascia l'URL oggetto
@@ -18894,7 +18911,8 @@
                                   // Crea un elemento <a> per il download
                                   let a = document.createElement('a');
                                   a.href = url;
-                                  a.download = 'exportWidget.json';
+                                  let widget = response.Widget && response.Widget[0] ? response.Widget[0] : {};
+                                  a.download = 'exportWidget_' + sanitizeExportFilename(widget.title_w, 'widget') + '.json';
                                   a.click();
 
                                   // Rilascia l'URL oggetto
