@@ -169,7 +169,9 @@ td.dt-center:last-child {
 	//url_<?= $_REQUEST['name_w'] ?> var responsive_table_<?= $_REQUEST['name_w'] ?> = true;
 	var columnTitles_<?= $_REQUEST['name_w'] ?>= [];
 	var rowsToShow_<?= $_REQUEST['name_w'] ?> = [5,10,20,50];
-	
+    //
+    var searchableColumns_<?= $_REQUEST['name_w'] ?> =[];
+    var searchXHR_<?= $_REQUEST['name_w'] ?> = null;
 
     var dt_actions_<?= $_REQUEST['name_w'] ?> = {
         pin: "hidden"
@@ -286,7 +288,7 @@ td.dt-center:last-child {
 			// Funzione per eseguire la ricerca
 			function handleSearch() {
 				action_<?= $_REQUEST['name_w'] ?> = 'Searching';
-				let searchLabel = $('#searchlabel_<?= $_REQUEST['name_w'] ?>').val();
+				let searchLabel = $('#searchlabel_<?= $_REQUEST['name_w'] ?>').val().trim();
 				current_page_<?= $_REQUEST['name_w'] ?> = 0;
 
 				if (typeof searchLabel === 'string') {
@@ -300,7 +302,7 @@ td.dt-center:last-child {
 			}
 
 			// Applicazione del debounce all’evento keyup con un ritardo di 300ms
-			$('#searchlabel_<?= $_REQUEST['name_w'] ?>').on('keyup', debounce(handleSearch, 300));
+			$('#searchlabel_<?= $_REQUEST['name_w'] ?>').on('keyup', debounce(handleSearch, 500));
 
 		$('#n_rows_<?= $_REQUEST['name_w'] ?>').on('change', function() {
 					action_<?= $_REQUEST['name_w'] ?> = 'ChangeNumberRows';
@@ -701,7 +703,7 @@ window.tables[name_w] = $table.DataTable({
 			//
 			var order = $('#order_<?= $_REQUEST['name_w'] ?>').val();
 			//
-			var searchlabel_<?= $_REQUEST['name_w'] ?> = $('#searchlabel_<?= $_REQUEST['name_w'] ?>').val();
+			var searchlabel_<?= $_REQUEST['name_w'] ?> = ($('#searchlabel_<?= $_REQUEST['name_w'] ?>').val()).trim();
 			//
             dataSet_<?= $_REQUEST['name_w'] ?> = [];
             temp = {};
@@ -719,11 +721,31 @@ window.tables[name_w] = $table.DataTable({
 			}else{
 				ordering_data = '&sortOnValue=deviceName:desc:string';
 			}
-			
-			var filter_text = "";
-			if (searchlabel_<?= $_REQUEST['name_w'] ?> !==""){
-						filter_text = '&text='+searchlabel_<?= $_REQUEST['name_w'] ?>;	
-			}
+
+            /////////////////
+                var filter_text = "";
+                var final_filters = "";
+                if (searchlabel_<?= $_REQUEST['name_w'] ?> && searchlabel_<?= $_REQUEST['name_w'] ?>.trim() !== "") {
+                    var arr = searchlabel_<?= $_REQUEST['name_w'] ?>.split(/[ ,;]+/);
+                    var listQuery = arr.filter(item => item !== "");
+                    console.log("listQuery",listQuery);
+                    if (Array.isArray(searchableColumns_<?= $_REQUEST['name_w'] ?>) && searchableColumns_<?= $_REQUEST['name_w'] ?>.length > 0) {
+                        for (var y = 0; y < listQuery.length; y++) {
+                            var query = listQuery[y];
+                            var valueFilters = searchableColumns_<?= $_REQUEST['name_w'] ?>.join("%7C");
+                            var filters = valueFilters + '::' + encodeURIComponent(query);
+                            //filters= filters.replace(/-/g, "%2D");
+                            final_filters += filters;
+                            if (y < listQuery.length - 1) {
+                                final_filters += ";";
+                            }
+                        }
+                        filter_text = '&valueFilters=' + final_filters;
+                    } else {
+                        filter_text = '&text=' + encodeURIComponent(searchlabel_<?= $_REQUEST['name_w'] ?>);
+                    }
+                }
+            /////////////////
 			//
 			query_to_send = $('#url_<?= $_REQUEST['name_w'] ?>').val();
 			//
@@ -737,7 +759,11 @@ window.tables[name_w] = $table.DataTable({
 			
 			//
                 $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').hide();
-                  await $.ajax({
+                if (searchXHR_<?= $_REQUEST['name_w'] ?>) {
+                    searchXHR_<?= $_REQUEST['name_w'] ?>.abort();
+                }
+                try {
+                await (searchXHR_<?= $_REQUEST['name_w'] ?> = $.ajax({
                         //
 						url: query_filtered,
                         type: "GET",
@@ -797,9 +823,16 @@ window.tables[name_w] = $table.DataTable({
                                         }, 0);
                             }
                         }
-                    });
-
-          ////
+                    }));
+                } catch(e) {
+                    if (e.statusText === "abort") {
+                        console.log("AJAX abort ignorato");
+                    } else {
+                        console.error("Errore AJAX:", e);
+                    }
+                }
+          
+                    ////
 		  $('th[aria-controls="maintable_<?= $_REQUEST['name_w'] ?>"]').each(function() {
 			$(this).removeClass('expand-content all dt-center');
 		  });
@@ -1167,6 +1200,16 @@ function goToPage(page) {
                         console.log(newValue_<?= $_REQUEST['name_w'] ?>.hoverIcons);
                         for (let i = 0; i < newValue_<?= $_REQUEST['name_w'] ?>.hoverIcons.length; i++) {
                             dt_hoverMessage_<?= $_REQUEST['name_w'] ?>.push(newValue_<?= $_REQUEST['name_w'] ?>.hoverIcons[i]);
+                         }
+                    }
+
+                    ///////searchableColumns
+                    if(newValue_<?= $_REQUEST['name_w'] ?>.searchableColumns){
+                        console.log("searchableColumns:");
+                        searchableColumns_<?= $_REQUEST['name_w'] ?> = [];
+                        console.log(newValue_<?= $_REQUEST['name_w'] ?>.searchableColumns);
+                        for (let i = 0; i < newValue_<?= $_REQUEST['name_w'] ?>.searchableColumns.length; i++) {
+                            searchableColumns_<?= $_REQUEST['name_w'] ?>.push(newValue_<?= $_REQUEST['name_w'] ?>.searchableColumns[i]);
                          }
                     }
 
