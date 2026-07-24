@@ -19145,6 +19145,8 @@
                                                                     var tempDiv = document.createElement("div");
                                                                     tempDiv.innerHTML = newInfo;
                                                                     var plainText = tempDiv.textContent || tempDiv.innerText || "";
+                                                                    plainText = plainText.trim();
+                                                                    plainText = plainText.replace(/\p{Cf}/gu, "").replace(/\p{Zs}/gu, " ");
                                                                     console.log(plainText);
                                                                         try {
                                                                             JSON.parse(plainText);       
