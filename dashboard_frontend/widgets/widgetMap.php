@@ -21724,6 +21724,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                         crs: L.CRS.EPSG4326,
                                         transparent: true,
                                         opacity: current_traffic_opacity,
+                                        maxZoom: leafletMaxZoom,
                                         pane: 'TrafficFlowManager:' + datasetName
                                     }).addTo(map.defaultMapRef);
                                 } else {
@@ -21913,6 +21914,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     transparent: true,
                                                     opacity: current_opacity,
                                                     time: timestampISO,
+                                                    maxZoom: leafletMaxZoom,
                                                     //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                     tiled: true,   // TESTARE COME ANTWERP ??
                                                     //  attribution: "IGN ©"
@@ -22165,6 +22167,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 crs: L.CRS.EPSG4326,
                                 transparent: true,
                                 opacity: current_traffic_opacity,
+                                maxZoom: leafletMaxZoom,
                                 pane: 'TrafficFlowManager:' + datasetName
                             }).addTo(map.defaultMapRef);
                         } else {
@@ -22513,6 +22516,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                             transparent: true,
                                                             opacity: current_opacity,
                                                             time: timestampISO,
+                                                            maxZoom: leafletMaxZoom,
                                                             //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                             tiled: true,
                                                             //  attribution: "IGN ©"
@@ -22631,6 +22635,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                     transparent: true,
                                                     opacity: current_opacity,
                                                     time: timestampISO,
+                                                    maxZoom: leafletMaxZoom,
                                                     //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                     tiled: true,
                                                     //  attribution: "IGN ©"
@@ -31572,6 +31577,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                                 transparent: true,
                                                                 opacity: current_opacity,
                                                                 time: timestampISO,
+                                                                maxZoom: leafletMaxZoom,
                                                                 //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                                 tiled: true,
                                                                 //  attribution: "IGN ©"
@@ -31677,6 +31683,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                                         transparent: true,
                                                         opacity: current_opacity,
                                                         time: timestampISO,
+                                                        maxZoom: leafletMaxZoom,
                                                         //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                                                         tiled: true,
                                                         //  attribution: "IGN ©"
@@ -32690,6 +32697,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 transparent: true,
                 opacity: current_opacity,
                 time: timestampISO,
+                maxZoom: leafletMaxZoom,
                 //  bbox: [24.7926004025304,60.1025194986424,25.1905923952885,60.2516802986263],
                 tiled: true,   // TESTARE COME ANTWERP ??
                 //  attribution: "IGN ©"
@@ -33446,6 +33454,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 transparent: true,
                 version: '1.1.0',
                 attribution: "",
+                maxZoom: leafletMaxZoom,
                 pane: menu.id + menu.layers[subLayerIndex].name
             });
             if (!arrayContains(layersCreated, layer)) {
