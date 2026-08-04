@@ -418,11 +418,15 @@ if (($_SESSION['isPublic'] ? 'Public' : $_SESSION['loggedRole']) === 'RootAdmin'
                                                         New<br>dashboard
                                                     </div>-->
 
-                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-6">
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-4">
                                                         <button id="importButton" class="btn btn-warning">Import Dashboard</button>
                                                     </div>
 
-                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-6">
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-4">
+                                                        <a id="exportAllOrgDashboardsButton" class="btn btn-warning btn-export-all-org-dashboards" href="../management/exportAllOrgDashboards.php" title="Export all dashboards for the selected organization">Export All Org Dash</a>
+                                                    </div>
+
+                                                    <div class="dashboardsListMenuItemContent centerWithFlex col-xs-4">
                                                         <button id="link_start_wizard" type="button" class="btn btn-warning"><?= _("New dashboard")?></button>
                                                     </div>
                                                 </div>
@@ -1671,6 +1675,77 @@ if (@$_SESSION['loggedRole'] === 'RootAdmin') {
                         $('#importDashRunningMsg').hide();
                         $('#importDashOkMsg').hide();
                         $('#importDashKoMsg').hide();
+                    });
+
+                    $('#exportAllOrgDashboardsButton').off('click');
+                    $('#exportAllOrgDashboardsButton').click(function () {
+                        var $button = $(this);
+                        if ($button.data('exportRunning') === true) {
+                            return false;
+                        }
+
+                        if (!$button.data('originalText')) {
+                            $button.data('originalText', $button.text());
+                        }
+                        if (!$button.data('originalHref')) {
+                            $button.data('originalHref', $button.attr('href'));
+                        }
+
+                        var cookieName = 'dashboardExportAllOrgDashboardsReady';
+                        var downloadToken = Date.now() + '_' + Math.random().toString(36).substring(2);
+                        var originalHref = $button.data('originalHref');
+                        var hrefSeparator = originalHref.indexOf('?') === -1 ? '?' : '&';
+
+                        function getCookieValue(name) {
+                            var cookies = document.cookie ? document.cookie.split(';') : [];
+                            for (var i = 0; i < cookies.length; i++) {
+                                var cookie = cookies[i].replace(/^\s+/, '');
+                                if (cookie.indexOf(name + '=') === 0) {
+                                    return decodeURIComponent(cookie.substring(name.length + 1));
+                                }
+                            }
+                            return '';
+                        }
+
+                        function clearCookie(name) {
+                            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+                        }
+
+                        function restoreButton() {
+                            window.clearInterval(exportReadyPoll);
+                            window.clearTimeout(exportReadyFallback);
+                            clearCookie(cookieName);
+                            $button.data('exportRunning', false);
+                            $button.removeAttr('aria-disabled');
+                            $button.attr('href', originalHref);
+                            $button.css({
+                                'pointer-events': '',
+                                'opacity': '',
+                                'cursor': ''
+                            });
+                            $button.text($button.data('originalText'));
+                        }
+
+                        $button.data('exportRunning', true);
+                        $button.attr('aria-disabled', 'true');
+                        $button.attr('href', originalHref + hrefSeparator + 'downloadToken=' + encodeURIComponent(downloadToken));
+                        $button.css({
+                            'pointer-events': 'none',
+                            'opacity': '0.75',
+                            'cursor': 'wait'
+                        });
+                        $button.text('Preparing export...');
+
+                        var exportReadyPoll = window.setInterval(function () {
+                            if (getCookieValue(cookieName) === downloadToken) {
+                                restoreButton();
+                            }
+                        }, 500);
+
+                        var exportReadyFallback = window.setTimeout(restoreButton, 120000);
+
+                        window.location.href = $button.attr('href');
+                        return false;
                     });
                     $('#link_start_wizard').off('click');
                     $('#link_start_wizard').click(function () {

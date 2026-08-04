@@ -269,6 +269,24 @@ a:focus, a:active {
   color: var(--green-)!important;
 }
 
+.btn-export-all-org-dashboards{
+  display: inline-flex!important;
+  align-items: center;
+  justify-content: center;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 6px 10px!important;
+  line-height: 1.15;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: normal;
+}
+
+.btn-export-all-org-dashboards.btn-new-dash:before{
+  content: "\f019";
+}
+
 .toggle-off.btn{
   background: var(--blue-)!important;
 }
@@ -4665,6 +4683,11 @@ table.dataTable.dtr-inline.collapsed > tbody > tr.parent > td:first-child:before
   border: none!important;
   border-radius: 0!important;
   flex-basis: 100%;
+}
+
+.dashboard-import-export-actions{
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
 .filterListBar{

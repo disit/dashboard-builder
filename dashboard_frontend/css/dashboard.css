@@ -3682,6 +3682,37 @@ div.orgMenuItemCntActive
     cursor: pointer;
 }
 
+/* Export All Org Dashboards */
+#dashboardListsNewDashboard.col-md-3.dashboardsListMenuItem
+{
+    height: auto;
+    min-height: 50px;
+}
+
+#dashboardListsNewDashboard.col-md-3 .dashboardsListMenuItemContent
+{
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+#dashboardListsNewDashboard.col-md-3 .btn
+{
+    width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.15;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+
+.btn-export-all-org-dashboards
+{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
 .moduleLink > div > * {
     margin-right: 15px;
 }
