@@ -37,57 +37,159 @@ if (isset($_SESSION['refreshToken'])) {
   $accessToken = $tkn->access_token;
   $_SESSION['refreshToken'] = $tkn->refresh_token;
   $response['access_token'] = $accessToken;
-  
-  $json = http_get($iotAppApiBaseUrl."/v1/?op=list&mtime=true&&accessToken=" . $accessToken);
-  if ($json['httpcode'] == 200) {
-    $response['applications'] = array();
-    foreach ($json['result'] as $app) {
-      $a = $app;
-      $a['name'] = htmlspecialchars($a['name']);
-      if($a['type']!='edge') {
-        $icons = array('python'=>'dataAnalyticPythonIcon.png','plumber'=>'dataAnalyticIcon.png','portia'=>'portiaIcon.png','basic'=>'iotAppBasicIcon.png','advanced'=>'iotAppAdvIcon.png','basic-debug'=>'iotAppBasicDebugIcon.png','advanced-debug'=>'iotAppAdvDebugIcon.png');
-        if(isset($icons[$a['type']])) {
-          $a['icon'] = $icons[$a['type']];
-        } else {
-          $a['icon'] = $icons['advanced'];
-        }
-        if($a['type']=='plumber' || $a['type']=='python') {
-          @$a['iotapps'] = join(',', $a['iotapps']);
-        }
-      } else {
-        $os = explode('_', $a['edgetype']);
-        $os = $os[0];
-        if($os==='win32') 
-          $a['icon'] = 'iotAppBasicPcIcon.png';
-        else if($os=='android')
-          $a['icon'] = 'iotAppBasicMobileIcon.png';
-        else
-          $a['icon'] = 'iotAppBasicRaspberryIcon.png';
-      }
-      $a['dashboards'] = array();
-      //search for connected dashboards
-      $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app[id]' AND d.deleted='no'";
-      $r = mysqli_query($link, $q);
-      if($r)
-      {
-          while($row = mysqli_fetch_assoc($r))
-          {
-              $row['dashboardName'] = htmlspecialchars($row['dashboardName']);
-              array_push($a['dashboards'], $row);
-          }         
-      }
-      $response['applications'][] = $a;
+
+  if(isset($_REQUEST['download_all'])) {
+    $downloadUrl = $iotAppApiBaseUrl."/v1/?op=download_nr_apps";
+
+    // disable buffering
+    while (ob_get_level() > 0) {
+        ob_end_flush();
     }
-    $response['detail'] = 'Ok';
+
+    ob_implicit_flush(true);
+
+    header('X-Accel-Buffering: no');
+    header('Cache-Control: no-cache');
+
+    $ch = curl_init();
+
+    curl_setopt($ch, CURLOPT_URL, $downloadUrl);
+    curl_setopt($ch, CURLOPT_HTTPGET, true);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+
+    curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+        'Authorization: Bearer ' . $accessToken
+    ));
+
+    /*
+     * Inoltra gli header della risposta remota.
+     */
+    curl_setopt($ch, CURLOPT_HEADERFUNCTION, function ($ch, $headerLine) {
+        $length = strlen($headerLine);
+        $headerLine = trim($headerLine);
+
+        if ($headerLine === '') {
+            return $length;
+        }
+
+        /*
+         * Copia lo status HTTP remoto.
+         */
+        if (preg_match('/^HTTP\/\S+\s+(\d{3})/', $headerLine, $matches)) {
+            http_response_code((int) $matches[1]);
+            return $length;
+        }
+
+        /*
+         * Non inoltrare header hop-by-hop o ricalcolati.
+         */
+        if (preg_match(
+            '/^(Connection|Keep-Alive|Proxy-Authenticate|' .
+            'Proxy-Authorization|TE|Trailer|Transfer-Encoding|' .
+            'Upgrade|Content-Length):/i',
+            $headerLine
+        )) {
+            return $length;
+        }
+
+        header($headerLine, false);
+
+        return $length;
+    });
+
+    /*
+     * Inoltra ogni chunk della risposta appena arriva.
+     */
+    curl_setopt($ch, CURLOPT_WRITEFUNCTION, function ($ch, $chunk) {
+        echo $chunk;
+
+        if (ob_get_level() > 0) {
+            ob_flush();
+        }
+
+        flush();
+
+        return strlen($chunk);
+    });
+
+    curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+
+    /*
+     * Nessun timeout globale: necessario per stream lunghi.
+     */
+    curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+
+    $result = curl_exec($ch);
+
+    if ($result === false) {
+        $error = curl_error($ch);
+
+        if (!headers_sent()) {
+            http_response_code(502);
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
+        echo json_encode(array(
+            'error' => 'error calling application api',
+            'details' => $error
+        ));
+    }
+
+    curl_close($ch);
+    exit;
   } else {
-    $response['detail'] = 'Ko';
-    $response['error'] = $json['result'];
+    $json = http_get($iotAppApiBaseUrl."/v1/?op=list&mtime=true&&accessToken=" . $accessToken);
+    if ($json['httpcode'] == 200) {
+      $response['applications'] = array();
+      foreach ($json['result'] as $app) {
+        $a = $app;
+        $a['name'] = htmlspecialchars($a['name']);
+        if($a['type']!='edge') {
+          $icons = array('python'=>'dataAnalyticPythonIcon.png','plumber'=>'dataAnalyticIcon.png','portia'=>'portiaIcon.png','basic'=>'iotAppBasicIcon.png','advanced'=>'iotAppAdvIcon.png','basic-debug'=>'iotAppBasicDebugIcon.png','advanced-debug'=>'iotAppAdvDebugIcon.png');
+          if(isset($icons[$a['type']])) {
+            $a['icon'] = $icons[$a['type']];
+          } else {
+            $a['icon'] = $icons['advanced'];
+          }
+          if($a['type']=='plumber' || $a['type']=='python') {
+            @$a['iotapps'] = join(',', $a['iotapps']);
+          }
+        } else {
+          $os = explode('_', $a['edgetype']);
+          $os = $os[0];
+          if($os==='win32') 
+            $a['icon'] = 'iotAppBasicPcIcon.png';
+          else if($os=='android')
+            $a['icon'] = 'iotAppBasicMobileIcon.png';
+          else
+            $a['icon'] = 'iotAppBasicRaspberryIcon.png';
+        }
+        $a['dashboards'] = array();
+        //search for connected dashboards
+        $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app[id]' AND d.deleted='no'";
+        $r = mysqli_query($link, $q);
+        if($r)
+        {
+            while($row = mysqli_fetch_assoc($r))
+            {
+                $row['dashboardName'] = htmlspecialchars($row['dashboardName']);
+                array_push($a['dashboards'], $row);
+            }         
+        }
+        $response['applications'][] = $a;
+      }
+      $response['detail'] = 'Ok';
+    } else {
+      $response['detail'] = 'Ko';
+      $response['error'] = $json['result'];
+    }
   }
 } else {
   $response['detail'] = 'Ko';
   $response['error'] = 'no refresh token';
 }
-$response['refresh_token'] = $_SESSION['refreshToken'];
+//$response['refresh_token'] = $_SESSION['refreshToken'];
 echo json_encode($response);
 
 function http_get($url) {

@@ -146,6 +146,9 @@ function enableCreateIotApps() {
                     <?php if( enableCreateIotApps() ) : ?>
                     <div class="iotAppsListMenuItemContent centerWithFlex col-xs-12">
                       <button id="link_add_iotapp" data-toggle="modal" type="button" class="btn btn-new-dash"><?= _("Create new") ?></button>
+                      <?php if($_SESSION['loggedRole'] == 'RootAdmin') : ?>
+                      &nbsp;<button id="link_download_iotapp" onclick="location.href='../controllers/getIotApplications.php?download_all'" data-toggle="modal" type="button" class="btn btn-new-dash"><?= _("Download apps") ?></button>
+                      <?php endif; ?>
                     </div>
                     <?php endif; ?>
                   </div>
