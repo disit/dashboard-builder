@@ -607,8 +607,8 @@
                                 ]];
                                 date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0]);
                             }
-                            timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
-                            date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1]);
+                            timeParts = day.substr(day.indexOf(' ') + 1, 8).split(':');
+                            date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1], timeParts[2]);
                         } else {
                             unitsWidget = [['millisecond',
                                 [1, 2, 5, 10, 20, 25, 50, 100, 200, 500]
@@ -636,8 +636,8 @@
                                 null
                             ]];
                             if ((timeRange === '1/DAY') || (timeRange.includes("HOUR"))) {
-                                timeParts = day.substr(day.indexOf(' ') + 1, 5).split(':');
-                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1]);
+                                timeParts = day.substr(day.indexOf(' ') + 1, 8).split(':');
+                                date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2], timeParts[0], timeParts[1], timeParts[2]);
                             } else {
                                 date = Date.UTC(dayParts[0], dayParts[1] - 1, dayParts[2]);
                             }
@@ -1088,7 +1088,7 @@
                             }
                         },
                         tooltip: {
-                            xDateFormat: '%A, %e %b %Y, %H:%M',
+                            xDateFormat: '%A, %e %b %Y, %H:%M:%S',
                             valueSuffix: ''
                         },
                          
@@ -1333,7 +1333,7 @@
                         },
                         tooltip: 
                         {
-                            xDateFormat: '%A, %e %b %Y, %H:%M',
+                            xDateFormat: '%A, %e %b %Y, %H:%M:%S',
                             valueSuffix: ''
                         },
                         series: [{
