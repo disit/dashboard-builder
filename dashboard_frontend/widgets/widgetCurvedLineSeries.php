@@ -44,6 +44,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             }
         ?>  
 		var dateChoice = null;
+        var calendarMPopover = null;
         var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
@@ -153,6 +154,38 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
             });
         });
+
+        function updateCalendarMDate(value, notify) {
+            var normalizedDate = moment(value);
+            var pickerDate;
+            var displayValue;
+
+            if (!normalizedDate.isValid()) {
+                return null;
+            }
+
+            dateChoice = normalizedDate.clone();
+            displayValue = dateChoice.format('YYYY-MM-DD HH:mm');
+            if (calendarMPopover) {
+                pickerDate = calendarMPopover.setDate(dateChoice, notify === true);
+                if (pickerDate) {
+                    dateChoice = pickerDate;
+                    displayValue = dateChoice.format('YYYY-MM-DD HH:mm');
+                }
+                calendarMPopover.setActive(
+                    true,
+                    'Selected end date/time: ' + displayValue
+                );
+                calendarMPopover.setDisplayValue(displayValue);
+            } else {
+                $(document.getElementById(widgetName + '_dateTimeDisplay'))
+                    .val(displayValue)
+                    .attr({value: displayValue, title: displayValue});
+            }
+
+            return dateChoice.clone();
+        }
+
         $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
@@ -161,9 +194,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 if ((event.passedData == null)||(event.passedData.length === 0)){
                     var rows1=[];
                     //////STORAGE///
-                    $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
-                    var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
-                    dateChoice = date;
+                    updateCalendarMDate(event.datetime, false);
                     //console.log(dateChoice);
                     var events = [];
                     var times = [];
@@ -225,8 +256,22 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     //console.log(index);
                                     //console.log(curr_data);
                                     if(widgets[w] != null){
-                                        $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date(curr_data);
-                                        var date1 = $('#'+widgets[w]+'_datetimepicker').data("DateTimePicker").date();
+                                        var targetCalendarMPopover = typeof window.WidgetDateTimePopover !== 'undefined'
+                                            ? WidgetDateTimePopover.get(document.getElementById(
+                                                widgets[w] + '_dateTimeOverlayButton'
+                                            ))
+                                            : null;
+                                        var date1 = moment(curr_data);
+                                        if (targetCalendarMPopover && date1.isValid()) {
+                                            date1 = targetCalendarMPopover.setDate(date1, true) || date1;
+                                            targetCalendarMPopover.setActive(
+                                                true,
+                                                'Selected end date/time: ' + date1.format('YYYY-MM-DD HH:mm')
+                                            );
+                                            targetCalendarMPopover.setDisplayValue(
+                                                date1.format('YYYY-MM-DD HH:mm')
+                                            );
+                                        }
                                         set_time(date1);
                                         console.log(date1);
                                         //populateWidget(date1);
@@ -252,12 +297,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         success: function(widgetData) {
                             rows1 = JSON.parse(widgetData.params.rowParameters);
                             rowParameters = rows1;
-                            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
-                            var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
+                            updateCalendarMDate(event.datetime, false);
                         }
                     });
                 }else{
-                    $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date(event.datetime);
+                    updateCalendarMDate(event.datetime, false);
                 }
                 timeNavCount = 0;
                 set_time(event.datetime);
@@ -449,14 +493,70 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 populateWidget(true, timeRange, null, timeNavCount, null, passedData[t].t1, passedData[t].t2);
             }
         });	
-		$('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker({
-            showTodayButton: true,
-            widgetPositioning:{
-                horizontal: 'auto',
-                vertical: 'bottom'
-            },
-            sideBySide: true
-        })
+        function initializeCalendarMDateTimePicker(enabled) {
+            var overlayHost = $(document.getElementById(widgetName + '_dateTimeOverlay'));
+            var content = $(document.getElementById(widgetName + '_content'));
+            var chart;
+
+            if (calendarMPopover) {
+                calendarMPopover.destroy();
+                calendarMPopover = null;
+            }
+
+            if (!enabled || typeof window.WidgetDateTimePopover === 'undefined') {
+                content.removeClass('widgetDateTimeToolbarContent');
+                overlayHost.hide();
+                if (typeof $.fn.highcharts === 'function') {
+                    chart = $(document.getElementById(widgetName + '_chartContainer')).highcharts();
+                    if (chart) {
+                        chart.reflow();
+                    }
+                }
+                return;
+            }
+
+            content.addClass('widgetDateTimeToolbarContent');
+            calendarMPopover = WidgetDateTimePopover.create({
+                id: widgetName + '_calendarMDateTimePicker',
+                enabled: true,
+                host: overlayHost,
+                button: document.getElementById(widgetName + '_dateTimeOverlayButton'),
+                display: document.getElementById(widgetName + '_dateTimeDisplay'),
+                showActions: false,
+                getDate: function () {
+                    return dateChoice || moment();
+                },
+                pickerOptions: {
+                    format: 'YYYY-MM-DD HH:mm'
+                },
+                onChange: function (date) {
+                    dateChoice = date;
+                    timeNavCount = getChoiceTimeNavCount(dateChoice, timeRange);
+                    if (timeNavCount != 0) {
+                        $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton').show();
+                    }
+                    calendarMPopover.setActive(true, 'Selected end date/time: ' + date.format('YYYY-MM-DD HH:mm'));
+                    calendarMPopover.setDisplayValue(date.format('YYYY-MM-DD HH:mm'));
+                    populateWidget(true, timeRange, null, timeNavCount);
+                    set_time(date);
+                }
+            });
+
+            if (calendarMPopover && dateChoice) {
+                updateCalendarMDate(dateChoice, false);
+            } else if (calendarMPopover) {
+                calendarMPopover.setDisplayValue('');
+            } else {
+                content.removeClass('widgetDateTimeToolbarContent');
+            }
+
+            if (typeof $.fn.highcharts === 'function') {
+                chart = $(document.getElementById(widgetName + '_chartContainer')).highcharts();
+                if (chart) {
+                    chart.reflow();
+                }
+            }
+        }
         
         var pattern = /Percentuale\//;
         console.log("Entrato in widgetCurvedLineSeries --> " + widgetName); 
@@ -4743,15 +4843,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_calendarButton').css("padding-right", "0px");
                 }
 								///////////
-				if (styleParameters.calendarM){
-					if (styleParameters.calendarM == 'yes'){
-					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').show();
-					}else{
-						$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();
-					}		
-				}else{
-					$('#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer').hide();					
-				}
+				initializeCalendarMDateTimePicker(
+                    styleParameters && styleParameters.calendarM === 'yes'
+                );
 				////////////////
 
             },
@@ -4917,28 +5011,11 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         //Fine del codice core del widget
 		function clear(){
                 dateChoice = null;
-                $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val='';
-            }
-
-            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.show',function(){
-                $('.media').css({'overflow':'visible', 'z-index':'1000000'});
-            }).on('dp.hide',function(){
-                $('.media').css({'overflow':'hidden'});
-            })
-
-            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').datetimepicker().on('dp.change', function (e) { 
-				var date = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").date();
-                dateChoice = date;
-				//dateChoice = $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').val();
-                //timeNavCount = 0;
-                timeNavCount = getChoiceTimeNavCount(dateChoice, timeRange);
-                if(timeNavCount != 0) {
-                    $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
+                if (calendarMPopover) {
+                    calendarMPopover.setActive(false, 'Select date and time');
+                    calendarMPopover.setDisplayValue('');
                 }
-                populateWidget(true, timeRange, null, timeNavCount);
-                set_time(date);
-            });
-            $('#<?= $_REQUEST['name_w'] ?>_datetimepicker').data("DateTimePicker").clear()
+            }
 
                 if (<?= $_REQUEST['name_w'] ?>_loaded==false){
 
@@ -4985,6 +5062,19 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         </div>
         
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
+            <div id="<?= $_REQUEST['name_w'] ?>_dateTimeOverlay"
+                 class="widgetDateTimeOverlay<?= $_REQUEST['hostFile'] === 'config' ? ' widgetDateTimeOverlayWithDimControls' : '' ?>"
+                 style="display:none;">
+                <div class="widgetDateTimeOverlayControl">
+                    <button id="<?= $_REQUEST['name_w'] ?>_dateTimeOverlayButton"
+                            class="widgetDateTimeOverlayButton" type="button" data-active="false">
+                        <span class="fa fa-calendar" aria-hidden="true"></span>
+                    </button>
+                    <input id="<?= $_REQUEST['name_w'] ?>_dateTimeDisplay"
+                           class="widgetDateTimeOverlayInput form-control" type="text" readonly
+                           placeholder="Now" aria-label="Selected end date and time">
+                </div>
+            </div>
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
@@ -5007,15 +5097,6 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             <div id='<?= $_REQUEST['name_w'] ?>_options' class='menu pointerCursor hide'></div>
 
                         </div>
-								<div id='<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer' class ="form-group" style="float: left;width:100%;" hidden>  
-                                <div class ='input-group date' id='<?= $_REQUEST['name_w'] ?>_datetimepicker' data-date-container='#<?= $_REQUEST['name_w'] ?>_datetimepicker_cotainer'>
-                                  <input type ='text' class="form-control" />
-                                  <span class ="input-group-addon">
-                                    <span class ="glyphicon glyphicon-calendar"></span>
-                                  </span>
-                                </div>
-								</div>
-                              
                          <!--
                             <button id='<?= $_REQUEST['name_w'] ?>_cut' style="float: left;width:25%; padding:0.6em 0em;">Toggle Time Slice</button>
                             <button id='<?= $_REQUEST['name_w'] ?>_stream' style="float: left;width:25%; padding:0.6em 0em;">Toggle Stream Graph</button>

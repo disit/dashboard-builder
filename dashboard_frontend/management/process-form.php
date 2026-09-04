@@ -4357,6 +4357,11 @@
             } else {
                 $styleParametersArray["aggregationFlag"] = mysqli_real_escape_string($link, sanitizePostString('aggregationFlag'));
             }
+            $calendarM = sanitizePostString('calendarM');
+            if ($calendarM == null) {
+                $calendarM = sanitizeGetString('calendarM');
+            }
+            $styleParametersArray["calendarM"] = ($calendarM === "yes") ? "yes" : "no";
             $styleParametersM = json_encode($styleParametersArray);
         }
 

@@ -2711,3 +2711,492 @@ function darkenColor(hexColor, percent) {
 
     return newColor;
 }
+
+function loadCSS(href) {
+    if (!$('link[href="'+href+'"]').length) {
+        $('<link>', {
+            rel: 'stylesheet',
+            href: href
+        }).appendTo('head');
+    }
+}
+
+function removeCSS(href) {
+    $('link[href^="'+href+'"]').remove();
+}
+
+function loadWizardContent(phpFile) {
+    var useOpenSearch = "<?php echo isset($useOpenSearch) && $useOpenSearch == 'yes' ? 'yes' : 'no'; ?>";
+
+    $.ajax({
+        url: phpFile,
+        method: 'GET',
+        success: function(response) {
+            $('#addWidgetWizardLabelBody').html(response);
+            $("#addWidgetWizard").modal("show");
+        },
+        error: function() {
+            console.error('Errore nel caricamento del file PHP.');
+        }
+    });
+}
+
+// Date/time calculations used by widgetTimeTrend.
+var WidgetTimeTrendDateTime = {
+    _rangeHours: {
+        '4 Ore': 4,
+        '12 Ore': 12,
+        'Giornaliera': 24,
+        'Settimanale': 7 * 24,
+        'Mensile': 30 * 24,
+        'Semestrale': 180 * 24,
+        'Annuale': 365 * 24,
+        '2 Anni': 2 * 365 * 24,
+        '10 Anni': 10 * 365 * 24,
+        '4/HOUR': 4,
+        '12/HOUR': 12,
+        '1/DAY': 24,
+        '7/DAY': 7 * 24,
+        '30/DAY': 30 * 24,
+        '180/DAY': 180 * 24,
+        '365/DAY': 365 * 24,
+        '730/DAY': 2 * 365 * 24,
+        '3650/DAY': 10 * 365 * 24
+    },
+
+    _isValidDate: function (value) {
+        return value instanceof Date && !isNaN(value.getTime());
+    },
+
+    _pad: function (value) {
+        return value < 10 ? '0' + value : String(value);
+    },
+
+    formatLocalDateTime: function (value) {
+        if (!WidgetTimeTrendDateTime._isValidDate(value)) {
+            return null;
+        }
+
+        return value.getFullYear() + '-' +
+            WidgetTimeTrendDateTime._pad(value.getMonth() + 1) + '-' +
+            WidgetTimeTrendDateTime._pad(value.getDate()) + 'T' +
+            WidgetTimeTrendDateTime._pad(value.getHours()) + ':' +
+            WidgetTimeTrendDateTime._pad(value.getMinutes()) + ':' +
+            WidgetTimeTrendDateTime._pad(value.getSeconds());
+    },
+
+    parseLocalDateTime: function (value) {
+        var match;
+        var parsed;
+
+        if (typeof value !== 'string') {
+            return null;
+        }
+
+        match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})$/.exec(value);
+        if (!match) {
+            return null;
+        }
+
+        parsed = new Date(
+            Number(match[1]),
+            Number(match[2]) - 1,
+            Number(match[3]),
+            Number(match[4]),
+            Number(match[5]),
+            Number(match[6]),
+            0
+        );
+
+        if (!WidgetTimeTrendDateTime._isValidDate(parsed) ||
+            WidgetTimeTrendDateTime.formatLocalDateTime(parsed) !== value) {
+            return null;
+        }
+
+        return parsed;
+    },
+
+    getRangeHours: function (timeRange) {
+        return Object.prototype.hasOwnProperty.call(WidgetTimeTrendDateTime._rangeHours, timeRange) ?
+            WidgetTimeTrendDateTime._rangeHours[timeRange] : 24;
+    },
+
+    _getLegacyUpperTimeLimit: function (hours, now) {
+        var reference = WidgetTimeTrendDateTime._isValidDate(now) ?
+            new Date(now.getTime()) : new Date();
+        var timeZoneOffsetHours = reference.getTimezoneOffset() / 60;
+        var upperTimeLimit = reference.setHours(reference.getHours() - hours - timeZoneOffsetHours);
+        var upperTimeLimitUTC = new Date(upperTimeLimit).toUTCString();
+
+        return new Date(upperTimeLimitUTC).toISOString().substring(0, 19);
+    },
+
+    getUpperTimeLimit: function (anchor, hours, now) {
+        var reference = anchor;
+        var upperTimeLimit;
+        var offsetHours = Number(hours);
+
+        if (!WidgetTimeTrendDateTime._isValidDate(anchor)) {
+            return WidgetTimeTrendDateTime._getLegacyUpperTimeLimit(hours, now);
+        }
+        if (!isFinite(offsetHours)) {
+            offsetHours = 0;
+        }
+
+        upperTimeLimit = new Date(reference.getTime());
+        upperTimeLimit.setHours(upperTimeLimit.getHours() - offsetHours);
+        return WidgetTimeTrendDateTime.formatLocalDateTime(upperTimeLimit);
+    },
+
+    shiftAnchor: function (anchor, direction, timeRange, now) {
+        var shifted;
+        var currentTime = WidgetTimeTrendDateTime._isValidDate(now) ? now : new Date();
+        var multiplier;
+
+        if (!WidgetTimeTrendDateTime._isValidDate(anchor)) {
+            throw new TypeError('A valid anchor date is required');
+        }
+        if (direction !== 'previous' && direction !== 'next') {
+            throw new TypeError('Unsupported navigation direction');
+        }
+
+        multiplier = direction === 'previous' ? -1 : 1;
+        shifted = new Date(anchor.getTime());
+        shifted.setHours(
+            shifted.getHours() + multiplier * WidgetTimeTrendDateTime.getRangeHours(timeRange)
+        );
+
+        if (direction === 'next' && shifted.getTime() >= currentTime.getTime()) {
+            return {anchor: null, reachedNow: true};
+        }
+
+        return {anchor: shifted, reachedNow: false};
+    }
+};
+
+// Reusable, theme-independent date/time popover for chart widgets.
+var WidgetDateTimePopover = (function ($) {
+    'use strict';
+
+    var instanceDataKey = 'widgetDateTimePopoverInstance';
+
+    function normalizeMoment(value) {
+        if (value === null || typeof value === 'undefined') {
+            return null;
+        }
+
+        if (typeof moment === 'function' && moment.isMoment && moment.isMoment(value)) {
+            return value.clone();
+        }
+
+        if (typeof moment === 'function') {
+            value = moment(value);
+            return value.isValid() ? value : null;
+        }
+
+        return null;
+    }
+
+    function create(options) {
+        var settings = $.extend(true, {
+            enabled: true,
+            panelWidth: 292,
+            align: 'left',
+            showActions: true,
+            labels: {
+                dialog: 'Select date and time',
+                button: 'Select date and time',
+                now: 'Now',
+                cancel: 'Cancel',
+                apply: 'Apply'
+            },
+            pickerOptions: {}
+        }, options || {});
+        var host = $(settings.host);
+        var button = $(settings.button);
+        var display = $(settings.display);
+        var previousInstance = button.data(instanceDataKey);
+        var safeId;
+        var namespace;
+        var panel;
+        var control;
+        var actions;
+        var picker;
+        var suppressChange = false;
+        var instance;
+
+        if (previousInstance && typeof previousInstance.destroy === 'function') {
+            previousInstance.destroy();
+        }
+
+        if (!settings.enabled || !host.length || !button.length ||
+            typeof $.fn.datetimepicker !== 'function' || typeof moment !== 'function') {
+            host.hide();
+            return null;
+        }
+
+        safeId = String(settings.id || button.attr('id') || 'widgetDateTimePopover')
+            .replace(/[^A-Za-z0-9_-]/g, '_');
+        namespace = '.widgetDateTimePopover_' + safeId;
+        panel = $('<div>', {
+            id: safeId + '_panel',
+            'class': 'widgetDateTimePopover',
+            role: 'dialog',
+            'aria-label': settings.labels.dialog,
+            'aria-hidden': 'true'
+        }).css('width', settings.panelWidth + 'px');
+        control = $('<div>', {id: safeId + '_control'});
+        panel.append(control).appendTo(document.body);
+
+        if (settings.showActions) {
+            actions = $('<div>', {'class': 'widgetDateTimePopoverActions'});
+
+            if (typeof settings.onNow === 'function') {
+                $('<button>', {
+                    type: 'button',
+                    'class': 'btn btn-default btn-xs widgetDateTimePopoverNow',
+                    text: settings.labels.now
+                }).on('click' + namespace, function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    settings.onNow();
+                    instance.close();
+                }).appendTo(actions);
+            }
+
+            $('<button>', {
+                type: 'button',
+                'class': 'btn btn-default btn-xs widgetDateTimePopoverCancel',
+                text: settings.labels.cancel
+            }).on('click' + namespace, function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                instance.close();
+            }).appendTo(actions);
+
+            if (typeof settings.onApply === 'function') {
+                $('<button>', {
+                    type: 'button',
+                    'class': 'btn btn-primary btn-xs widgetDateTimePopoverApply',
+                    text: settings.labels.apply
+                }).on('click' + namespace, function (event) {
+                    var selectedValue = picker.date();
+
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (!selectedValue || !selectedValue.isValid() || settings.onApply(selectedValue.clone()) === false) {
+                        return;
+                    }
+                    instance.close();
+                }).appendTo(actions);
+            }
+
+            panel.append(actions);
+        }
+
+        control.datetimepicker($.extend(true, {
+            inline: true,
+            useCurrent: false,
+            showTodayButton: true,
+            toolbarPlacement: 'bottom'
+        }, settings.pickerOptions));
+        picker = control.data('DateTimePicker');
+
+        function positionPanel() {
+            var buttonOffset;
+            var panelWidth;
+            var panelHeight;
+            var scrollLeft;
+            var scrollTop;
+            var viewportRight;
+            var viewportBottom;
+            var left;
+            var belowTop;
+            var aboveTop;
+            var top;
+
+            if (!panel.is(':visible')) {
+                return;
+            }
+
+            buttonOffset = button.offset();
+            if (!buttonOffset) {
+                return;
+            }
+
+            panelWidth = panel.outerWidth();
+            panelHeight = panel.outerHeight();
+            scrollLeft = $(window).scrollLeft();
+            scrollTop = $(window).scrollTop();
+            viewportRight = scrollLeft + $(window).width() - panelWidth - 8;
+            viewportBottom = scrollTop + $(window).height() - panelHeight - 8;
+            left = settings.align === 'right'
+                ? buttonOffset.left + button.outerWidth() - panelWidth
+                : buttonOffset.left;
+            left = Math.max(scrollLeft + 8, Math.min(left, viewportRight));
+            belowTop = buttonOffset.top + button.outerHeight() + 4;
+            aboveTop = buttonOffset.top - panelHeight - 4;
+            top = belowTop <= viewportBottom || aboveTop < scrollTop + 8 ? belowTop : aboveTop;
+            top = Math.max(scrollTop + 8, Math.min(top, viewportBottom));
+
+            panel.css({left: left, top: top});
+        }
+
+        function close(focusButton) {
+            panel.hide().attr('aria-hidden', 'true');
+            button.attr('aria-expanded', 'false');
+            if (focusButton) {
+                button.trigger('focus');
+            }
+            if (typeof settings.onClose === 'function') {
+                settings.onClose();
+            }
+        }
+
+        function open() {
+            var initialDate = typeof settings.getDate === 'function'
+                ? normalizeMoment(settings.getDate())
+                : null;
+            var maximumDate = typeof settings.getMaxDate === 'function'
+                ? normalizeMoment(settings.getMaxDate())
+                : null;
+
+            suppressChange = true;
+            if (maximumDate) {
+                picker.maxDate(maximumDate);
+            }
+            picker.date(initialDate || moment());
+            suppressChange = false;
+            panel.css({display: 'block', visibility: 'hidden'});
+            positionPanel();
+            panel.css('visibility', 'visible').attr('aria-hidden', 'false');
+            button.attr('aria-expanded', 'true');
+            if (typeof settings.onOpen === 'function') {
+                settings.onOpen();
+            }
+        }
+
+        function toggle(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            if (panel.is(':visible')) {
+                close(false);
+            } else {
+                open();
+            }
+        }
+
+        function destroy() {
+            $(document).off(namespace);
+            $(window).off(namespace);
+            button.off(namespace).removeData(instanceDataKey);
+            display.off(namespace);
+            control.off(namespace);
+            if (picker && typeof picker.destroy === 'function') {
+                picker.destroy();
+            }
+            panel.remove();
+            host.hide();
+        }
+
+        instance = {
+            open: open,
+            close: function () { close(false); },
+            destroy: destroy,
+            setDate: function (value, notify) {
+                var normalizedValue = normalizeMoment(value);
+                var previousSuppressChange;
+
+                if (!normalizedValue) {
+                    return null;
+                }
+
+                previousSuppressChange = suppressChange;
+                suppressChange = notify !== true;
+                try {
+                    picker.date(normalizedValue);
+                } finally {
+                    suppressChange = previousSuppressChange;
+                }
+
+                normalizedValue = picker.date();
+                return normalizedValue && normalizedValue.isValid() ? normalizedValue.clone() : null;
+            },
+            getDate: function () {
+                var selectedValue = picker.date();
+                return selectedValue && selectedValue.isValid() ? selectedValue.clone() : null;
+            },
+            setActive: function (active, label) {
+                button.attr({
+                    'data-active': active ? 'true' : 'false',
+                    title: label || settings.labels.button,
+                    'aria-label': label || settings.labels.button
+                });
+            },
+            setDisplayValue: function (value) {
+                var displayValue = value || '';
+
+                display.val(displayValue).attr({
+                    value: displayValue,
+                    title: displayValue || settings.labels.button
+                });
+            },
+            getPicker: function () { return picker; }
+        };
+
+        button.attr({
+            type: 'button',
+            'aria-haspopup': 'dialog',
+            'aria-controls': panel.attr('id'),
+            'aria-expanded': 'false',
+            'aria-label': settings.labels.button,
+            title: settings.labels.button
+        }).on('click' + namespace, toggle);
+        button.on('keydown' + namespace, function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                toggle(event);
+            }
+        });
+        display.prop('readOnly', true)
+            .on('click' + namespace, toggle)
+            .on('keydown' + namespace, function (event) {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    toggle(event);
+                }
+            });
+        control.on('dp.change' + namespace, function (event) {
+            if (!suppressChange && typeof settings.onChange === 'function' && event.date && event.date.isValid()) {
+                settings.onChange(event.date.clone());
+            }
+        });
+        panel.on('mousedown' + namespace + ' click' + namespace, function (event) {
+            event.stopPropagation();
+        });
+        $(document).on('mousedown' + namespace, function (event) {
+            if (panel.is(':visible') && !$(event.target).closest(panel).length &&
+                !$(event.target).closest(button).length &&
+                !$(event.target).closest(display).length) {
+                close(false);
+            }
+        });
+        $(document).on('keydown' + namespace, function (event) {
+            if (event.key === 'Escape' && panel.is(':visible')) {
+                close(true);
+            }
+        });
+        $(window).on('resize' + namespace + ' scroll' + namespace, positionPanel);
+
+        host.show();
+        button.data(instanceDataKey, instance);
+        instance.setActive(false, settings.labels.button);
+        return instance;
+    }
+
+    function get(button) {
+        return $(button).data(instanceDataKey) || null;
+    }
+
+    return {create: create, get: get};
+}(jQuery));

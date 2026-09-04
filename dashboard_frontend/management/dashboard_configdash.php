@@ -35158,6 +35158,19 @@
                                         newInnerDiv.show();
                                         newSelect.show();
 
+                                        // Calendar with date and time
+                                        newFormRow = $('<div class="row"></div>');
+                                        newLabel = $('<label for="calendarM" class="col-md-2 control-label"><?php echo _("Show Calendar Button"); ?></label>');
+                                        newInnerDiv = $('<div class="col-md-3"></div>');
+                                        newSelect = $('<select class="form-control" id="calendarM" name="calendarM"></select>');
+                                        newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                        newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                        newSelect.val(styleParameters.calendarM === "yes" ? "yes" : "no");
+                                        newInnerDiv.append(newSelect);
+                                        newFormRow.append(newLabel);
+                                        newFormRow.append(newInnerDiv);
+                                        $("#specificParamsM").append(newFormRow);
+
 										/////////CKEDITOR TIME TREND////////
 												$.ajax({
                                                 url: "../controllers/getTrustedUsers.php",

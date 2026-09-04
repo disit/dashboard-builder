@@ -50,3 +50,147 @@
     font-weight: bold;
 }
 
+/* Compact date/time control shared by chart widgets. The content padding
+ * reserves a toolbar row, so the control never covers the chart. */
+.widgetDateTimeToolbarContent
+{
+    position: relative;
+    box-sizing: border-box;
+    padding-top: 34px;
+}
+
+.widgetDateTimeOverlay
+{
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 34px;
+    overflow: visible;
+    background-color: var(--wdgt-bg-color);
+    z-index: 10000;
+}
+
+.widgetDateTimeOverlayControl
+{
+    position: absolute;
+    top: 3px;
+    left: 6px;
+    display: flex;
+    width: 178px;
+    max-width: calc(100% - 12px);
+    height: 28px;
+    z-index: 1;
+}
+
+.widgetDateTimeOverlayButton
+{
+    position: relative;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid rgba(51, 64, 69, 0.45);
+    border-radius: 3px 0 0 3px;
+    background-color: rgba(255, 255, 255, 0.94);
+    color: #334045;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+    line-height: 26px;
+    text-align: center;
+    cursor: pointer;
+    z-index: 1;
+}
+
+.widgetDateTimeOverlayInput.form-control
+{
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto;
+    height: 28px;
+    padding: 4px 6px;
+    overflow: hidden;
+    border: 1px solid rgba(51, 64, 69, 0.45);
+    border-left: 0;
+    border-radius: 0 3px 3px 0;
+    background-color: rgba(255, 255, 255, 0.94);
+    color: #334045;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+    font-size: 12px;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.widgetDateTimeOverlayInput.form-control::placeholder
+{
+    color: #777777;
+    opacity: 0.65;
+}
+
+.widgetDateTimeOverlayInput.form-control:hover,
+.widgetDateTimeOverlayInput.form-control:focus
+{
+    border-color: #337ab7;
+    background-color: #ffffff;
+    outline: none;
+}
+
+.widgetDateTimeOverlayButton:hover,
+.widgetDateTimeOverlayButton:focus
+{
+    border-color: #337ab7;
+    color: #23527c;
+    background-color: #ffffff;
+    outline: none;
+}
+
+.widgetDateTimeOverlayButton:focus
+{
+    box-shadow: 0 0 0 2px rgba(51, 122, 183, 0.3);
+}
+
+.widgetDateTimeOverlayButton[data-active="true"]
+{
+    border-color: #337ab7;
+    color: #ffffff;
+    background-color: #337ab7;
+}
+
+/* In dashboard edit mode the dimension controls use the top-left corner. */
+.widgetDateTimeOverlayWithDimControls .widgetDateTimeOverlayControl
+{
+    left: 58px;
+    max-width: calc(100% - 64px);
+}
+
+.widgetDateTimePopover
+{
+    display: none;
+    position: absolute;
+    box-sizing: border-box;
+    width: 292px;
+    max-width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+    padding: 6px;
+    overflow-y: auto;
+    border: 1px solid #cccccc;
+    border-radius: 4px;
+    background-color: #ffffff;
+    color: #333333;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+    z-index: 1000000;
+}
+
+.widgetDateTimePopoverActions
+{
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 6px;
+}
+
+.widgetDateTimePopoverActions .btn + .btn
+{
+    margin-left: 5px;
+}
+

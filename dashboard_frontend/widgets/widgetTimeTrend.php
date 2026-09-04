@@ -62,6 +62,8 @@
         var upperTimeLimitISOTrimmed = null;
     //    this["timeNavCount_"+widgetName] = 0;
         var timeNavCount = 0;
+        var dateTimePopover = null;
+        var selectedDateTime = null;
         var fromGisExternalContentRangePrevious = null;
         var fromGisExternalContentServiceUriPrevious = null;
         var fromGisExternalContentFieldPrevious = null;
@@ -1788,17 +1790,188 @@
 
             }
 
+            if (typeof $.fn.highcharts === "function") {
+                var resizedChart = $("#" + widgetName + "_chartContainer").highcharts();
+                if (resizedChart) {
+                    resizedChart.reflow();
+                }
+            }
+        }
+
+        function setSelectedDateTime(value) {
+            var widgetElement = $("#" + widgetName + "_div");
+            var displayElement = $("#" + widgetName + "_dateTimeDisplay");
+            var serializedValue = null;
+            var displayValue = "";
+
+            if (value instanceof Date && !isNaN(value.getTime())) {
+                selectedDateTime = new Date(value.getTime());
+                serializedValue = WidgetTimeTrendDateTime.formatLocalDateTime(selectedDateTime);
+                displayValue = serializedValue.replace("T", " ");
+                widgetElement.data("timeTrendSelectedDateTime", serializedValue);
+                displayElement.val(displayValue).attr({value: displayValue, title: displayValue});
+                $("#" + widgetName + "_dateTimeOverlayButton")
+                    .attr("data-active", "true")
+                    .attr({
+                        "title": "Selected end date/time: " + displayValue,
+                        "aria-label": "Selected end date/time: " + displayValue
+                    });
+            } else {
+                selectedDateTime = null;
+                widgetElement.removeData("timeTrendSelectedDateTime");
+                displayElement.val("").attr({value: "", title: "Current time"});
+                $("#" + widgetName + "_dateTimeOverlayButton")
+                    .attr("data-active", "false")
+                    .attr({
+                        "title": "Select date and time",
+                        "aria-label": "Select date and time"
+                    });
+            }
+        }
+
+        function restoreSelectedDateTime() {
+            var serializedValue = $("#" + widgetName + "_div").data("timeTrendSelectedDateTime");
+            var restoredValue = WidgetTimeTrendDateTime.parseLocalDateTime(serializedValue);
+
+            setSelectedDateTime(restoredValue);
+        }
+
+        function getEffectiveTimeRange() {
+            if (fromGisExternalContent && fromGisExternalContentRange) {
+                return fromGisExternalContentRange;
+            }
+            return timeRange || currentTimeRange;
+        }
+
+        function updateNextButtonForSelectedDateTime() {
+            if (selectedDateTime !== null) {
+                $("#" + widgetName + "_nextButton").show();
+            }
+        }
+
+        function refreshFromSelectedDateTime(timeNavDirection) {
+            timeNavCount = 0;
+            dataFut = null;
+            upLimit = null;
+            setupLoadingPanel(widgetName, widgetContentColor, true);
+            populateWidget(timeRange || currentTimeRange, null, timeNavDirection, 0, null, udm !== null ? udm : udmFromUserOptions);
+        }
+
+        function navigateSelectedDateTime(direction) {
+            var navigationResult;
+
+            if (selectedDateTime === null) {
+                return false;
+            }
+
+            navigationResult = WidgetTimeTrendDateTime.shiftAnchor(
+                selectedDateTime,
+                direction,
+                getEffectiveTimeRange(),
+                new Date()
+            );
+            setSelectedDateTime(navigationResult.anchor);
+
+            if (navigationResult.reachedNow) {
+                $("#" + widgetName + "_nextButton").hide();
+            } else {
+                updateNextButtonForSelectedDateTime();
+            }
+
+            refreshFromSelectedDateTime(direction === "previous" ? "minus" : "plus");
+            return true;
+        }
+
+        function initializeDateTimePicker() {
+            var calendarEnabled = styleParameters !== null &&
+                typeof styleParameters === "object" &&
+                styleParameters.calendarM === "yes" &&
+                (infoJson !== "fromTracker" || fromGisExternalContent === true);
+            var overlayHost = $("#" + widgetName + "_dateTimeOverlay");
+            var content = $("#" + widgetName + "_content");
+            var chart;
+
+            // calendarM is a chart control; the shared header calendar remains
+            // reserved for the separate Typical Time Trend feature.
+            $("#" + widgetName + "_calendarContainer").hide();
+            if (dateTimePopover) {
+                dateTimePopover.destroy();
+                dateTimePopover = null;
+            }
+
+            if (!calendarEnabled || typeof window.WidgetTimeTrendDateTime === "undefined" ||
+                typeof window.WidgetDateTimePopover === "undefined") {
+                content.removeClass("widgetDateTimeToolbarContent");
+                overlayHost.hide();
+                if (typeof $.fn.highcharts === "function") {
+                    chart = $("#" + widgetName + "_chartContainer").highcharts();
+                    if (chart) {
+                        chart.reflow();
+                    }
+                }
+                return;
+            }
+
+            content.addClass("widgetDateTimeToolbarContent");
+            restoreSelectedDateTime();
+            dateTimePopover = WidgetDateTimePopover.create({
+                id: widgetName + "_dateTimePicker",
+                enabled: true,
+                host: overlayHost,
+                button: "#" + widgetName + "_dateTimeOverlayButton",
+                display: "#" + widgetName + "_dateTimeDisplay",
+                showActions: false,
+                getDate: function () {
+                    return selectedDateTime !== null ? moment(selectedDateTime) : moment();
+                },
+                pickerOptions: {
+                    format: "YYYY-MM-DD HH:mm",
+                    stepping: 5
+                },
+                onChange: function (chosenMoment) {
+                    if (!chosenMoment || !chosenMoment.isValid()) {
+                        return;
+                    }
+
+                    chosenMoment.seconds(0).milliseconds(0);
+                    setSelectedDateTime(chosenMoment.toDate());
+                    updateNextButtonForSelectedDateTime();
+                    refreshFromSelectedDateTime(null);
+                }
+            });
+
+            if (dateTimePopover) {
+                if (selectedDateTime !== null) {
+                    dateTimePopover.setActive(true, "Selected end date/time: " +
+                        WidgetTimeTrendDateTime.formatLocalDateTime(selectedDateTime).replace("T", " "));
+                }
+                updateNextButtonForSelectedDateTime();
+            } else {
+                content.removeClass("widgetDateTimeToolbarContent");
+            }
+
+            if (typeof $.fn.highcharts === "function") {
+                chart = $("#" + widgetName + "_chartContainer").highcharts();
+                if (chart) {
+                    chart.reflow();
+                }
+            }
         }
 
         function getUpperTimeLimit(hours) {
-            let now = new Date();
-            let timeZoneOffsetHours = now.getTimezoneOffset() / 60;
-            let upperTimeLimit = now.setHours(now.getHours() - hours - timeZoneOffsetHours);
-            let upperTimeLimitUTC = new Date(upperTimeLimit).toUTCString();
-            let upperTimeLimitISO = new Date(upperTimeLimitUTC).toISOString();
-            let upperTimeLimitISOTrim = upperTimeLimitISO.substring(0, isoDate.length - 5);
-            return upperTimeLimitISOTrim;
-        //    myKPITimeRange = "&from=" + myKPIFromTimeRangeISOTrimmed + "&to=" + isoDateTrimmed;
+            var fallbackNow;
+            var fallbackOffsetHours;
+            var fallbackUpperTimeLimit;
+
+            if (typeof window.WidgetTimeTrendDateTime !== "undefined") {
+                return WidgetTimeTrendDateTime.getUpperTimeLimit(selectedDateTime, hours, new Date());
+            }
+
+            // Keep the pre-calendar behavior if the optional helper cannot be loaded.
+            fallbackNow = new Date();
+            fallbackOffsetHours = fallbackNow.getTimezoneOffset() / 60;
+            fallbackUpperTimeLimit = fallbackNow.setHours(fallbackNow.getHours() - hours - fallbackOffsetHours);
+            return new Date(fallbackUpperTimeLimit).toISOString().substring(0, isoDate.length - 5);
         }
 
         function convertFromMomentToTime(momentDate) {
@@ -2532,6 +2705,9 @@
         //Fine definizioni di funzione
 
         $("#" + widgetName + "_timeTrendPrevBtn").off("click").click(function () {
+            if (navigateSelectedDateTime("previous")) {
+                return;
+            }
           //  alert("PREV Clicked!");
             if(timeNavCount == 0) {
              //   if (widgetData.params.sm_based == "yes" || fromGisExternalContent === true) {
@@ -2629,6 +2805,9 @@
         });
 
         $("#" + widgetName + "_timeTrendNextBtn").off("click").click(function () {
+            if (navigateSelectedDateTime("next")) {
+                return;
+            }
          //   alert("NEXT Clicked!");
             timeNavCount--;
             if(timeNavCount == 0) {
@@ -2799,6 +2978,9 @@
                                 //  $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                 console.log("Errore in chiamata prima API");
                                 console.log(JSON.stringify(data));
+                            },
+                            complete: function () {
+                                updateNextButtonForSelectedDateTime();
                             }
                         });
                     } else {
@@ -2975,6 +3157,7 @@
                     timeRange = widgetData.params.temporal_range_w;
                 }
                 currentTimeRange = timeRange;
+                initializeDateTimePicker();
                 populateWidget(timeRange, null, null, timeNavCount, null, udmFromUserOptions);
 
                 // Modify width to show newly implemented PREV and NEXT buttons
@@ -3225,6 +3408,19 @@
         </div>
         
         <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_content" class="content">
+            <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_dateTimeOverlay"
+                 class="widgetDateTimeOverlay<?= $_REQUEST['hostFile'] === 'config' ? ' widgetDateTimeOverlayWithDimControls' : '' ?>"
+                 style="display:none;">
+                <div class="widgetDateTimeOverlayControl">
+                    <button id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_dateTimeOverlayButton"
+                            class="widgetDateTimeOverlayButton" type="button" data-active="false">
+                        <span class="fa fa-calendar" aria-hidden="true"></span>
+                    </button>
+                    <input id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_dateTimeDisplay"
+                           class="widgetDateTimeOverlayInput form-control" type="text" readonly
+                           placeholder="Now" aria-label="Selected end date and time">
+                </div>
+            </div>
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>	
             <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert" class="noDataAlert">
                 <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText" class="noDataAlertText">
