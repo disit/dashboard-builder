@@ -2887,6 +2887,21 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             var roundedVal, singleSeriesData, singleSample, sampleTime, seriesSingleObj = null;
             chartSeriesObject = [];
             counterday = 1;
+        const SUPPORTED_LINE_SHAPES = new Set([
+            "line", // straight line
+            "spline", // curved line
+            "area", // straight area
+            "areaspline", // curved area
+            "left", // step line with step on the left
+            "center", // step line with step in the center
+            "right" // step line with step on the right
+        ]);
+
+        const STEP_LINE_SHAPES = new Set([
+            "left", // step line with step on the left
+            "center", // step line with step in the center
+            "right" // step line with step on the right
+        ]);
             for (var i = 0; i < aggregationGetData.length; i++)
             {
                 singleSeriesData = [];
@@ -2897,7 +2912,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 } else {
                     idYAxis = 0;
                 }
-                
+                                             
+                 const requestedLineShape = rowParameters[i].lineShape;
+                 const isSupportedLineShape = SUPPORTED_LINE_SHAPES.has(requestedLineShape);
+                 const isStepLineShape = STEP_LINE_SHAPES.has(requestedLineShape);
                  switch(aggregationGetData[i].metricHighLevelType)
                  {
                     case "KPI":
@@ -3071,12 +3089,23 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                          }
 
                          if (timeSlicedData.length != 0) {
+
                              seriesSingleObj = {
                                  showInLegend: true,
                                  name: objName,
                                  //    data: extractedData.values,
                                  data: timeSlicedData,
                                  // color: styleParameters.barsColors[i],
+                                 type: !isSupportedLineShape
+                                     ? highchartsChartType
+                                     : isStepLineShape
+                                         ? "line"
+                                         : requestedLineShape,
+                                 step: isStepLineShape
+                                     ? requestedLineShape
+                                     : isSupportedLineShape
+                                         ? false
+                                         : lineStepMode,
                                  color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                  yAxis: idYAxis,
                                  dataLabels: {
@@ -3267,6 +3296,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 name: objName,
                                 data: singleSeriesData,
                                 // color: styleParameters.barsColors[i],
+                                type: !isSupportedLineShape
+                                     ? highchartsChartType
+                                     : isStepLineShape
+                                         ? "line"
+                                         : requestedLineShape,
+                                step: isStepLineShape
+                                     ? requestedLineShape
+                                     : isSupportedLineShape
+                                         ? false
+                                         : lineStepMode,
                                 color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                 yAxis: idYAxis,
                                 dataLabels: {
@@ -3353,6 +3392,16 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         name: objName,
                                         data: singleSeriesData,
                                         // color: styleParameters.barsColors[i],
+                                        type: !isSupportedLineShape
+                                            ? highchartsChartType
+                                            : isStepLineShape
+                                                ? "line"
+                                                : requestedLineShape,
+                                        step: isStepLineShape
+                                            ? requestedLineShape
+                                            : isSupportedLineShape
+                                                ? false
+                                                : lineStepMode,
                                         color: (rowParameters[i].customColor != null && rowParameters[i].customColor.trim() !== '') ? rowParameters[i].customColor : styleParameters.barsColors[i],
                                         yAxis: idYAxis,
                                         dataLabels: {
