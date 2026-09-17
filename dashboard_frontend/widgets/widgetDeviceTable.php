@@ -734,7 +734,6 @@ window.tables[name_w] = $table.DataTable({
                             var query = listQuery[y];
                             var valueFilters = searchableColumns_<?= $_REQUEST['name_w'] ?>.join("%7C");
                             var filters = valueFilters + '::' + encodeURIComponent(query);
-                            //filters= filters.replace(/-/g, "%2D");
                             final_filters += filters;
                             if (y < listQuery.length - 1) {
                                 final_filters += ";";
@@ -751,6 +750,21 @@ window.tables[name_w] = $table.DataTable({
 			//
 			var query_filtered = $('#url_<?= $_REQUEST['name_w'] ?>').val();
 			var query_corrected = query_filtered.replace(/&maxResults=[^&]*/g, '');
+			//**CHECK valueFilter esistente -inizio **//
+            if (filter_text !== '') {
+                if (query_corrected.indexOf('&valueFilters=') !== -1) {
+                    // Esiste già valueFilters: aggiungo il nuovo valore separandolo con ;
+                    query_corrected = query_corrected.replace(
+                        /&valueFilters=([^&]*)/,
+                        function(match, existingFilters) {
+                            return '&valueFilters=' + existingFilters + ';' + final_filters;
+                        }
+                    );
+
+                    filter_text = '';
+                }
+            }
+			//**CHECK valueFilter esistente -fine **//
 			query_filtered = query_corrected +ordering_data+filter_start+filter_max+filter_text;
 			console.log(query_filtered);
 
