@@ -192,6 +192,7 @@ if (!isset($_SESSION)) {
 <link rel="stylesheet" href="../css/jquery.datetimepicker.min.css" />
 <!-- dBologna VectorFlow -->
 <script src="../js/p5.js"></script>
+<script src="../js/widgetMapExport.js"></script>
 
 <!-- SCENARY EDITOR ADREANI -->
 <!-- FINE ADREANI -->
@@ -7080,6 +7081,252 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }).addTo(map);
     }
 
+    function initializeMapExportControl() {
+        var exportCleanupKey = "__widgetMapExportCleanup_<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>";
+        if (typeof window[exportCleanupKey] === 'function') {
+            window[exportCleanupKey]();
+        }
+        if (!styleParameters || styleParameters.exportMap !== "enabled") {
+            return;
+        }
+
+        var root = document.getElementById("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_chartContainer");
+        var control = document.getElementById("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapExportControl");
+        var toggle = control ? control.querySelector('.widget-map-export-toggle') : null;
+        var menu = control ? control.querySelector('.widget-map-export-menu') : null;
+        var informationPanel = root ? root.querySelector('#universal-top-right') : null;
+        var mapInstance = map.defaultMapRef;
+
+        if (!root || !control || !toggle || !menu || typeof WidgetMapExport === 'undefined') {
+            return;
+        }
+
+        control.style.display = 'block';
+        var exportPanelResizeObserver = null;
+        var exportPanelMutationObserver = null;
+        var exportLeafletControlObserver = null;
+        var exportPositionTimeout = null;
+
+        function updateExportControlPosition() {
+            var panelRect = informationPanel ? informationPanel.getBoundingClientRect() : {width: 0};
+            var panelStyle = informationPanel ? window.getComputedStyle(informationPanel) : null;
+            var panelVisible = informationPanel !== null &&
+                panelStyle.display !== 'none' &&
+                panelStyle.visibility !== 'hidden' &&
+                panelRect.width > 0 &&
+                informationPanel.querySelectorAll('.deck-btn-active, .deck-btn-collapsed').length > 0;
+            var topRightControlWidths = Array.prototype.map.call(
+                root.querySelectorAll('.leaflet-top.leaflet-right .leaflet-control'),
+                function(element) {
+                    var rect = element.getBoundingClientRect();
+                    var style = window.getComputedStyle(element);
+                    return style.display !== 'none' && style.visibility !== 'hidden' && rect.height > 0 ? rect.width : 0;
+                }
+            );
+            var rightOffset = WidgetMapExport.calculateControlRightOffset({
+                visible: panelVisible,
+                width: panelRect.width
+            }, topRightControlWidths);
+            var maximumOffset = Math.max(8, root.clientWidth - control.offsetWidth - 8);
+            control.style.right = Math.min(rightOffset, maximumOffset) + 'px';
+        }
+
+        function closeExportMenu() {
+            control.classList.remove('open');
+            toggle.setAttribute('aria-expanded', 'false');
+        }
+
+        function exportFilename(extension) {
+            var baseName = (widgetTitle || widgetName || 'map')
+                .toString()
+                .trim()
+                .replace(/[^a-z0-9_-]+/gi, '_')
+                .replace(/^_+|_+$/g, '');
+            return (baseName || 'map') + '_' + new Date().toISOString().replace(/[:.]/g, '-') + '.' + extension;
+        }
+
+        function setExportBusy(busy, statusDelayMs, busyMessage) {
+            if (typeof WidgetMapExport.setExportBusyState === 'function') {
+                WidgetMapExport.setExportBusyState(
+                    control,
+                    toggle,
+                    busy,
+                    typeof statusDelayMs === 'number' ? statusDelayMs : 800,
+                    busyMessage
+                );
+                return;
+            }
+
+            // Keep image export usable during a rolling deploy or with a stale cached helper.
+            control.classList.toggle('busy', busy);
+            control.classList.remove('show-status');
+            toggle.disabled = busy;
+            toggle.setAttribute('aria-busy', busy ? 'true' : 'false');
+        }
+
+        function describeCorsFailure(error, corsFailures) {
+            var message = 'Unable to export the map image.';
+            if (error && error.name === 'SecurityError') {
+                message += ' One or more map image servers do not permit canvas access (CORS).';
+            } else if (error && error.message) {
+                message += ' ' + error.message;
+            }
+            if (corsFailures && corsFailures.length > 0) {
+                var hosts = corsFailures.map(function(url) {
+                    try {
+                        return new URL(url).host;
+                    } catch (ignored) {
+                        return url;
+                    }
+                });
+                message += ' Sources to configure or proxy: ' + Array.from(new Set(hosts)).join(', ') + '.';
+            }
+            return message;
+        }
+
+        function exportMapImage(format) {
+            setExportBusy(true);
+            var corsFailures = [];
+            var highResolution = format === 'png-hires';
+            var imageFormat = highResolution ? 'png' : format;
+            WidgetMapExport.findCorsFailures(root)
+                .then(function(failures) {
+                    corsFailures = failures;
+                    return WidgetMapExport.loadHtml2Canvas('../js/html2canvas.js');
+                })
+                .then(function(html2canvas) {
+                    return WidgetMapExport.captureElement(
+                        root,
+                        html2canvas,
+                        highResolution ? {scale: 3} : undefined
+                    );
+                })
+                .then(function(canvas) {
+                    return WidgetMapExport.saveCanvas(
+                        canvas,
+                        imageFormat,
+                        exportFilename(imageFormat === 'jpeg' ? 'jpg' : 'png'),
+                        {
+                            dialogTimeoutMs: 4000,
+                            onDownloadRequested: function() {
+                                setExportBusy(true, 0, 'Opening Save As...');
+                            }
+                        }
+                    );
+                })
+                .then(function() {
+                    if (corsFailures.length > 0) {
+                        window.alert(
+                            'The image was created, but the following external sources did not confirm CORS access and may be missing: ' +
+                            corsFailures.map(function(url) {
+                                try {
+                                    return new URL(url).host;
+                                } catch (ignored) {
+                                    return url;
+                                }
+                            }).join(', ')
+                        );
+                    }
+                })
+                .catch(function(error) {
+                    window.alert(describeCorsFailure(error, corsFailures));
+                })
+                .then(function() {
+                    setExportBusy(false);
+                });
+        }
+
+        function handleExportToggleClick(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            var open = !control.classList.contains('open');
+            control.classList.toggle('open', open);
+            toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        }
+
+        function handleExportMenuClick(event) {
+            var action = event.target.closest('[data-map-export]');
+            if (!action) {
+                return;
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            closeExportMenu();
+            var exportType = action.getAttribute('data-map-export');
+            if (exportType === 'geojson') {
+                var additionalExcludedLayers = [];
+                var p5Container = document.getElementById("<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_p5-container");
+                if (p5Container && p5Container.querySelector('canvas')) {
+                    additionalExcludedLayers.push({
+                        kind: 'canvas-overlay',
+                        source: 'P5 vector field'
+                    });
+                }
+                var collection = WidgetMapExport.createVisibleFeatureCollection(mapInstance, {
+                    additionalExcludedLayers: additionalExcludedLayers
+                });
+                WidgetMapExport.saveJson(collection, exportFilename('geojson'));
+            } else if (exportType === 'png' || exportType === 'jpeg' || exportType === 'png-hires') {
+                exportMapImage(exportType);
+            }
+        }
+
+        toggle.addEventListener('click', handleExportToggleClick);
+        menu.addEventListener('click', handleExportMenuClick);
+        document.addEventListener('click', closeExportMenu);
+        window.addEventListener('resize', updateExportControlPosition);
+        mapInstance.on('resize', updateExportControlPosition);
+
+        if (typeof ResizeObserver !== 'undefined' && informationPanel) {
+            exportPanelResizeObserver = new ResizeObserver(updateExportControlPosition);
+            exportPanelResizeObserver.observe(informationPanel);
+        }
+        if (typeof MutationObserver !== 'undefined' && informationPanel) {
+            exportPanelMutationObserver = new MutationObserver(updateExportControlPosition);
+            exportPanelMutationObserver.observe(informationPanel, {
+                attributes: true,
+                childList: true,
+                subtree: true
+            });
+        }
+        if (typeof MutationObserver !== 'undefined') {
+            var leafletControlContainer = root.querySelector('.leaflet-control-container');
+            if (leafletControlContainer) {
+                exportLeafletControlObserver = new MutationObserver(updateExportControlPosition);
+                exportLeafletControlObserver.observe(leafletControlContainer, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }
+        exportPositionTimeout = setTimeout(updateExportControlPosition, 0);
+        var cleanupMapExportControl = function() {
+            toggle.removeEventListener('click', handleExportToggleClick);
+            menu.removeEventListener('click', handleExportMenuClick);
+            document.removeEventListener('click', closeExportMenu);
+            window.removeEventListener('resize', updateExportControlPosition);
+            mapInstance.off('resize', updateExportControlPosition);
+            clearTimeout(exportPositionTimeout);
+            if (exportPanelResizeObserver) {
+                exportPanelResizeObserver.disconnect();
+            }
+            if (exportPanelMutationObserver) {
+                exportPanelMutationObserver.disconnect();
+            }
+            if (exportLeafletControlObserver) {
+                exportLeafletControlObserver.disconnect();
+            }
+            setExportBusy(false);
+            closeExportMenu();
+            control._widgetMapExportCleanup = null;
+            if (window[exportCleanupKey] === cleanupMapExportControl) {
+                window[exportCleanupKey] = null;
+            }
+        };
+        control._widgetMapExportCleanup = cleanupMapExportControl;
+        window[exportCleanupKey] = cleanupMapExportControl;
+    }
+
     //Tipicamente questa funzione viene invocata dopo che sono stati scaricati i dati per il widget (se ne ha bisogno) e ci va dentro la logica che costruisce il contenuto del widget
     function populateWidget() {
         let lastPopup = null;
@@ -7286,6 +7533,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }
 
         map.defaultMapRef.attributionControl.setPrefix('');
+        initializeMapExportControl();
 
         var rgbToHex = function (rgb) {
             var hex = Number(rgb).toString(16);
@@ -33986,6 +34234,128 @@ function simplifyTrajectoryByZoom(points, map) {
         right: 0;
     }
 
+    .map2dContainer {
+        position: relative;
+    }
+
+    .widget-map-export-control {
+        display: none;
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 1060;
+        font-family: Arial, sans-serif;
+    }
+
+    .widget-map-export-toggle {
+        width: 30px;
+        height: 30px;
+        padding: 0;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        border-radius: 3px;
+        background: #ffffff;
+        color: #333333;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+    }
+
+    .widget-map-export-toggle:hover,
+    .widget-map-export-toggle:focus {
+        background: #f4f4f4;
+        color: #000000;
+    }
+
+    .widget-map-export-control.busy .widget-map-export-toggle {
+        cursor: wait;
+        opacity: 1;
+    }
+
+    .widget-map-export-status {
+        display: none;
+        position: absolute;
+        top: 0;
+        right: 34px;
+        box-sizing: border-box;
+        height: 30px;
+        padding: 0 10px;
+        border: 1px solid rgba(0, 0, 0, 0.25);
+        border-radius: 3px;
+        background: #ffffff !important;
+        color: #333333 !important;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+        font-size: 12px;
+        font-weight: normal;
+        line-height: 28px;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    .widget-map-export-control.show-status .widget-map-export-status {
+        display: block;
+    }
+
+    .widget-map-export-menu {
+        display: none;
+        position: absolute;
+        top: 34px;
+        right: 0;
+        min-width: 205px;
+        margin: 0;
+        padding: 5px 0;
+        list-style: none;
+        border: 1px solid rgba(0, 0, 0, 0.2);
+        border-radius: 3px;
+        background: #ffffff !important;
+        color: #333333 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    }
+
+    .widget-map-export-control.open .widget-map-export-menu {
+        display: block;
+    }
+
+    /* Theme widget-card selectors also target nested LI elements. */
+    #gridsterUl .widget-map-export-menu > li {
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: #ffffff !important;
+        box-shadow: none !important;
+        transition: none !important;
+    }
+
+    .widget-map-export-menu button {
+        display: block;
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 0;
+        padding: 7px 12px !important;
+        border: 0 !important;
+        border-radius: 0 !important;
+        background: transparent !important;
+        color: #333333 !important;
+        box-shadow: none !important;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .widget-map-export-menu button:hover,
+    .widget-map-export-menu button:focus {
+        background: #f0f0f0 !important;
+        color: #000000 !important;
+    }
+
+    #<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_p5-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 400;
+        pointer-events: none;
+    }
+
     #deck-info-tab {
         height: 42px;
         margin-bottom: 10px;
@@ -34208,7 +34578,23 @@ function simplifyTrajectoryByZoom(points, map) {
                     </div>
                 </div>
                 <!-- FINE FIX MENTINA -->
-            <div id="p5-container"></div></div>
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_p5-container"></div>
+                <div id="<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_mapExportControl"
+                    class="widget-map-export-control">
+                    <button type="button" class="widget-map-export-toggle" aria-haspopup="true"
+                        aria-expanded="false" aria-busy="false" title="Export map">
+                        <i class="fa fa-bars" aria-hidden="true"></i>
+                        <span class="sr-only">Export map</span>
+                    </button>
+                    <span class="widget-map-export-status" role="status" aria-live="polite"></span>
+                    <ul class="widget-map-export-menu" role="menu">
+                        <li role="none" style="border-radius: 0 !important;"><button type="button" role="menuitem" data-map-export="geojson">Download visible data (GeoJSON)</button></li>
+                        <li role="none" style="border-radius: 0 !important;"><button type="button" role="menuitem" data-map-export="png">Download map image (PNG)</button></li>
+                   <!--     <li role="none" style="border-radius: 0 !important;"><button type="button" role="menuitem" data-map-export="png-hires">Download map image (hi-res PNG)</button></li>	-->
+                        <li role="none" style="border-radius: 0 !important;"><button type="button" role="menuitem" data-map-export="jpeg">Download map image (JPEG)</button></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
     <div id="<?= $_REQUEST['name_w'] ?>_code"></div>

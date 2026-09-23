@@ -3397,6 +3397,12 @@
                 $showContentLoadM = mysqli_real_escape_string($link, sanitizePostString('showContentLoadM'));
             }
 
+            $barSeriesExportM = 'disabled';
+            if(isset($_POST['exportM'])&&($_POST['exportM']!=""))
+            {
+                $barSeriesExportM = sanitizePostString('exportM') === 'enabled' ? 'enabled' : 'disabled';
+            }
+
             $styleParametersArrayM = array();
             $styleParametersArrayM['rowsLabelsFontSize'] = $rowsLabelsFontSizeM;
             $styleParametersArrayM['rowsLabelsFontColor'] = $rowsLabelsFontColorM;
@@ -3414,6 +3420,7 @@
 			$styleParametersArrayM['calendarM'] = $calendarM;
             $styleParametersArrayM['enableCKEditor'] = $enableCKEditor;
             $styleParametersArrayM['showContentLoadM'] = $showContentLoadM;
+            $styleParametersArrayM['exportM'] = $barSeriesExportM;
 
             if(isset($_POST['barsColorsM'])&&($_POST['barsColorsM']!=""))
             {
@@ -3883,6 +3890,7 @@
             }
 
             if ($type_widget_m == "widgetMap") {
+                $mapStyleParametersM = array();
                 if(isset($_POST['showOrthomapsM'])&&($_POST['showOrthomapsM']!="")) {
 
                     $showOrthomapsM = mysqli_real_escape_string($link, sanitizePostString('showOrthomapsM'));
@@ -3930,13 +3938,19 @@
                         }
                     }
 
+                    $mapStyleParametersM['showOrthomaps'] = sanitizePostString('showOrthomapsM');
                     if(isset($_POST['defaultOrthomapM'])&&($_POST['defaultOrthomapM']!="")) {
-                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'), 'defaultOrthomap' => sanitizePostString('defaultOrthomapM'));
-                    } else {
-                        $styleParametersM =  array('showOrthomaps' => sanitizePostString('showOrthomapsM'));
+                        $mapStyleParametersM['defaultOrthomap'] = sanitizePostString('defaultOrthomapM');
                     }
+                }
 
-                    $styleParametersM = json_encode($styleParametersM);
+                if(isset($_POST['exportMapM']) && ($_POST['exportMapM'] != "")) {
+                    $exportMapM = sanitizePostString('exportMapM');
+                    $mapStyleParametersM['exportMap'] = ($exportMapM === 'enabled') ? 'enabled' : 'disabled';
+                }
+
+                if(sizeof($mapStyleParametersM) > 0) {
+                    $styleParametersM = json_encode($mapStyleParametersM);
                 }
 
             }

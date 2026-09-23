@@ -69,6 +69,60 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var sortSeriesStr, sortedSeries = null;
         var followPointerFlag = false;
         var code, connections, clickedVar, clickedCat, selectedDataJson = null;
+        var <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+
+        /* BAR_SERIES_EXPORT_OPTIONS_START */
+        function buildBarSeriesExportingOptions(currentStyleParameters, chartContainerSelector, jquery, onOpenStateChange)
+        {
+            return {
+                enabled: currentStyleParameters !== null &&
+                    currentStyleParameters !== undefined &&
+                    currentStyleParameters.exportM === "enabled",
+                buttons: {
+                    contextButton: {
+                        onclick: function(e) {
+                            var container = jquery(chartContainerSelector);
+                            if (container.hasClass("exportData")) {
+                                container.removeClass("exportData");
+                            } else {
+                                container.addClass("exportData");
+                            }
+                            if (typeof onOpenStateChange === 'function') {
+                                onOpenStateChange(container.hasClass("exportData"));
+                            }
+                            this.menuItemState = container.hasClass("exportData") ? 2 : 0;
+                            if (e) {
+                                e.stopPropagation();
+                            }
+                            if (!this.tooltip.isHidden) {
+                                this.tooltip.hide(0);
+                            }
+                            var button = this.exportSVGElements[0];
+                            this.contextMenu(
+                                button.menuClassName,
+                                this.options.exporting.buttons.contextButton.menuItems,
+                                button.translateX,
+                                button.translateY,
+                                button.width,
+                                button.height,
+                                button
+                            );
+                            button.setState(2);
+                        }
+                    }
+                }
+            };
+        }
+        /* BAR_SERIES_EXPORT_OPTIONS_END */
+
+        $(document).off('click.widgetBarSeriesExport_<?= $_REQUEST['name_w'] ?>');
+        $(document).on('click.widgetBarSeriesExport_<?= $_REQUEST['name_w'] ?>', function() {
+            if ((hostFile === "index" || hostFile === "config") && <?= $_REQUEST['name_w'] ?>_clickExportState) {
+                var container = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
+                container.removeClass("exportData");
+                <?= $_REQUEST['name_w'] ?>_clickExportState = false;
+            }
+        });
 
         function getWidgetCode(fallbackCode)
         {
@@ -561,11 +615,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         redraw: onDraw
                     }
                 },
-                //Per disabilitare il menu in alto a destra
-                exporting: 
-                { 
-                    enabled: false 
-                },
+                exporting: buildBarSeriesExportingOptions(
+                    styleParameters,
+                    "#<?= $_REQUEST['name_w'] ?>_chartContainer",
+                    $,
+                    function(open) {
+                        <?= $_REQUEST['name_w'] ?>_clickExportState = open;
+                    }
+                ),
                 //Non cancellare sennò ci mette il titolo di default
                 title: {
                     text: ''

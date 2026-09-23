@@ -18717,6 +18717,32 @@
                         return filename;
                     }
 
+                    function appendBarSeriesExportEditorOption(target, currentStyleParameters, canEdit, jquery, labels) {
+                        var currentValue = currentStyleParameters && currentStyleParameters.exportM === 'enabled' ?
+                            'enabled' : 'disabled';
+                        var row = jquery('<div class="row"></div>');
+
+                        if (canEdit) {
+                            var label = jquery('<label for="exportM" class="col-md-2 control-label"></label>')
+                                .text(labels.title);
+                            var inner = jquery('<div class="col-md-3"></div>');
+                            var select = jquery('<select class="form-control" id="exportM" name="exportM"></select>');
+                            select.append(jquery('<option value="enabled"></option>').text(labels.enabled));
+                            select.append(jquery('<option value="disabled"></option>').text(labels.disabled));
+                            select.val(currentValue);
+                            inner.append(select);
+                            row.append(label);
+                            row.append(inner);
+                        } else {
+                            var hidden = jquery('<input type="hidden" id="exportM" name="exportM">');
+                            hidden.val(currentValue);
+                            row.append(hidden);
+                        }
+
+                        target.append(row);
+                        return row;
+                    }
+
                     $('#export-dashboard').click(function () {
                         $.ajax({
                             url: '../management/export.php',
@@ -31716,9 +31742,22 @@
                                         newLabel.show();
                                         newInnerDiv.show();
                                         newSelect.show();
-										$("#calendarM").val(styleParameters.calendarM);
-										//console.log("#calendarM: "+styleParameters.calendarM);
-										//Codice di creazione soglie
+                                                                                $("#calendarM").val(styleParameters.calendarM);
+                                                                                //console.log("#calendarM: "+styleParameters.calendarM);
+
+                                        appendBarSeriesExportEditorOption(
+                                            $("#specificParamsM"),
+                                            styleParameters,
+                                            "<?= $_SESSION['loggedRole'] ?>" === "RootAdmin",
+                                            $,
+                                            {
+                                                title: <?= json_encode(_("Export Chart Data")) ?>,
+                                                enabled: <?= json_encode(_("Enabled")) ?>,
+                                                disabled: <?= json_encode(_("Disabled")) ?>
+                                            }
+                                        );
+
+                                                                                //Codice di creazione soglie
                                         //Nuova riga
                                         //Set thresholds
                                         newFormRow = $('<div class="row"></div>');
@@ -36154,6 +36193,10 @@
                                             {
                                                 styleParameters = JSON.parse(styleParamsRaw);
                                             }
+                                            else
+                                            {
+                                                styleParameters = {};
+                                            }
                                             //Rimozione eventuali campi del subform general per widget process
                                             removeWidgetProcessGeneralFields("editWidget");
 
@@ -36346,6 +36389,25 @@
                                             newInnerDiv.append(newSelect);
                                             newFormRow.append(newLabel);
                                             newFormRow.append(newInnerDiv);
+
+                                            //Map export contextual menu
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            if ("<?= $_SESSION['loggedRole'] ?>" == "RootAdmin") {
+                                                newLabel = $('<label for="exportMapM" class="col-md-2 control-label"><?php echo _("Export Map Data"); ?></label>');
+                                                newInnerDiv = $('<div class="col-md-3"></div>');
+                                                newSelect = $('<select class="form-control" id="exportMapM" name="exportMapM"></select>');
+                                                newSelect.append('<option value="enabled"><?php echo _("Enabled"); ?></option>');
+                                                newSelect.append('<option value="disabled"><?php echo _("Disabled"); ?></option>');
+                                                newSelect.val(styleParameters && styleParameters.exportMap === "enabled" ? "enabled" : "disabled");
+                                                newInnerDiv.append(newSelect);
+                                                newFormRow.append(newLabel);
+                                                newFormRow.append(newInnerDiv);
+                                            } else {
+                                                newInput = $('<input type="hidden" id="exportMapM" name="exportMapM">');
+                                                newInput.val(styleParameters && styleParameters.exportMap === "enabled" ? "enabled" : "disabled");
+                                                newFormRow.append(newInput);
+                                            }
 
                                             gisTargetCenterParametersM = currentParams;
                                             $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
