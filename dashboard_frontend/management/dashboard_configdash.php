@@ -38,6 +38,42 @@
         eventLog("Returned the following ERROR in dashboard_configdash.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
         exit();
     };
+    if(!checkDashboardId($link, $dashId))
+    {
+        eventLog("Unauthorized access to dashboard_configdash.php for dashId = ".$dashId." by user: ".$_SESSION['loggedUsername'].". Exit from script.");
+?>
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Dashboard Management System</title>
+
+        <link href="../css/bootstrap.css" rel="stylesheet">
+        <link href="../css/dashboard.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat" rel="stylesheet">
+    </head>
+    <body class="dashboardViewBodyAuth">
+        <div id="authFormDarkBackground" style="display: block; min-height: 100vh">
+            <div class="row">
+                <div class="col-xs-12 centerWithFlex" id="loginMainTitle">Dashboard Management System</div>
+            </div>
+
+            <div class="row">
+                <div id="authFormContainer" class="col-xs-12 col-sm-8 col-sm-offset-2 col-md-4 col-md-offset-4" style="display: block; padding-left: 0; padding-right: 0">
+                    <div class="col-xs-12" id="loginFormTitle" style="text-align: center">
+                        <?= _("Restricted access dashboard") ?>
+                        <a style="color: #f3cf58; text-decoration: underline" href="../management/logout.php?thenLoginTo=<?= urlencode($_SERVER['REQUEST_URI']) ?>">LOGOUT</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
+<?php
+        exit();
+    }
     $q = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = '$dashId'";
     $r = mysqli_query($link, $q);
 
