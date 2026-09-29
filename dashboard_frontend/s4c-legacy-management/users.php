@@ -1652,6 +1652,7 @@ text-transform: uppercase;
                 const originalDefs = userAcl.map(r => Number(r.defID));
                 $('#editACLModal').data('originalDefs', originalDefs);
                 const selectedDefs = new Set(originalDefs);
+                $('#editACLModal').data('selectedDefs', selectedDefs);
                 const rows = defs.map(def => ({
                     state:       selectedDefs.has(Number(def.ID)), 
                     ID:          def.ID,
@@ -1694,12 +1695,13 @@ text-transform: uppercase;
                     onCheck:      row  => selectedDefs.add(Number(row.ID)),
                     onUncheck:    row  => selectedDefs.delete(Number(row.ID)),
                     onCheckAll:   rows => rows.forEach(r => selectedDefs.add(Number(r.ID))),
-                    onUncheckAll: rows => rows.forEach(r => selectedDefs.delete(Number(r.ID))),
+                    onUncheckAll: (after, before) => (before || after).forEach(r => selectedDefs.delete(Number(r.ID))),
                 });
                 //profiles
                 const originalProfiles = userProfs.map(n => Number(n));
                 $('#editACLModal').data('originalProfiles', originalProfiles);
                 const sel = new Set(originalProfiles);
+                $('#editACLModal').data('selectedProfiles', sel);
                 const prow = profiles.map(pr => ({
                     state:       sel.has(pr.ID),
                     ID:          pr.ID,
@@ -1729,7 +1731,7 @@ text-transform: uppercase;
                     onCheck:      row  => sel.add(Number(row.ID)),
                     onUncheck:    row  => sel.delete(Number(row.ID)),
                     onCheckAll:   rows => rows.forEach(r => sel.add(Number(r.ID))),
-                    onUncheckAll: rows => rows.forEach(r => sel.delete(Number(r.ID))),
+                    onUncheckAll: (after, before) => (before || after).forEach(r => sel.delete(Number(r.ID))),
                 });
                 $('#editACLModal').modal('show');
                 })
@@ -1743,7 +1745,8 @@ text-transform: uppercase;
             const username = $('#aclUsername').text().toLowerCase();
             if ($('#btnModeACL').hasClass('active')) {
                 //ACL
-                const newDefs  = $('#aclTable').bootstrapTable('getSelections').map(r=>r.ID);
+                // use tracked Set: getSelections may only return the current page
+                const newDefs  = Array.from($('#editACLModal').data('selectedDefs') || []);
                 const origDefs = $('#editACLModal').data('originalDefs')||[];
                 $.post('editACL.php', {
                 action:        'update_ACL',
@@ -1753,7 +1756,7 @@ text-transform: uppercase;
                 }, res => { $('#editACLModal').modal('hide'); });
             } else {
                 //Profiles
-                const newPs  = $('#profileAssignTable').bootstrapTable('getSelections').map(r=>r.ID);
+                const newPs  = Array.from($('#editACLModal').data('selectedProfiles') || []);
                 const origPs = $('#editACLModal').data('originalProfiles')||[];
                 $.post('editACL.php', {
                 action:            'update_user_profiles',
