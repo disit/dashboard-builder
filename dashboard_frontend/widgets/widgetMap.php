@@ -30058,7 +30058,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         }
                         map.defaultMapRef.removeControl(map.trafficLegendHeatmap);
                         if (i < map.eventsOnMap.length-1 && map.eventsOnMap[i + 1].passedData 
-                                && map.eventsOnMap[i + 1].passedData.includes("&trafficflowmanager=true")) {
+                                && (map.eventsOnMap[i + 1].passedData.includes("&trafficflowmanager=true") || map.eventsOnMap[i + 1].passedData.includes("api/v1/trafficflow/"))) {
                             map.defaultMapRef.removeControl(map.eventsOnMap[i + 1].legendColors);
                             map.eventsOnMap.splice(i, 2);
                         } else {
