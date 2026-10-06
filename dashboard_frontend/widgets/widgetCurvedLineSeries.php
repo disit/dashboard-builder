@@ -52,6 +52,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
         var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
+        var widgetOriginalBorderColor = null;
+        var widgetSelectedGisHeaderBackground = null;
         var timeToReload = <?= sanitizeInt('frequency_w') ?>;
         var metricName = "<?= escapeForJS($_REQUEST['id_metric']) ?>";
         var elToEmpty = $("#<?= $_REQUEST['name_w'] ?>_chartContainer");
@@ -186,9 +188,169 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             return dateChoice.clone();
         }
 
+        /* CURVED_LINE_GIS_ADAPTER */
+        var curvedLineGisAdapter = (function () {
+            var rangeMap = {
+                "4/HOUR": "4 Ore",
+                "1/DAY": "Giornaliera",
+                "7/DAY": "Settimanale",
+                "30/DAY": "Mensile",
+                "180/DAY": "Semestrale",
+                "365/DAY": "Annuale",
+                "730/DAY": "2 Anni",
+                "3650/DAY": "10 Anni"
+            };
+
+            function isNonEmptyString(value) {
+                return typeof value === "string" && value.trim() !== "";
+            }
+
+            function isSupportedTimeRange(value) {
+                if (!isNonEmptyString(value)) {
+                    return false;
+                }
+
+                value = value.trim();
+                return Object.keys(rangeMap).some(function (key) {
+                    return rangeMap[key] === value;
+                });
+            }
+
+            function mapRange(range, fallbackRange) {
+                if (isNonEmptyString(range) &&
+                    Object.prototype.hasOwnProperty.call(rangeMap, range.trim())) {
+                    return rangeMap[range.trim()];
+                }
+
+                return isSupportedTimeRange(fallbackRange) ? fallbackRange.trim() : null;
+            }
+
+            function adapt(targetWidget, event, fallbackRange) {
+                var field;
+                var label;
+                var serviceUri;
+                var timeRangeOverride;
+
+                if (!isNonEmptyString(targetWidget) || !event ||
+                    event.targetWidget !== targetWidget ||
+                    !isNonEmptyString(event.serviceUri) ||
+                    !isNonEmptyString(event.field)) {
+                    return null;
+                }
+
+                timeRangeOverride = mapRange(event.range, fallbackRange);
+                if (timeRangeOverride === null) {
+                    return null;
+                }
+
+                serviceUri = event.serviceUri.trim();
+                field = event.field.trim();
+                label = isNonEmptyString(event.widgetTitle) ? event.widgetTitle.trim() : field;
+
+                return {
+                    type: "showCurvedLinesFromExternalContent_" + targetWidget,
+                    targetWidget: targetWidget,
+                    widgetTitle: label,
+                    color1: event.color1,
+                    color2: event.color2,
+                    timeRangeOverride: timeRangeOverride,
+                    passedData: [{
+                        metricId: "",
+                        metricHighLevelType: "IoT Device Variable",
+                        metricName: field,
+                        metricType: "Float",
+                        metricValueUnit: "",
+                        serviceUri: serviceUri,
+                        smField: field,
+                        label: label,
+                        legendLabels: label
+                    }]
+                };
+            }
+
+            function relay(targetWidget, event, fallbackRange, trigger) {
+                var adaptedEvent = adapt(targetWidget, event, fallbackRange);
+
+                if (adaptedEvent === null || typeof trigger !== "function") {
+                    return false;
+                }
+
+                trigger(adaptedEvent);
+                return true;
+            }
+
+            return {
+                mapRange: mapRange,
+                adapt: adapt,
+                relay: relay
+            };
+        }());
+        /* CURVED_LINE_GIS_ADAPTER END */
+
+        $(document).off('mouseOverTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOverTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            if (event.targetWidget !== widgetName) {
+                return;
+            }
+
+            widgetOriginalBorderColor = $("#" + widgetName).css("border-color");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(event.widgetTitle);
+            $("#" + widgetName).css("border-color", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", event.color1);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-webkit-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-o-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "-moz-linear-gradient(left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("background", "linear-gradient(to left, " + event.color1 + ", " + event.color2 + ")");
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", "black");
+        });
+
+        $(document).off('mouseOutTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('mouseOutTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            if (event.targetWidget !== widgetName) {
+                return;
+            }
+
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_titleDiv").html(widgetTitle);
+            $("#" + widgetName).css("border-color", widgetOriginalBorderColor);
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css(
+                "background",
+                widgetSelectedGisHeaderBackground || widgetHeaderColor
+            );
+            $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_header").css("color", widgetHeaderFontColor);
+        });
+
+        $(document).off('showTimeTrendFromExternalContentGis_' + widgetName);
+        $(document).on('showTimeTrendFromExternalContentGis_' + widgetName, function(event)
+        {
+            if (event.targetWidget !== widgetName) {
+                return;
+            }
+
+            if (!curvedLineGisAdapter.relay(widgetName, event, timeRange, function(adaptedEvent) {
+                widgetTitle = adaptedEvent.widgetTitle;
+                widgetHeaderColor = adaptedEvent.color1;
+                widgetHeaderFontColor = "black";
+                widgetSelectedGisHeaderBackground = "linear-gradient(to left, " +
+                    adaptedEvent.color1 + ", " + adaptedEvent.color2 + ")";
+                $.event.trigger(adaptedEvent);
+            })) {
+                console.warn(
+                    "CurvedLine GIS event ignored: invalid target, source field or time range",
+                    event
+                );
+                return;
+            }
+        });
+
         $(document).off('showCurvedLinesFromExternalContent_' + widgetName);
         $(document).on('showCurvedLinesFromExternalContent_' + widgetName, function(event)
         {
+            if (event.targetWidget === widgetName && event.timeRangeOverride != null) {
+                timeRange = event.timeRangeOverride;
+                timeNavCount = 0;
+            }
             if (event.event == 'set_time'){         
                                 //console.log(event.passedData);
                 if ((event.passedData == null)||(event.passedData.length === 0)){
@@ -652,6 +814,98 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         }
         
         
+        function isNonEmptyCurvedLineLabel(value) {
+            return typeof value === 'string' && value.trim() !== '';
+        }
+
+        function getCurvedLineMetricDisplayName(rowParameter, fallbackName) {
+            var metricLabel, metricName, metricType, smField, compositeCandidates;
+
+            fallbackName = isNonEmptyCurvedLineLabel(fallbackName) ? fallbackName : '';
+            if (!rowParameter ||
+                isNonEmptyCurvedLineLabel(rowParameter.legendLabels) ||
+                !isNonEmptyCurvedLineLabel(rowParameter.metricLabel)) {
+                return fallbackName;
+            }
+
+            metricLabel = rowParameter.metricLabel.trim();
+            metricName = isNonEmptyCurvedLineLabel(rowParameter.metricName) ? rowParameter.metricName.trim() : '';
+            metricType = isNonEmptyCurvedLineLabel(rowParameter.metricType) ? rowParameter.metricType.trim() : '';
+            smField = isNonEmptyCurvedLineLabel(rowParameter.smField) ? rowParameter.smField.trim() : '';
+
+            if (fallbackName === metricType || fallbackName === smField) {
+                return metricLabel;
+            }
+
+            if (metricName !== '') {
+                compositeCandidates = [];
+                if (smField !== '') {
+                    compositeCandidates.push(metricName + ' - ' + smField);
+                }
+                if (metricType !== '') {
+                    compositeCandidates.push(metricName + ' - ' + metricType);
+                }
+                if (compositeCandidates.indexOf(fallbackName) !== -1) {
+                    return metricName + ' - ' + metricLabel;
+                }
+            }
+
+            return fallbackName;
+        }
+
+        function decorateCurvedLineSeries(seriesObject, rowParameter) {
+            if (seriesObject) {
+                seriesObject.curvedLineDisplayName = getCurvedLineMetricDisplayName(
+                    rowParameter,
+                    seriesObject.name_w || seriesObject.name || ''
+                );
+            }
+            return seriesObject;
+        }
+
+        function getCurvedLineSeriesDisplayName(seriesObject, parameters) {
+            var displayName, parsedParameters, translatedName, i;
+
+            if (!seriesObject) {
+                return '';
+            }
+            displayName = seriesObject.curvedLineDisplayName;
+            if (!isNonEmptyCurvedLineLabel(displayName) && seriesObject.options) {
+                displayName = seriesObject.options.curvedLineDisplayName;
+            }
+            if (!isNonEmptyCurvedLineLabel(displayName) && seriesObject.userOptions) {
+                displayName = seriesObject.userOptions.curvedLineDisplayName;
+            }
+            if (isNonEmptyCurvedLineLabel(displayName)) {
+                return displayName;
+            }
+            if (isNonEmptyCurvedLineLabel(seriesObject.name_w)) {
+                displayName = seriesObject.name_w;
+            } else {
+                displayName = isNonEmptyCurvedLineLabel(seriesObject.name) ? seriesObject.name : '';
+            }
+
+            parsedParameters = parameters;
+            if (typeof parsedParameters === 'string') {
+                try {
+                    parsedParameters = JSON.parse(parsedParameters);
+                } catch (e) {
+                    return displayName;
+                }
+            }
+            if (!Array.isArray(parsedParameters)) {
+                return displayName;
+            }
+
+            for (i = 0; i < parsedParameters.length; i++) {
+                translatedName = getCurvedLineMetricDisplayName(parsedParameters[i], displayName);
+                if (translatedName !== displayName) {
+                    return translatedName;
+                }
+            }
+            return displayName;
+        }
+
         function labelsFormat()
         {
             var format, test = null;
@@ -667,7 +921,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     break;
                     
                 case "full":
-                    format = this.series.name_w + ': ' + this.y;
+                    format = getCurvedLineSeriesDisplayName(this.series, rowParameters) + ': ' + this.y;
                     break;
                     
                 default:
@@ -1837,12 +2091,12 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                                 if (rangeOnThisField) {
                                     if ((desc !== null) && (desc !== '')) {
-                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                             dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';
                                     } else {
-                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                             dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                                     }
@@ -1850,7 +2104,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
                                     //      dateLine +
                                     //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
-                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                         dateLine;
                                 }
                             }
@@ -2001,7 +2255,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         legend: {
                             useHTML: false,
                             labelFormatter: function () {
-                                return this.name;
+                                return getCurvedLineSeriesDisplayName(this, rowParameters);
                             },
                             layout: 'horizontal',
                             align: 'center',
@@ -2381,12 +2635,12 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
 
                                 if (rangeOnThisField) {
                                     if ((desc !== null) && (desc !== '')) {
-                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                             dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>';
                                     } else {
-                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                        return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                             dateLine +
                                             '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>';
                                     }
@@ -2394,7 +2648,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     //  return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
                                     //      dateLine +
                                     //      '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>';
-                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                                    return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getCurvedLineSeriesDisplayName(this.series, rowParameters) + '</b>: <b>' + this.y + '</b><br/>' +
                                         dateLine;
                                 }
                             }
@@ -2547,7 +2801,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         legend: {
                             useHTML: false,
                             labelFormatter: function () {
-                                return this.name;
+                                return getCurvedLineSeriesDisplayName(this, rowParameters);
                             },
                             layout: 'horizontal',
                             align: 'center',
@@ -2993,7 +3247,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             }
                         };
 
-                        chartSeriesObject.push(seriesSingleObj);
+                        chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
                         break;
 
                     case "Dynamic":
@@ -3135,7 +3389,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                              chartSeriesObject.valueUnit = extractedData.metricValueUnit;
                          }
 
-                         chartSeriesObject.push(seriesSingleObj);
+                         chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
 
                      //    }
 
@@ -3223,7 +3477,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 chartSeriesObject.valueUnit = aggregationGetData[i].metricValueUnit;
                             }
 
-                            chartSeriesObject.push(seriesSingleObj);
+                            chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
                         }
 
                         break;
@@ -3330,7 +3584,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 }
                             };
 
-                            chartSeriesObject.push(seriesSingleObj);
+                            chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
                         }
                         else
                         {
@@ -3426,7 +3680,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
                                     };
 
-                                    chartSeriesObject.push(seriesSingleObj);
+                                    chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
                                 }
 
                             } else {
@@ -3651,7 +3905,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         }
                                     };
 
-                                    chartSeriesObject.push(seriesSingleObj);
+                                    chartSeriesObject.push(decorateCurvedLineSeries(seriesSingleObj, rowParameters[i]));
                                 }
                             }
                         }

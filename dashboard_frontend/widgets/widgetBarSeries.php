@@ -469,7 +469,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     break;
                     
                 case "full":
-                    format = this.series.name + ': ' + this.y;
+                    format = getMetricDisplayLabel(rowParameters, this.series.name) + ': ' + this.y;
                     break;
                     
                 default:
@@ -653,6 +653,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     labels: {
                        enabled: true,
                        useHTML: false,
+                       // Categories stay technical keys (used by clicks and thresholds): translate only the shown text
+                       formatter: function () {
+                           return getMetricDisplayLabel(rowParameters, this.value);
+                       },
                        /*formatter: function () {
                            var valueFormatted = this.value.replace(/ /g, '<br />');
                            return valueFormatted;
@@ -703,6 +707,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             [0, '#FFFFFF'],
                             [1, '#E0E0E0']
                         ]
+                    },
+                    formatter: function (tooltip) {
+                        return formatTooltipWithDisplayHeader(this, tooltip, rowParameters);
                     },
                     pointFormatter: function()
                     {
@@ -816,14 +823,14 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                         {
                             if((desc !== null)&&(desc !== ''))
                             {
-                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' + 
+                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b>: <b>' + this.y + '</b><br/>' + 
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>' +
                                         '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
                             }
                             else
                             {
-                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' + 
+                                return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b>: <b>' + this.y + '</b><br/>' + 
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                        '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
                             }
@@ -833,7 +840,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                          //   return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
                          //          '<span style="color:' + this.color + '">\u25CF</span> ' + message + '<br/>' +
                          //          '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
-                            return '<span style="color:' + this.color + '">\u25CF</span><b> ' + this.series.name + '</b>: <b>' + this.y + '</b><br/>' +
+                            return '<span style="color:' + this.color + '">\u25CF</span><b> ' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b>: <b>' + this.y + '</b><br/>' +
                                 '<span style="color:' + this.color + '">\u25CF</span> ' + dateMessage + '<br/>';
                         }
                     }
@@ -1075,9 +1082,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     useHTML: false,
                     labelFormatter: function () {
                         if (checkManualLabels(rowParameters) && styleParameters.groupByAttr == "value name") {
-                            return findBarSingleLabel(rowParameters, this.name, styleParameters.groupByAttr)
+                            return getMetricDisplayLabel(rowParameters, findBarSingleLabel(rowParameters, this.name, styleParameters.groupByAttr));
                         } else {
-                            return this.name;
+                            return getMetricDisplayLabel(rowParameters, this.name);
                         }
                     },
                     layout: 'horizontal',

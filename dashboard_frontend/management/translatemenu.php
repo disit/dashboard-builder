@@ -35,6 +35,7 @@ $_SESSION['refreshToken'] = $tkn->refresh_token;
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
+mysqli_set_charset($link, 'utf8mb4');
 if (isset($_SESSION['loggedRole'])) {
     $role_session_active = $_SESSION['loggedRole'];
 ////
@@ -46,8 +47,7 @@ if (isset($_SESSION['loggedRole'])) {
             $idquery = '';
             if (isset($_REQUEST['lang'])) {
 //
-                $lang0 = mysqli_real_escape_string($link, $_REQUEST['lang']);
-                $lang = filter_var($lang0, FILTER_SANITIZE_STRING);
+                $lang = preg_replace('/[^A-Za-z0-9_\-]/', '', $_REQUEST['lang']);
 //
                 if (($lang !== "") && ($lang !== null)) {
                     $lang_query = ' WHERE language="' . $lang . '"';
@@ -84,16 +84,13 @@ if (isset($_SESSION['loggedRole'])) {
 //add
 //
             //$reference = $_POST['reference'];
-            $reference0 = mysqli_real_escape_string($link, $_REQUEST['reference']);
-            $reference = filter_var($reference0, FILTER_SANITIZE_STRING);
+            $reference = mysqli_real_escape_string($link, trim($_REQUEST['reference']));
 //
 //$icon_e = $_POST['icon_e'];
-            $icon_e0 = mysqli_real_escape_string($link, $_REQUEST['icon_e']);
-            $icon_e = filter_var($icon_e0, FILTER_SANITIZE_STRING);
+            $icon_e = preg_replace('/[^A-Za-z0-9_\-]/', '', $_REQUEST['icon_e']);
 //
 //$translate = $_POST['translate'];
-            $translate0 = mysqli_real_escape_string($link, $_POST['translate']);
-            $translate = filter_var($translate0, FILTER_SANITIZE_STRING);
+            $translate = mysqli_real_escape_string($link, trim($_POST['translate']));
 //
             $query_check1 = 'SELECT DISTINCT count(*) AS count FROM multilanguage WHERE language="' . $icon_e . '" AND menuText="' . $reference . '";';
             $result_check1 = mysqli_query($link, $query_check1);
@@ -124,20 +121,16 @@ if (isset($_SESSION['loggedRole'])) {
         } else if ($action == 'edit') {
 //
 //$id = $_POST['id_element'];
-            $id0 = mysqli_real_escape_string($link, $_REQUEST['id_element']);
-            $id = filter_var($id0, FILTER_SANITIZE_STRING);
+            $id = (int)$_REQUEST['id_element'];
 
 //$reference = $_POST['reference'];
-            $reference0 = mysqli_real_escape_string($link, $_REQUEST['reference']);
-            $reference = filter_var($reference0, FILTER_SANITIZE_STRING);
+            $reference = mysqli_real_escape_string($link, trim($_REQUEST['reference']));
 
 //$icon_e = $_POST['icon_e'];
-            $icon_e0 = mysqli_real_escape_string($link, $_REQUEST['icon_e']);
-            $icon_e = filter_var($icon_e0, FILTER_SANITIZE_STRING);
+            $icon_e = preg_replace('/[^A-Za-z0-9_\-]/', '', $_REQUEST['icon_e']);
 
 //$translate = $_POST['translate'];
-            $translate0 = mysqli_real_escape_string($link, $_REQUEST['translate']);
-            $translate = filter_var($translate0, FILTER_SANITIZE_STRING);
+            $translate = mysqli_real_escape_string($link, trim($_REQUEST['translate']));
 //
 
             $query = "UPDATE multilanguage
@@ -233,11 +226,9 @@ if (isset($_SESSION['loggedRole'])) {
 //
         } else if ($action == 'import') {
 //
-            $lang0 = mysqli_real_escape_string($link, $_REQUEST['lang']);
-            $lang = filter_var($lang0, FILTER_SANITIZE_STRING);
+            $lang = preg_replace('/[^A-Za-z0-9_\-]/', '', $_REQUEST['lang']);
 
-            $select0 = mysqli_real_escape_string($link, $_REQUEST['select']);
-            $select = filter_var($select0, FILTER_SANITIZE_STRING);
+            $select = preg_replace('/[^A-Za-z0-9_]/', '', $_REQUEST['select']);
 //
 //
             $query = "SELECT DISTINCT text FROM " . $select . " WHERE text NOT IN (SELECT menuText FROM multilanguage WHERE language='" . $lang . "');";

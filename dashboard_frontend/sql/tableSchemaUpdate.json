@@ -8,5 +8,16 @@
     "title_w": {
       "edit": "VARCHAR(600) CHARACTER SET utf8 COLLATE utf8_general_ci"
     }
+  },
+  "multilanguage": {
+    "menuText": {
+      "edit": "TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    },
+    "language": {
+      "edit": "VARCHAR(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL"
+    },
+    "translatedText": {
+      "edit": "TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
+    }
   }
 }

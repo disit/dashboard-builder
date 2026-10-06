@@ -95,6 +95,24 @@
             $dashOrg = $row['organizations'];
         }
     }
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['langSelectorVisible'])) {
+    $link = mysqli_connect($host, $username, $password);
+    mysqli_select_db($link, $dbname);
+
+    $dashboardIdAjax = mysqli_real_escape_string($link, $_POST['dashboardId']);
+    $langVal = ($_POST['langSelectorVisible'] === 'yes') ? 'yes' : 'no';
+
+    $updateSql = "UPDATE Dashboard.Config_dashboard
+                  SET langSelectorVisible = '$langVal'
+                  WHERE Id = '$dashboardIdAjax'";
+    $result = mysqli_query($link, $updateSql);
+
+    mysqli_close($link);
+
+    echo json_encode(['status' => $result ? 'ok' : 'error']);
+    exit;
+}
+
 ?>
 
 <!DOCTYPE HTML>
@@ -708,7 +726,35 @@
                                         '</div >';
 
                                     echo($newItem);
+                                    // =================== START: NEW CODE TO ADD ===================
+                                    // Note: For persistence, you would add a column like 'langSelectorVisible' to your database
+                                    // and read it here. For now, we'll default it to 'no'.
+                                    $langSelectorVisible = $row['langSelectorVisible'];; 
 
+                                    if ($langSelectorVisible == 'yes') {
+                                        $langSelectorVisibility = 'true';
+                                        $langSelectorVisibilityText = 'Hide Language Selector';
+                                        $iconClassLang = 'fa fa-eye-slash';
+                                    } else {
+                                        $langSelectorVisibility = 'false';
+                                        $langSelectorVisibilityText = 'Show Language Selector';
+                                        $iconClassLang = 'fa fa-eye';
+                                    }
+
+                                    $langToggleValue = ($langSelectorVisible == 'yes') ? 'no' : 'yes';
+                                    $langMenuItem = '
+                                    <div class="row fullCtxMenuRow langSelectorVisibility" 
+                                        data-langshown="' . $langSelectorVisibility . '" 
+                                        data-dashboardid="' . $dashId . '" 
+                                        data-nextvalue="' . $langToggleValue . '" 
+                                        style="cursor:pointer;" 
+                                        data-selected="false">
+                                        <div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="' . $iconClassLang . '"></i></div>
+                                        <div class="col-xs-10 fullCtxMenuTxt">' . $langSelectorVisibilityText . '</div>
+                                    </div>';
+                                    
+                                    echo($langMenuItem);
+                                    // ==================== END: NEW CODE TO ADD ====================
                                     $newItem = '<div class="row fullCtxMenuRow centerWithFlex quitRow" data-selected="false">' .
                                         '<div class="col-xs-2 fullCtxMenuIcon centerWithFlex"><i class="fa fa-mail-reply"></i></div>' .
                                         '<div class="col-xs-10 fullCtxMenuTxt">Quit</div>' .
@@ -18753,6 +18799,22 @@
                         return filename;
                     }
 
+                    function sanitizeExportFilename(value, fallback) {
+                        let filename = (value || fallback)
+                            .toString()
+                            .trim()
+                            .replace(/[\\/:*?"<>|\x00-\x1F]+/g, '_')
+                            .replace(/\s+/g, '_')
+                            .replace(/[. ]+$/g, '')
+                            .substring(0, 120);
+
+                        if (!filename || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(\..*)?$/i.test(filename)) {
+                            filename = fallback;
+                        }
+
+                        return filename;
+                    }
+
                     function appendBarSeriesExportEditorOption(target, currentStyleParameters, canEdit, jquery, labels) {
                         var currentValue = currentStyleParameters && currentStyleParameters.exportM === 'enabled' ?
                             'enabled' : 'disabled';
@@ -18860,7 +18922,48 @@
                             },
                         });
                     });
+                    // =================== START: NEW JAVASCRIPT TO ADD ===================
+$('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function () {
+    const menuItem = $(this);
+    const dashboardId = menuItem.data('dashboardid');
+    const nextValue = menuItem.data('nextvalue');
+    const langSelector = $('#langSelectorCnt');
+    const icon = menuItem.find('i');
+    const text = menuItem.find('.fullCtxMenuTxt');
 
+    // Toggle UI immediately
+    if (menuItem.attr('data-langshown') === 'true') {
+        langSelector.hide();
+        menuItem.attr('data-langshown', 'false');
+        text.text('Show Language Selector');
+        icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    } else {
+        langSelector.show();
+        menuItem.attr('data-langshown', 'true');
+        text.text('Hide Language Selector');
+        icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    }
+
+    // Send AJAX to update DB
+    $.ajax({
+        url: 'dashboard_configdash.php',
+        method: 'POST',
+        data: {
+            dashboardId: dashboardId,
+            langSelectorVisible: nextValue
+        },
+        success: function (response) {
+            console.log('? langSelectorVisible updated:', response);
+            // Optionally update data-nextvalue for next toggle
+            menuItem.data('nextvalue', nextValue === 'yes' ? 'no' : 'yes');
+        },
+        error: function (xhr, status, error) {
+            console.error('? AJAX error:', error);
+        }
+    });
+});
+
+                    // ==================== END: NEW JAVASCRIPT TO ADD ====================
 
                     //Duplicazione della dashboard
                     $('#duplicateDashboardBtn').click(function () {

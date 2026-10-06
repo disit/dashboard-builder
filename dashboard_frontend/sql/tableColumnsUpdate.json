@@ -4,6 +4,9 @@
     },
     {
       "metaData": {"type": "TEXT", "extra": "NULL DEFAULT NULL AFTER `drawFlowEditor`"}
+    },
+    {
+      "langSelectorVisible": {"type": "VARCHAR(3)", "extra": "NOT NULL DEFAULT 'no' AFTER `metaData`"}
     }],
   "Config_widget_dashboard": [
     {

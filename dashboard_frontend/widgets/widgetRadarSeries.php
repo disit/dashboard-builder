@@ -386,7 +386,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     break;
                     
                 case "full":
-                    format = this.series.name + ': ' + this.y;
+                    format = getMetricDisplayLabel(rowParameters, this.series.name) + ': ' + this.y;
                     break;
                     
                 default:
@@ -944,6 +944,10 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     labels: {
                         enabled: true,
                         useHTML: false,
+                        // Categories stay technical keys (used by clicks and thresholds): translate only the shown text
+                        formatter: function () {
+                            return getMetricDisplayLabel(rowParameters, this.value);
+                        },
                         style: {
                             fontFamily: 'Montserrat',
                             fontSize: styleParameters.rowsLabelsFontSize + "px",
@@ -1087,7 +1091,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             {
                                                 if((desc !== null)&&(desc !== ''))
                                                 {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>' +
@@ -1096,7 +1100,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 }
                                                 else
                                                 {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: < <b>' + max + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
@@ -1111,7 +1115,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             {
                                                 if((desc !== null)&&(desc !== ''))
                                                 {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Classification: <b>' + desc + '</b>' +
@@ -1120,7 +1124,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                                 }
                                                 else
                                                 {
-                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Range: between <b>' + min + '</b> and <b>' + max + '</b><br/>' +
                                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
@@ -1129,7 +1133,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                             }
                                             else if((i === (elementUpperBounds.length - 1))&&(parseFloat(this.y) >= max))
                                             {
-                                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value higher than the greatest upper bound<br/>' +
                                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
@@ -1141,7 +1145,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                 else
                                 {
                                     //Non sono stati definiti range
-                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                    return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                         '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>' +
                                         '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
@@ -1153,7 +1157,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             else
                             {
                                 //Non sono stati definiti range
-                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + fieldName + '</b> @ <b>' + this.series.name + '</b><br/>' +
+                                return '<span style="color:' + this.color + '">\u25CF</span> ' + ' <b>' + getMetricDisplayLabel(rowParameters, fieldName) + '</b> @ <b>' + getMetricDisplayLabel(rowParameters, this.series.name) + '</b><br/>' +
                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value: <b>' + this.y + '</b><br/>' +
                                     '<span style="color:' + this.color + '">\u25CF</span> No thresholds defined<br/>' +
                                     '<span style="color:' + this.color + '">\u25CF</span> ' + 'Value Unit: <b>' + valueUnitInPopup + '</b><br/>' +
@@ -1325,7 +1329,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     enabled: true,
                     useHTML: false,
                     labelFormatter: function () {
-                        return this.name;
+                        return getMetricDisplayLabel(rowParameters, this.name);
                     },
                     layout: 'horizontal',
                     align: 'center',

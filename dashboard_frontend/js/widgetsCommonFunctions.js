@@ -1101,6 +1101,41 @@ function findWithAttr(array, attr, flipFlag) {
     return -1;
 }
 
+// Label to display for a metric type: the translated metricLabel added by getWidgetParams.php (only for dashboards
+// with the language selector enabled), else the value itself. To be used only where text is shown: metricType and
+// metricName are never modified, so data matching, thresholds and clicks keep working on the original values.
+function getMetricDisplayLabel(rowParams, key) {
+    if (key === null || key === undefined || !rowParams) {
+        return key;
+    }
+    if (typeof rowParams === 'string') {
+        try {
+            rowParams = JSON.parse(rowParams);
+        } catch (e) {
+            return key;
+        }
+    }
+    for (let k in rowParams) {
+        if (rowParams[k] && rowParams[k].metricType === key && rowParams[k].metricLabel) {
+            return rowParams[k].metricLabel;
+        }
+    }
+    return key;
+}
+
+// Highcharts tooltip formatter body: default tooltip, with the header key (category) shown with its display label
+function formatTooltipWithDisplayHeader(context, tooltip, rowParams) {
+    let s = tooltip.defaultFormatter.call(context, tooltip);
+    let key = context.key;
+    if (typeof key === 'string' && key !== '' && Array.isArray(s) && typeof s[0] === 'string') {
+        let label = getMetricDisplayLabel(rowParams, key);
+        if (label !== key) {
+            s[0] = s[0].split(key).join(label);
+        }
+    }
+    return s;
+}
+
 function getMyKPIUpperTimeLimit(hours) {
     let now = new Date();
     let timeZoneOffsetHours = now.getTimezoneOffset() / 60;
