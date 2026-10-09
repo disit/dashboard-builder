@@ -1102,9 +1102,167 @@ function findWithAttr(array, attr, flipFlag) {
 }
 
 // Label to display for a metric type: the translated metricLabel added by getWidgetParams.php (only for dashboards
-// with the language selector enabled), else the value itself. To be used only where text is shown: metricType and
-// metricName are never modified, so data matching, thresholds and clicks keep working on the original values.
-function getMetricDisplayLabel(rowParams, key) {
+// with the language selector enabled), else the value itself.
+// Display-text translations: independent of metric identity and rowParameters.
+function getWidgetTextLabel(translations, key) {
+    if (translations && Object.prototype.hasOwnProperty.call(translations, key) &&
+        typeof translations[key] === 'string' && translations[key].trim() !== '') {
+        return translations[key];
+    }
+    return key;
+}
+
+function escapeWidgetTranslationHTML(value) {
+    return String(value).replace(/[&<>"']/g, function (character) {
+        return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character];
+    });
+}
+
+var widgetTextTranslationStore = (function () {
+    var contexts = Object.create(null), entries = new Map(), bytes = 0, nextId = 0;
+    var maxBytes = 2 * 1024 * 1024, maxEntries = 5000, batchBytes = 262144;
+
+    function size(text) {
+        // Matches UTF-8 bytes without depending on TextEncoder in legacy browsers.
+        try { return unescape(encodeURIComponent(text)).length; } catch (e) { return Infinity; }
+    }
+    function entryKey(context, key) { return context.id + ':' + key; }
+    function get(context, key) {
+        var id = entryKey(context, key), entry = entries.get(id);
+        if (entry) { entries.delete(id); entries.set(id, entry); }
+        return entry;
+    }
+    function put(context, key, value) {
+        var id = entryKey(context, key), previous = entries.get(id);
+        if (previous) { bytes -= previous.bytes; entries.delete(id); }
+        var count = size(key) + size(value || '');
+        if (count > maxBytes) return;
+        entries.set(id, {value: value, bytes: count, context: context});
+        bytes += count;
+        while (bytes > maxBytes || entries.size > maxEntries) {
+            var oldest = entries.keys().next().value;
+            bytes -= entries.get(oldest).bytes;
+            entries.delete(oldest);
+        }
+    }
+    function clear(context) {
+        entries.forEach(function (entry, id) {
+            if (entry.context === context) { bytes -= entry.bytes; entries.delete(id); }
+        });
+    }
+    function finish(context, keys, success) {
+        keys.forEach(function (key) { context.inflight.delete(key); });
+        context.waiters = context.waiters.filter(function (waiter) {
+            keys.forEach(function (key) { waiter.remaining.delete(key); });
+            if (!success) waiter.failed = true;
+            if (!context.enabled && context.known) waiter.remaining.clear();
+            if (waiter.remaining.size) return true;
+            waiter.deferred.resolve({detail: waiter.failed ? 'Ko' : 'Ok',
+                enabled: context.enabled, language: context.language});
+            return false;
+        });
+    }
+    function schedule(context) {
+        if (context.timer !== null || context.busy || !context.queue.size) return;
+        context.timer = setTimeout(function () { context.timer = null; drain(context); }, 0);
+    }
+    function drain(context) {
+        if (context.busy || !context.queue.size) return;
+        var keys = [], total = 0;
+        context.queue.forEach(function (key) {
+            var count = size(key);
+            if (keys.length < 200 && total + count <= batchBytes) { keys.push(key); total += count; }
+        });
+        keys.forEach(function (key) { context.queue.delete(key); context.inflight.add(key); });
+        if (!keys.length) return;
+        context.busy = true;
+        function complete(response) {
+            var valid = response && response.detail === 'Ok' && typeof response.enabled === 'boolean' &&
+                typeof response.language === 'string' && response.translations &&
+                typeof response.translations === 'object' && !Array.isArray(response.translations) &&
+                (!response.enabled || (/^[a-zA-Z0-9_.@-]{1,45}$/.test(response.language) && Number(response.dashboardId) > 0));
+            if (valid && response.dashboardId !== null && context.dashboardId && Number(response.dashboardId) !== context.dashboardId) valid = false;
+            if (valid) {
+                if (context.known && context.language !== response.language) clear(context);
+                context.known = true;
+                context.enabled = response.enabled;
+                context.language = response.language;
+                // Missing id_dashboard in legacy payloads: share only a server-confirmed context.
+                if (Number(response.dashboardId) > 0 && !context.dashboardId) {
+                    context.dashboardId = Number(response.dashboardId);
+                    var alias = 'dashboard:' + context.dashboardId;
+                    if (!contexts[alias]) contexts[alias] = context;
+                }
+                if (context.enabled) {
+                    keys.forEach(function (key) {
+                        var value = getWidgetTextLabel(response.translations, key);
+                        put(context, key, value === key ? null : value);
+                    });
+                } else { clear(context); context.queue.clear(); }
+            }
+            context.busy = false;
+            finish(context, keys, valid);
+            schedule(context);
+        }
+        try {
+            $.ajax({url: '../controllers/getWidgetTranslations.php', type: 'POST',
+                data: {widgetName: context.widgetName, keys: JSON.stringify(keys)},
+                dataType: 'json', timeout: 5000}).done(complete).fail(function () { complete(null); });
+        } catch (error) { complete(null); }
+    }
+    return {
+        create: function (widgetName, dashboardId) {
+            var id = Number(dashboardId), validId = Number.isInteger(id) && id > 0;
+            var name = validId ? 'dashboard:' + id : 'widget:' + widgetName;
+            var context = contexts[name];
+            if (!context) {
+                context = contexts[name] = {id: ++nextId, dashboardId: validId ? id : null,
+                    widgetName: widgetName, known: false, enabled: true, language: '',
+                    queue: new Set(), inflight: new Set(), waiters: [], busy: false, timer: null};
+            }
+            return {
+                text: function (key) {
+                    var entry = get(context, key);
+                    return entry && entry.value !== null ? entry.value : key;
+                },
+                load: function (requested) {
+                    var deferred = $.Deferred(), remaining = new Set();
+                    if (!context.known || context.enabled) {
+                        (Array.isArray(requested) ? requested : []).forEach(function (key) {
+                            if (typeof key !== 'string' || !key.trim() || size(key) > batchBytes || get(context, key)) return;
+                            remaining.add(key);
+                            if (!context.inflight.has(key)) context.queue.add(key);
+                        });
+                    }
+                    if (!remaining.size) deferred.resolve({detail: 'Ok', enabled: context.enabled, language: context.language});
+                    else { context.waiters.push({remaining: remaining, deferred: deferred, failed: false}); schedule(context); }
+                    return deferred.promise();
+                }
+            };
+        }
+    };
+})();
+
+function createWidgetTextTranslator(widgetName, dashboardId) {
+    return widgetTextTranslationStore.create(widgetName, dashboardId);
+}
+
+// Only explicitly marked display nodes/attributes, never technical data-* attributes.
+function translateWidgetTextNodes(root, translator, isCurrent) {
+    var nodes = Array.prototype.slice.call(root.querySelectorAll('[data-s4c-i18n]'));
+    return translator.load(nodes.map(function (node) { return node.getAttribute('data-s4c-i18n'); })).then(function () {
+        if (isCurrent && !isCurrent()) return;
+        nodes.forEach(function (node) {
+            if (!root.contains(node) || !node.isConnected) return;
+            var key = node.getAttribute('data-s4c-i18n'), text = translator.text(key);
+            if (text === key) return; // Preserve legacy markup when no translation exists.
+            if (node.getAttribute('data-s4c-i18n-target') === 'title') node.setAttribute('title', text);
+            else node.textContent = text;
+        });
+    });
+}
+
+function getMetricDisplayLabel(rowParams, key, allowCompositeName) {
     if (key === null || key === undefined || !rowParams) {
         return key;
     }
@@ -1115,7 +1273,39 @@ function getMetricDisplayLabel(rowParams, key) {
             return key;
         }
     }
+    // Option for curved line series showing a device + field name.
+    if (allowCompositeName && !Array.isArray(rowParams)) {
+        return key;
+    }
     for (let k in rowParams) {
+        if (allowCompositeName) {
+            let row = rowParams[k];
+            if (!row || isNonEmptyMetricLabel(row.legendLabels) || !isNonEmptyMetricLabel(row.metricLabel)) {
+                continue;
+            }
+            let label = row.metricLabel.trim();
+            let device = isNonEmptyMetricLabel(row.metricName) ? row.metricName.trim() : '';
+            let fields = [row.smField, row.metricType];
+            for (let field of fields) {
+                if (!isNonEmptyMetricLabel(field)) {
+                    continue;
+                }
+                field = field.trim();
+                if (key === field && label !== key) {
+                    return label;
+                }
+                if (device !== '' && key === device + ' - ' + field && key !== device + ' - ' + label) {
+                    return device + ' - ' + label;
+                }
+                // label may use a short device name
+                let suffix = ' - ' + field;
+                if (isNonEmptyMetricLabel(row.label) && key === row.label &&
+                    key.length > suffix.length && key.endsWith(suffix) && label !== field) {
+                    return key.slice(0, -suffix.length) + ' - ' + label;
+                }
+            }
+            continue;
+        }
         if (rowParams[k] && rowParams[k].metricType === key && rowParams[k].metricLabel) {
             return rowParams[k].metricLabel;
         }
@@ -1123,17 +1313,46 @@ function getMetricDisplayLabel(rowParams, key) {
     return key;
 }
 
-// Highcharts tooltip formatter body: default tooltip, with the header key (category) shown with its display label
-function formatTooltipWithDisplayHeader(context, tooltip, rowParams) {
-    let s = tooltip.defaultFormatter.call(context, tooltip);
-    let key = context.key;
-    if (typeof key === 'string' && key !== '' && Array.isArray(s) && typeof s[0] === 'string') {
-        let label = getMetricDisplayLabel(rowParams, key);
-        if (label !== key) {
-            s[0] = s[0].split(key).join(label);
-        }
+function isNonEmptyMetricLabel(value) {
+    return typeof value === 'string' && value.trim() !== '';
+}
+
+// Bind the display label to its own row; never change the name used for data matching.
+function decorateMetricSeries(seriesObject, rowParameter) {
+    if (seriesObject) {
+        let name = seriesObject.name_w || seriesObject.name || '';
+        name = isNonEmptyMetricLabel(name) ? name : '';
+        seriesObject.metricDisplayName = getMetricDisplayLabel([rowParameter], name, true);
     }
-    return s;
+    return seriesObject;
+}
+
+function getMetricSeriesDisplayName(seriesObject, rowParams) {
+    if (!seriesObject) {
+        return '';
+    }
+    let displayName = seriesObject.metricDisplayName;
+    if (!isNonEmptyMetricLabel(displayName) && seriesObject.options) {
+        displayName = seriesObject.options.metricDisplayName;
+    }
+    if (!isNonEmptyMetricLabel(displayName) && seriesObject.userOptions) {
+        displayName = seriesObject.userOptions.metricDisplayName;
+    }
+    if (isNonEmptyMetricLabel(displayName)) {
+        return displayName;
+    }
+    displayName = isNonEmptyMetricLabel(seriesObject.name_w) ? seriesObject.name_w :
+        (isNonEmptyMetricLabel(seriesObject.name) ? seriesObject.name : '');
+    return getMetricDisplayLabel(rowParams, displayName, true);
+}
+
+// Highcharts tooltip formatter: default tooltip, with the header key (category) shown with its display label
+function formatTooltipWithDisplayHeader(context, tooltip, rowParams) {
+    let item = (context.points && context.points.length) ? context.points[0] : context;
+    if (item && typeof item.key === 'string') {
+        item.key = getMetricDisplayLabel(rowParams, item.key);
+    }
+    return tooltip.defaultFormatter.call(context, tooltip);
 }
 
 function getMyKPIUpperTimeLimit(hours) {

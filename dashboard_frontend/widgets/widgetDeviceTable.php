@@ -200,6 +200,8 @@ td.dt-center:last-child {
         }?> var hostFile = "<?= escapeForJS($_REQUEST['hostFile']) ?>";
         var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
+        var deviceTextTranslator = null;
+        var deviceTextGeneration = 0;
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
         var widgetHeaderFontColor = "<?= escapeForJS($_REQUEST['headerFontColor']) ?>";
@@ -333,6 +335,7 @@ td.dt-center:last-child {
 
 	function createTable() {
     const name_w = '<?= $_REQUEST['name_w'] ?>';
+    var textGeneration = ++deviceTextGeneration;
     const $table = $('#maintable_' + name_w);
     console.log('createTable');
     const existing = $.fn.DataTable.isDataTable($table);
@@ -435,6 +438,7 @@ td.dt-center:last-child {
     .forEach(([key, value]) => {
 
         let hover = arrayHover[hoverIndex];
+        if (hover) hover = escapeWidgetTranslationHTML(deviceTextTranslator ? deviceTextTranslator.text(hover) : hover);
         if (key === "pin") {
             body += '<button id="pin" class="btn actionButton' + name_w + '" ' +
                 (hover ? ' title="' + hover + '"' : '') +
@@ -477,6 +481,9 @@ td.dt-center:last-child {
     //console.log('createTable - indexCol:', indexCol);
 
     // init DataTable - uso initComplete per adjust/draw
+
+    var translationKeys = prepareDeviceTableTranslations(arr_col, dataSet, arr_c, deviceTextTranslator,
+        showActions ? arrayHover.slice(0, Object.entries(dt_actions).filter(([key,value]) => key !== 'pin' || value === 'show').length) : []);
     
 window.tables = window.tables || {};
 window.tables[name_w] = $table.DataTable({
@@ -490,6 +497,9 @@ window.tables[name_w] = $table.DataTable({
     ordering: true,
     order: [[indexCol, order_sort]],
     columns: arr_col,
+    headerCallback: function (head) {
+        markDeviceTableHeaderKeys(head, arr_col, name_w);
+    },
     rowCallback: function (row, data, index) {
             $('.dataTables_scrollBody').css('overflow-x', 'hidden');
         },
@@ -552,7 +562,7 @@ window.tables[name_w] = $table.DataTable({
  
 
     // event handlers per bottoni azione
-    $('.actionButton' + name_w).off('click').on('click', function () {
+    $table.off('click.s4cActions', '.actionButton' + name_w).on('click.s4cActions', '.actionButton' + name_w, function () {
        // var data = table.row($(this).closest('tr')).data();
        const dt = window.tables?.[name_w];
             const data = dt?.row($(this).closest('tr'))?.data();
@@ -590,6 +600,15 @@ window.tables[name_w] = $table.DataTable({
                     dt.draw(false);
                 }
             $("#maintable_<?= $_REQUEST['name_w'] ?>_filter").find("label").css("color", "black");
+            if (deviceTextTranslator && dt) {
+                var translator = deviceTextTranslator;
+                translator.load(translationKeys).then(function () {
+                    if (textGeneration !== deviceTextGeneration || window.tables[name_w] !== dt || !$.fn.DataTable.isDataTable($table)) return;
+                    applyDeviceTableTranslations(dt, arr_col, translator);
+                });
+                var root = document.getElementById(name_w + '_div');
+                if (root) translateWidgetTextNodes(root, translator);
+            }
 			//console.log('current_page: '+current_page_<?= $_REQUEST['name_w'] ?>);
 			$('#current_page_<?= $_REQUEST['name_w'] ?>').val(current_page_<?= $_REQUEST['name_w'] ?>);
 
@@ -597,16 +616,8 @@ window.tables[name_w] = $table.DataTable({
 			// Funzione generica per la gestione dell'ordinamento
 				function handleSorting(event, direction) {
 					const name_w = '<?= $_REQUEST['name_w'] ?>';
-					let text = $(event.target).text();
-
-					// Verifica se ci sono titoli personalizzati e imposta il testo corretto
-					if (columnTitles_<?= $_REQUEST['name_w'] ?>.length > 0) {
-						columnTitles_<?= $_REQUEST['name_w'] ?>.forEach(item => {
-							if (item.name === text) {
-								text = item.value;
-							}
-						});
-					}
+                                        let text = $(event.target).closest('th').attr('data-s4c-column-key');
+                                        if (!text || text === 'actions') return;
 
 					// Trova l’indice della colonna da ordinare
 					let order_column_n = column_list_<?= $_REQUEST['name_w'] ?>.indexOf(text);
@@ -655,7 +666,74 @@ window.tables[name_w] = $table.DataTable({
         }
 			//////
 		
+        // DeviceTable display translation adapter
+        function isEligibleDeviceTableText(columnKey, value, columnTitles) {
+            if (['device','serviceUri','actions','dateObserved','id','deviceId','iotId'].indexOf(columnKey) !== -1 ||
+                typeof value !== 'string' || !value.trim()) return false;
+            if ((columnTitles || []).some(function (column) { return column.value === columnKey && column.format; })) return false;
+            var text = value.trim();
+            return !/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][+-]?\d+)?$/.test(text) &&
+                !/^(?:true|false)$/i.test(text) && !/^[a-z][a-z0-9+.-]*:[^\s]+$/i.test(text) &&
+                !/^\d{4}-\d{2}-\d{2}(?:$|[T\s])/.test(text) &&
+                !/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}(?:$|\s)/.test(text) &&
+                !/^\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:$|\s|Z|[+-]\d{2})/.test(text);
+        }
+
+        function prepareDeviceTableTranslations(columns, dataSet, columnTitles, translator, hovers) {
+            var keys = ['No data available in table', 'No matching records found'];
+            columns.forEach(function (column) {
+                column._s4cOriginalTitle = column.title;
+                if (column.className === 'none') return;
+                keys.push(column.title);
+                if (translator) {
+                    var title = translator.text(column.title);
+                    if (title !== column.title) column.title = escapeWidgetTranslationHTML(title);
+                }
+                if (column.data === 'actions') return;
+                dataSet.forEach(function (row) {
+                    if (isEligibleDeviceTableText(column.data, row[column.data], columnTitles)) keys.push(row[column.data]);
+                });
+                column.render = function (value, type) {
+                    if (type !== 'display' || !translator || !isEligibleDeviceTableText(column.data, value, columnTitles)) return value;
+                    var translated = translator.text(value);
+                    return translated !== value ? escapeWidgetTranslationHTML(translated) : value;
+                };
+            });
+            (hovers || []).forEach(function (hover) { if (typeof hover === 'string' && hover.trim()) keys.push(hover); });
+            return keys;
+        }
+
+        function markDeviceTableHeaderKeys(head, columns, name) {
+            Array.prototype.forEach.call(head.cells, function (cell, index) {
+                if (!columns[index]) return;
+                cell.setAttribute('data-s4c-column-key', columns[index].data);
+                $(cell).removeClass('sorting_' + name + ' sorting_asc_' + name + ' sorting_desc_' + name);
+                ['sorting','sorting_asc','sorting_desc'].forEach(function (state) {
+                    if (cell.classList.contains(state)) $(cell).addClass(state + '_' + name);
+                });
+            });
+        }
+
+        function applyDeviceTableTranslations(table, columns, translator) {
+            var settings = table.settings()[0];
+            columns.forEach(function (column, index) {
+                if (column.className === 'none') return;
+                var original = column._s4cOriginalTitle, translated = translator.text(original);
+                var title = translated !== original ? escapeWidgetTranslationHTML(translated) : original;
+                settings.aoColumns[index].sTitle = title;
+                table.column(index).header().innerHTML = title;
+            });
+            [['sEmptyTable','No data available in table'],['sZeroRecords','No matching records found']].forEach(function (pair) {
+                var translated = translator.text(pair[1]);
+                if (translated !== pair[1]) settings.oLanguage[pair[0]] = escapeWidgetTranslationHTML(translated);
+            });
+            table.rows().invalidate('data');
+            table.columns.adjust().draw(false);
+        }
+        // End DeviceTable display translation adapter
+
         async function populateWidget(newValue_<?= $_REQUEST['name_w'] ?>) {
+            ++deviceTextGeneration;
 			console.log(
 					'POPULATE → current_page:',
 					$('#current_page_<?= $_REQUEST['name_w'] ?>').val(),
@@ -937,23 +1015,24 @@ function setupPagination(fullCount, current_page, maintable_length) {
     $('#paging_table_<?= $_REQUEST['name_w'] ?>').html(`
         <ul class="pagination">
             <li class="paginate_button first first_<?= $_REQUEST['name_w'] ?>" start="0" end="${maintable_length}" current="0">
-                <a href="#">First</a>
+                <a href="#"><span data-s4c-i18n="First">First</span></a>
             </li>
             <li class="paginate_button previous previous_<?= $_REQUEST['name_w'] ?>" current="${current_page - 1}">
-                <a href="#">&lt;&lt; Prev</a>
+                <a href="#">&lt;&lt; <span data-s4c-i18n="Prev">Prev</span></a>
             </li>
             ${list_links}
             <li class="paginate_button next next_<?= $_REQUEST['name_w'] ?>" current="${current_page + 1}">
-                <a href="#">Next &gt;&gt;</a>
+                <a href="#"><span data-s4c-i18n="Next">Next</span> &gt;&gt;</a>
             </li>
             <li class="paginate_button last last_<?= $_REQUEST['name_w'] ?>" current="${n_page - 1}">
-                <a href="#">Last</a>
+                <a href="#"><span data-s4c-i18n="Last">Last</span></a>
             </li>
         </ul>
     `);
 
     $('#page_<?= $_REQUEST['name_w'] ?>' + current_page).addClass('active');
     attachPaginationEvents();
+    if (deviceTextTranslator) translateWidgetTextNodes(document.getElementById('paging_table_<?= $_REQUEST['name_w'] ?>'), deviceTextTranslator);
 }
 
 
@@ -1142,6 +1221,9 @@ function goToPage(page) {
             async: true,
             dataType: 'json',
             success: function (widgetData) {
+                deviceTextTranslator = createWidgetTextTranslator(widgetName, widgetData.params.id_dashboard);
+                var textRoot = document.getElementById(widgetName + '_div');
+                if (textRoot) translateWidgetTextNodes(textRoot, deviceTextTranslator);
                 showTitle = widgetData.params.showTitle;
                 widgetContentColor = widgetData.params.color_w;
                 fontSize = widgetData.params.fontSize;
@@ -1616,7 +1698,7 @@ window.addEventListener('resize', function () {
 
         <div id="<?= $_REQUEST['name_w'] ?>_loading" class="loadingDiv">
             <div class="loadingTextDiv">
-                <p>Loading data...</p>
+                <p data-s4c-i18n="Loading data...">Loading data...</p>
             </div>
             <div class="loadingIconDiv">
                 <i class='fa fa-spinner fa-spin'></i>
@@ -1624,7 +1706,7 @@ window.addEventListener('resize', function () {
         </div>
         <div id="<?= $_REQUEST['name_w'] ?>_content" class="content">
             <?php include '../widgets/commonModules/widgetDimControls.php'; ?>
-            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" style='text-align: center; font-size: 18px; display:none'>No
+            <p id="<?= $_REQUEST['name_w'] ?>_noDataAlert" data-s4c-i18n="No Data Available" style='text-align: center; font-size: 18px; display:none'>No
                 Data Available</p>
 				<div style="display:none;">
 					Order Column name:<input type="text" id="order_column_<?= $_REQUEST['name_w'] ?>">
@@ -1636,8 +1718,8 @@ window.addEventListener('resize', function () {
 					<br>total results: <input type="text" id="totalResults_<?= $_REQUEST['name_w'] ?>">
 			</div>
 <div class="table-list-header-pag">
-<label class="mod2">Show	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option><option value=50>50</option></select> </label>
-         <div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label>Search:<input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
+<label class="mod2"><span data-s4c-i18n="Show">Show</span>	<select id="n_rows_<?= $_REQUEST['name_w'] ?>" aria-controls="maintable" class="form-control input-sm"><option value=5>5</option><option value=10>10</option><option value=20>20</option><option value=50>50</option></select> </label>
+         <div class="pull-right mod2"><div id="maintable_filter_<?= $_REQUEST['name_w'] ?>" class="dataTables_filter"><label><span data-s4c-i18n="Search:">Search:</span><input type="search" class="form-control input-sm" placeholder="" aria-controls="maintable" id="searchlabel_<?= $_REQUEST['name_w'] ?>"></label></div></div>
 			<div id="paging_table_<?= $_REQUEST['name_w'] ?>" class="mod2"></div>
 </div>
             <table id="maintable_<?= $_REQUEST['name_w'] ?>" class="table table-striped table-bordered display responsive" cellspacing="0" style="width:100%;">

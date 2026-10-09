@@ -77,19 +77,6 @@
     // Session no longer needed: release the lock so that the widgets requests can run in parallel
     session_write_close();
 
-    $translations = [];
-    if (!empty($curr) && $langSelectorVisible === 'yes') {
-        $langEsc = mysqli_real_escape_string($link, $curr);
-        $q = "SELECT menuText, translatedText FROM multilanguage WHERE LOWER(TRIM(language)) = LOWER(TRIM('" . $langEsc . "')) AND TRIM(translatedText) <> ''";
-        $queryResultMulti = mysqli_query($link, $q);
-        if ($queryResultMulti) {
-            while ($rowMulti = mysqli_fetch_assoc($queryResultMulti)) {
-                $translations[$rowMulti['menuText']] = $rowMulti['translatedText'];
-            }
-        }
-    }
-    // --- End: Language Detection and Translation Loading ---
-
     header("Cache-Control: private, " . ($langSelectorVisible === 'yes' ? "no-cache" : "max-age=$cacheControlMaxAge"));
 
     $widgetName = mysqli_real_escape_string($link, $_REQUEST['widgetName']);
@@ -132,6 +119,63 @@
         $response['t2'] = $_REQUEST['t2'];
     }
     
+    // Load only the keys used by the translation block below, not the whole language catalog.
+    $translations = [];
+    if (!empty($curr) && $langSelectorVisible === 'yes' && isset($response['params'])) {
+        $params = $response['params'];
+        $translationKeys = [];
+        $addTranslationKey = function ($text) use (&$translationKeys) {
+            if (is_scalar($text)) {
+                $key = is_string($text) ? $text : (string) (int) $text;
+                $translationKeys[$key] = $key;
+            }
+        };
+        if (isset($params['title_w'])) {
+            $addTranslationKey($params['title_w']);
+        }
+        $serviceUri = isset($params['serviceUri']) && is_string($params['serviceUri']) ? json_decode($params['serviceUri'], true) : null;
+        foreach (['firstAxis', 'secondAxis'] as $axis) {
+            if (isset($serviceUri[$axis]['labels']) && is_array($serviceUri[$axis]['labels'])) {
+                foreach ($serviceUri[$axis]['labels'] as $label) {
+                    $addTranslationKey($label);
+                }
+            }
+        }
+        $rowParameters = isset($params['rowParameters']) && is_string($params['rowParameters']) ? json_decode($params['rowParameters'], true) : null;
+        if (is_array($rowParameters)) {
+            foreach ($rowParameters as $rp) {
+                foreach (['label', 'metricLabel', 'metricType'] as $field) {
+                    if (isset($rp[$field])) {
+                        $addTranslationKey($rp[$field]);
+                    }
+                }
+                if (isset($rp['smField']) && is_string($rp['smField']) && $rp['smField'] !== '') {
+                    $addTranslationKey($rp['smField']);
+                }
+            }
+        }
+        $styleParameters = isset($params['styleParameters']) && is_string($params['styleParameters']) ? json_decode($params['styleParameters'], true) : null;
+        if (isset($styleParameters['editDeviceLabels']) && is_array($styleParameters['editDeviceLabels'])) {
+            foreach ($styleParameters['editDeviceLabels'] as $label) {
+                $addTranslationKey($label);
+            }
+        }
+        if (!empty($translationKeys)) {
+            $keysEsc = [];
+            foreach ($translationKeys as $key) {
+                $keysEsc[] = "'" . mysqli_real_escape_string($link, $key) . "'";
+            }
+            $langEsc = mysqli_real_escape_string($link, $curr);
+            $q = "SELECT menuText, translatedText FROM multilanguage WHERE LOWER(TRIM(language)) = LOWER(TRIM('" . $langEsc . "')) AND TRIM(translatedText) <> '' AND menuText IN (" . implode(',', $keysEsc) . ")";
+            $queryResultMulti = mysqli_query($link, $q);
+            if ($queryResultMulti) {
+                while ($rowMulti = mysqli_fetch_assoc($queryResultMulti)) {
+                    $translations[$rowMulti['menuText']] = $rowMulti['translatedText'];
+                }
+            }
+        }
+    }
+
     // --- Start: Translation of Widget Parameters ---
     if (!empty($translations) && isset($response['params'])) {
         $params = $response['params'];
@@ -143,7 +187,7 @@
 
          // Translate parameters within 'serviceUri'
          if (isset($params['serviceUri'])) {
-             $serviceUri = json_decode($params['serviceUri'], true);
+             // Already decoded while collecting translation keys above.
             // if ($serviceUri) {
             //    echo "<pre>First Axis:\n";
             //    print_r($serviceUri['firstAxis'] ?? []);
@@ -171,7 +215,7 @@
          }
         // Translate parameters within 'rowParameters'
         if (isset($params['rowParameters'])) {
-            $rowParameters = json_decode($params['rowParameters'], true);
+            // Already decoded while collecting translation keys above.
             if ($rowParameters && is_array($rowParameters)) {
                 foreach ($rowParameters as $key => $rp) {
                     if (isset($rp['label']) && isset($translations[$rp['label']])) {
@@ -180,6 +224,9 @@
                         $rowParameters[$key]['metricLabel'] = $translations[$rp['metricLabel']];
                     } else if (isset($rp['metricType']) && isset($translations[$rp['metricType']])) {
                         $rowParameters[$key]['metricLabel'] = $translations[$rp['metricType']];
+                    } else if (isset($rp['smField']) && is_string($rp['smField']) && $rp['smField'] !== '' && isset($translations[$rp['smField']])) {
+                        // Display-only fallback: leave smField and all data-matching keys unchanged.
+                        $rowParameters[$key]['metricLabel'] = $translations[$rp['smField']];
                     }
                     // if (isset($rp['metricName']) && isset($translations[$rp['metricName']])) {
                     //     $rowParameters[$key]['metricName'] = $translations[$rp['metricName']];
@@ -190,7 +237,7 @@
         }
 
         if (isset($params['styleParameters'])) {
-            $styleParameters = json_decode($params['styleParameters'], true);
+            // Already decoded while collecting translation keys above.
             if ($styleParameters && isset($styleParameters['editDeviceLabels'])) {
                 foreach ($styleParameters['editDeviceLabels'] as $key => $editLabel) {
                     if (isset($translations[$editLabel])) {

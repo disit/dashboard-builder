@@ -7350,6 +7350,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
         
         map.defaultMapRef = L.map(mapDivLocal).setView([latInit, lngInit], widgetParameters.zoom);
+        installMapPopupTextTranslations(map.defaultMapRef, createWidgetTextTranslator(widgetName, widgetParams && widgetParams.id_dashboard));
         // getLeAltreUserInfo(); // get user info and set map the org location
 
         //Inserimento button per drill down
@@ -30721,6 +30722,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             }
             if (fullscreenHeatmapFirstInstantiation === false) {
                 fullscreendefaultMapRef = L.map(mapdiv).setView([latInit, lngInit], widgetParameters.zoom);
+                installMapPopupTextTranslations(fullscreendefaultMapRef, createWidgetTextTranslator(widgetName, widgetParams && widgetParams.id_dashboard));
 
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                     attribution: '&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> contributors',
@@ -33910,6 +33912,69 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         })
 
     });//Fine document ready
+
+    // Map popup display translation adapter
+    function markMapPopupLabel(node) {
+        if (node.hasAttribute('data-s4c-i18n')) return;
+        if (!node.children.length) {
+            var key = node.textContent.trim();
+            if (key) node.setAttribute('data-s4c-i18n', key);
+            return;
+        }
+        // Translate text, preserving icons, line breaks, links and their handlers.
+        Array.prototype.slice.call(node.childNodes).forEach(function (child) {
+            if (child.nodeType === 3 && child.nodeValue.trim()) {
+                var span = document.createElement('span');
+                span.textContent = child.nodeValue;
+                span.setAttribute('data-s4c-i18n', child.nodeValue.trim());
+                node.replaceChild(span, child);
+            } else if (child.nodeType === 1 && !/^(I|SVG|IMG|SCRIPT|STYLE|BR)$/.test(child.tagName) &&
+                !child.classList.contains('material-icons')) markMapPopupLabel(child);
+        });
+    }
+
+    function translateMapPopupContent(popup, translator) {
+        var element = popup.getElement(), root = element && element.querySelector('.leaflet-popup-content');
+        if (!root) return;
+        var revision = popup._s4cPopupTextRevision = (popup._s4cPopupTextRevision || 0) + 1;
+        root.querySelectorAll('table.gisPopupGeneralDataTable thead th, table.gisPopupTable thead th, ' +
+            'table.gisPopupGeneralDataTable tbody > tr > td:first-child, table.gisPopupTable tbody > tr > td:first-child, ' +
+            '.recreativeEventMapBtn, button.timeTrendBtn, button.lastValueBtn').forEach(markMapPopupLabel);
+        root.querySelectorAll('input.gisPopupKeepDataCheck').forEach(function (input) {
+            var paragraph = input.closest('p');
+            if (paragraph) paragraph.querySelectorAll('b').forEach(markMapPopupLabel);
+        });
+        translateWidgetTextNodes(root, translator, function () {
+            return popup._map && popup._s4cPopupTextRevision === revision;
+        }).then(function () {
+            // update() would replace the content and fire contentupdate again.
+            if (popup._map && popup._s4cPopupTextRevision === revision && root.isConnected && popup.getElement() === element) {
+                if (popup._updateLayout) popup._updateLayout();
+                if (popup._updatePosition) popup._updatePosition();
+            }
+        });
+    }
+
+    function installMapPopupTextTranslations(mapRef, translator) {
+        if (mapRef._s4cPopupTextInstalled) return;
+        mapRef._s4cPopupTextInstalled = true;
+        mapRef.on('popupopen', function (event) {
+            var popup = event.popup;
+            if (popup._s4cPopupTextCleanup) popup._s4cPopupTextCleanup();
+            function refresh() { translateMapPopupContent(popup, translator); }
+            function cleanup() {
+                popup._s4cPopupTextRevision = (popup._s4cPopupTextRevision || 0) + 1;
+                popup.off('contentupdate', refresh);
+                popup.off('remove', cleanup);
+                popup._s4cPopupTextCleanup = null;
+            }
+            popup._s4cPopupTextCleanup = cleanup;
+            popup.on('contentupdate', refresh);
+            popup.on('remove', cleanup);
+            refresh();
+        });
+    }
+    // End map popup display translation adapter
 
      ///CHECK URL WFS
      function createPopup(properties, color1, color2) {
