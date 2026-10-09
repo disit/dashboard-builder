@@ -37,7 +37,9 @@ $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 if ($httpCode === 200) {
   $data = json_decode($response, true);
-  $organizations_list = array_column($data, 'organizationName');
+  if (is_array($data)) {
+    $organizations_list = array_column($data, 'organizationName');
+  }
 }
 
 // fetch delegated orgs if AreaManager
@@ -52,7 +54,7 @@ if ($role === 'AreaManager') {
     );
     if ($link) {
         $encMe = encryptOSSL(
-            $_SESSION['loggedUsername'],
+            strtolower($_SESSION['loggedUsername']),
             $encryptionInitKey,
             $encryptionIvKey,
             $encryptionMethod
@@ -100,25 +102,27 @@ if ($canSeeAdmin) {
           
         $stmtU = mysqli_prepare($link2, $sqlU);
         if (! $stmtU) {
-            throw new Exception("prepare failed: " . mysqli_error($link2));
-        }
-        if (! empty($params)) {
-            mysqli_stmt_bind_param($stmtU, $types, ...$params);
-        }
-        mysqli_stmt_execute($stmtU);
-        mysqli_stmt_bind_result($stmtU, $encOwner);
-        while (mysqli_stmt_fetch($stmtU)) {
-            $dec = decryptOSSL(
-                $encOwner,
-                $encryptionInitKey,
-                $encryptionIvKey,
-                $encryptionMethod
-            );
-            if ($dec) {
-                $allUsers[] = $dec;
+            //no user suggestions, the page still works with typed usernames
+            error_log("resourcesconsumption.php: users prepare failed: " . mysqli_error($link2));
+        } else {
+            if (! empty($params)) {
+                mysqli_stmt_bind_param($stmtU, $types, ...$params);
             }
-      }
-        mysqli_stmt_close($stmtU);
+            mysqli_stmt_execute($stmtU);
+            mysqli_stmt_bind_result($stmtU, $encOwner);
+            while (mysqli_stmt_fetch($stmtU)) {
+                $dec = decryptOSSL(
+                    $encOwner,
+                    $encryptionInitKey,
+                    $encryptionIvKey,
+                    $encryptionMethod
+                );
+                if ($dec) {
+                    $allUsers[] = $dec;
+                }
+            }
+            mysqli_stmt_close($stmtU);
+        }
         mysqli_close($link2);
     }
 }
@@ -134,7 +138,7 @@ if ($canSeeAdmin) {
 <body class="bg-light">
   <div class="container py-5">
     <h2 class="mb-4">📊 Resources Consumption Dashboard</h2>
-    <h4>Organization: <?= htmlspecialchars($_SESSION['loggedOrganization'], ENT_QUOTES) ?></h4>
+    <h4>Organization: <?= htmlspecialchars($_SESSION['loggedOrganization'] ?? '', ENT_QUOTES) ?></h4>
 
     <?php if (!$canSeeAdmin): ?>
   <!-- Non-admin: choose day / month / range for SELF -->
@@ -221,7 +225,12 @@ if ($canSeeAdmin) {
       el.addEventListener('change', toggleFields)
     );
 
-    form.addEventListener('submit', () => {
+    form.addEventListener('submit', (ev) => {
+      if (byRange.checked && startDate.value > endDate.value) {
+        ev.preventDefault();
+        alert('Start date must be before end date');
+        return;
+      }
       // base route always self=true
       let route = 'user/selected_usage?self=true';
 
@@ -276,7 +285,7 @@ if ($canSeeAdmin) {
             <?php if ($rootadmin): ?>
               <label class="form-check form-check-inline">
                 <input class="form-check-input" type="radio"
-                      name="queryType" id="byAll" value="org">
+                      name="queryType" id="byAll" value="all">
                 <span class="form-check-label">All</span>
               </label>
             <?php endif; ?>
@@ -442,7 +451,12 @@ if ($canSeeAdmin) {
         el.addEventListener('change', toggleFields)
         );
 
-        form.addEventListener('submit', ()=>{
+        form.addEventListener('submit', (ev)=>{
+          if (byRange.checked && startDate.value > endDate.value) {
+            ev.preventDefault();
+            alert('Start date must be before end date');
+            return;
+          }
           let route;
           if (byUser.checked) {
             const user = encodeURIComponent(userInput.value);

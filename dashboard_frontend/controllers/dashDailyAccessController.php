@@ -68,7 +68,7 @@ if (!empty($_REQUEST["updateHour"])) {
             $logMessage = date("Y-m-d H:i:s") . " - WARN - No username.\n";
             eventLog("ERROR in dashDailyAccessController.php for dashId = ".$dashId.": session[loggedUsername] is not set.");
         } else {
-            $enc_username = encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+            $enc_username = encryptOSSL(strtolower($_SESSION['loggedUsername']), $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
             $queryAccessUser = "SELECT * FROM " .$resourcesconsumptionDb. ".daily_dashboard_accesses WHERE IdDashboard = $dashId AND UserID = '$enc_username' ORDER BY date DESC;";
             $resultAccessUser = mysqli_query($link2, $queryAccessUser);
             $logMessage = date("Y-m-d H:i:s") . " - INFO - user: " . $enc_username . " usermonitoring: " . $userMonitoring . "\n";
@@ -147,7 +147,7 @@ if (!empty($_REQUEST["updateAccess"])) {
             $logMessage = date("Y-m-d H:i:s") . " - WARN - No username.\n";
             eventLog("ERROR in dashDailyAccessController.php for dashId = ".$dashId.": session[loggedUsername] is not set.");
         } else {
-            $enc_username = encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+            $enc_username = encryptOSSL(strtolower($_SESSION['loggedUsername']), $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
             $queryAccessUser = "SELECT * FROM " .$resourcesconsumptionDb. ".daily_dashboard_accesses WHERE IdDashboard = $dashId AND UserID = '$enc_username' ORDER BY date DESC;";
             $resultAccessUser = mysqli_query($link2, $queryAccessUser);
             $logMessage = date("Y-m-d H:i:s") . " - INFO - user access: " . $enc_username . " usermonitoring: " . $userMonitoring . "\n";

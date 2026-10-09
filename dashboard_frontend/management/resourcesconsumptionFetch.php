@@ -1,15 +1,13 @@
 <?php
-
 /*TLDR: get route from post, get data from API endpoint, make tables for data if data and charts if at least 2 dates in data
 expects: $_SESSION['accessToken'], $_POST['route'], connection to userstats API at $resourcesconsumptionLocation
 extra: $_SESSION['loggedOrganization'] (it's not used by the api by default.... it uses directly the token with ou in it, but if you have a realm where ou is not defined/passed
   in the access token then it can use this as fallback. )
 would be nice to change: cdn.jsdelivr to static files (bootstrap.min.css, chart.js)
 */
-
 include('../config.php');
 if (!isset($_SESSION)) {
-  session_start();
+    session_start();
 }
 if (empty($_SESSION['accessToken']) || empty($_POST['route'])) {
     header("Location: ..");
@@ -33,19 +31,42 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
     "Accept: application/json",
     "loggedOrganization: $loggedorg"
 ]);
+curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+curl_setopt($ch, CURLOPT_TIMEOUT, 120);
 $response  = curl_exec($ch);
 $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+if ($response === false) {
+    $response = "API not reachable: " . curl_error($ch);
+}
 curl_close($ch);
 
 $data = json_decode($response, true);
+if ($http_code === 401) {
+    $response = "Your session has expired, please log in again.";
+}
 
-// extract org parameter from $route if present (for /org/usage)
+// extract org and date parameters from $route if present (org for /org/usage, dates for top users)
 $orgParam = null;
+$topStart = null;
+$topEnd   = null;
 $parsedRoute = parse_url($route);
 if (isset($parsedRoute['query'])) {
     parse_str($parsedRoute['query'], $qs);
     if (isset($qs['org'])) {
         $orgParam = $qs['org'];
+    }
+    if (!empty($qs['start_date']) && !empty($qs['end_date'])) {
+        $topStart = $qs['start_date'];
+        $topEnd   = $qs['end_date'];
+    } elseif (!empty($qs['date'])) {
+        // same date or month selected in the form (YYYY-MM-DD or YYYY-MM)
+        if (preg_match('/^\d{4}-\d{2}$/', $qs['date'])) {
+            $topStart = $qs['date'] . '-01';
+            $topEnd   = date('Y-m-t', strtotime($topStart));
+        } else {
+            $topStart = $qs['date'];
+            $topEnd   = $qs['date'];
+        }
     }
 }
 $path        = ltrim(parse_url($route, PHP_URL_PATH), '/');
@@ -75,7 +96,6 @@ $isUserRoute = strpos($path, 'user/') === 0;
       margin-top: 0.5rem;
     }
   </style>
-
 </head>
 <body class="bg-light">
 <div class="container py-5" style='margin-right: 0px;margin-left: 5%;'>
@@ -142,6 +162,18 @@ $isUserRoute = strpos($path, 'user/') === 0;
           });
           sort($orgs);
       }
+      $encryptionMap = [];
+      foreach ($tableData as $date => $row) {
+          // owned_dashboard_activity OR owned_dashboard_usage
+          $owned = $row['owned_dashboard_activity']
+                 ?? $row['owned_dashboard_usage']
+                 ?? [];
+          foreach (array_keys($owned) as $dashId) {
+              if (!isset($encryptionMap[$dashId])) {
+                $encryptionMap[$dashId] = base64_encode($dashId);
+              }
+          }
+      }
     ?>
 
     <!-- Data Table -->
@@ -169,6 +201,7 @@ $isUserRoute = strpos($path, 'user/') === 0;
         </tbody>
       </table>
     </div>
+
     <!-- Only show charts if more than one date -->
     <?php if ($multiDay): ?>
       <div id="charts">
@@ -183,6 +216,7 @@ $isUserRoute = strpos($path, 'user/') === 0;
         <?php endforeach; ?>
       </div>
     <?php endif; ?>
+
     <!-- Dashboard Activity Summary -->
     <?php
       $dashboards_used_by_date  = [];
@@ -392,18 +426,30 @@ $isUserRoute = strpos($path, 'user/') === 0;
   <?php endif; ?>
 </div>
 
-<?php if ($http_code === 200 && !empty($metrics) && $multiDay ): ?>
+<?php
+// JSON safe inside <script>: escapes < > & ' " so data can't close the script tag
+$jsFlags = JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT;
+?>
+<?php if ($http_code === 200 && !empty($metrics)): ?>
 <script>
-const dates       = <?= json_encode($dates) ?>;
-const metrics     = <?= json_encode($metrics) ?>;
-const chartData   = <?= json_encode($data, JSON_UNESCAPED_SLASHES) ?>;
+const dates       = <?= json_encode($dates, $jsFlags) ?>;
+const metrics     = <?= json_encode($metrics, $jsFlags) ?>;
+const chartData   = <?= json_encode($data, $jsFlags) ?>;
+const phpData     = <?= json_encode($tableData, $jsFlags) ?>;
 const isAllUsage  = <?= $isAllUsage ? 'true' : 'false' ?>;
-const currentOrg  = <?= json_encode($orgParam) ?>;
-const token       = <?= json_encode($token) ?>;
-const apiBase     = <?= json_encode($api_base) ?>;
-const loggedOrg   = <?= json_encode($loggedorg) ?>;
+const multiDay    = <?= $multiDay ? 'true' : 'false' ?>;
+const currentOrg  = <?= json_encode($orgParam, $jsFlags) ?>;
+const topStart    = <?= json_encode($topStart, $jsFlags) ?>;
+const topEnd      = <?= json_encode($topEnd, $jsFlags) ?>;
+const token       = <?= json_encode($token, $jsFlags) ?>;
+const apiBase     = <?= json_encode($api_base, $jsFlags) ?>;
+const loggedOrg   = <?= json_encode($loggedorg, $jsFlags) ?>;
+const dashboardUrlPrefix = <?= json_encode($protocol . '://' . $appHost . '/dashboardSmartCity/view/index.php?iddasboard=', $jsFlags) ?>;
+const encryptionMap      = <?= json_encode($encryptionMap, $jsFlags) ?>;
 
 document.addEventListener('DOMContentLoaded', function(){
+  //charts only exist with more than one date
+  if (multiDay) {
   <?php if ($isAllUsage): ?>
     // For all/usage: we have multiple orgs
     const orgs = <?= json_encode($orgs) ?>;
@@ -437,7 +483,6 @@ document.addEventListener('DOMContentLoaded', function(){
     });
   <?php else: ?>
     // For single-org/user routes: one line per metric
-    const phpData = <?= json_encode($tableData, JSON_UNESCAPED_SLASHES) ?>;
     metrics.forEach(metric => {
       const canvas = document.getElementById('chart_' + metric);
       if (!canvas) return;
@@ -460,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function(){
       });
     });
   <?php endif; ?>
+  }
 
   const btns = [
     'btn_activity_table',
@@ -467,14 +513,13 @@ document.addEventListener('DOMContentLoaded', function(){
     'btn_dashboards',
     'btn_api_table'
   ];
-
   btns.forEach(id => {
     const btn = document.getElementById(id);
+    if (!btn) return;
     btn.addEventListener('click', function() {
       toggle_visibility(this);
     });
   });
-
   function toggle_visibility(button) {
     const divId = button.id.replace(/^btn_/, '');
     const div = document.getElementById(divId);
@@ -482,7 +527,6 @@ document.addEventListener('DOMContentLoaded', function(){
       console.warn(`No element found with id="${divId}"`);
       return;
     }
-    
     const isHidden = div.style.display === 'none';
     div.style.display = isHidden ? '' : 'none';
     button.textContent = button.textContent.replace(
@@ -505,8 +549,9 @@ document.addEventListener('DOMContentLoaded', function(){
 
   // Fetch Top Users from API
   async function fetchTopUsers(metric) {
-    const startDate = dates[0];
-    const endDate = dates[dates.length - 1];
+    //period selected in the form, falls back to the dates that have data
+    const startDate = topStart || dates[0];
+    const endDate = topEnd || dates[dates.length - 1];
     let endpoint = '';
     if (isAllUsage) {
       endpoint = `all/top_users?metric=${metric}&start_date=${startDate}&end_date=${endDate}`;
@@ -520,28 +565,36 @@ document.addEventListener('DOMContentLoaded', function(){
         'loggedOrganization': loggedOrg
       }
     });
-    if (!resp.ok) throw new Error('Failed to load top users');
+    if (resp.status === 401) throw new Error('Your session has expired, please log in again.');
+    if (!resp.ok) throw new Error('Failed to load top users: ' + await resp.text());
     return resp.json();
   }
 
-  // Compute Top Dashboards (all usage only)
   function computeTopDashboards() {
-    if (!chartData.all_organizations) return [];
-    const datesKeys = Object.keys(chartData.all_organizations);
-    const totals = {};
-    datesKeys.forEach(date => {
-      const dayData = chartData.all_organizations[date];
-      const ownedMap = dayData.owned_dashboard_activity || {};
-      Object.entries(ownedMap).forEach(([dashId, stats]) => {
-        if (!totals[dashId]) totals[dashId] = { accesses: 0, minutes: 0 };
-        totals[dashId].accesses += (stats.total_accesses || 0);
-        totals[dashId].minutes  += (stats.total_minutes || 0);
-      });
+  const totals = {};
+  // decide where our “per-day” data lives
+  const days     = isAllUsage
+                 ? Object.keys(chartData.all_organizations || {})
+                 : Object.keys(phpData);
+  days.forEach(date => {
+    const dayData = isAllUsage
+                  ? chartData.all_organizations[date]
+                  : phpData[date];
+    const ownedMap = dayData.owned_dashboard_activity
+                  || dayData.owned_dashboard_usage
+                  || {};
+    Object.entries(ownedMap).forEach(([dashId, stats]) => {
+      if (!totals[dashId]) totals[dashId] = { accesses:0, minutes:0 };
+      totals[dashId].accesses += (stats.total_accesses || 0);
+      totals[dashId].minutes  += (stats.total_minutes  || 0);
     });
-    return Object.entries(totals)
-      .sort((a,b) => b[1].accesses - a[1].accesses)
-      .map(([dashId, stats]) => ({ id: dashId, accesses: stats.accesses, minutes: stats.minutes }));
-  }
+  });
+
+  return Object.entries(totals)
+    .sort(([,a],[,b]) => b.accesses - a.accesses)
+    .map(([id,stats]) => ({ id, accesses: stats.accesses, minutes: stats.minutes }));
+}
+
 
   // Render Top Users with pagination & search
   function renderTopUsers(metric) {
@@ -618,11 +671,14 @@ document.addEventListener('DOMContentLoaded', function(){
 
       tbody.innerHTML = '';
       pageItems.forEach(item => {
+        //textContent: usernames are never parsed as html
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.username}</td>
-          <td class="text-center">${item.value}</td>
-        `;
+        const tdUser = document.createElement('td');
+        tdUser.textContent = item.username;
+        const tdValue = document.createElement('td');
+        tdValue.className = 'text-center';
+        tdValue.textContent = item.value;
+        tr.append(tdUser, tdValue);
         tbody.appendChild(tr);
       });
 
@@ -709,12 +765,21 @@ document.addEventListener('DOMContentLoaded', function(){
 
       tbody.innerHTML = '';
       pageItems.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${item.id}</td>
-          <td class="text-center">${item.accesses}</td>
-          <td class="text-center">${item.minutes}</td>
-        `;
+        const enc  = encryptionMap[item.id] || '';
+        const tr   = document.createElement('tr');
+        const tdId = document.createElement('td');
+        const link = document.createElement('a');
+        link.href = dashboardUrlPrefix + encodeURIComponent(enc);
+        link.target = '_blank';
+        link.textContent = item.id;
+        tdId.appendChild(link);
+        const tdAcc = document.createElement('td');
+        tdAcc.className = 'text-center';
+        tdAcc.textContent = item.accesses;
+        const tdMin = document.createElement('td');
+        tdMin.className = 'text-center';
+        tdMin.textContent = item.minutes;
+        tr.append(tdId, tdAcc, tdMin);
         tbody.appendChild(tr);
       });
 
@@ -725,7 +790,8 @@ document.addEventListener('DOMContentLoaded', function(){
     }
   }
 
-  // Initial load for Top Users and Top Dashboards
+  // Initial load for Top Users and Top Dashboards (buttons don't exist on user routes)
+  if (!document.getElementById('btn_top_users')) return;
   document.getElementById('btn_top_users').addEventListener('click', async function(){
     const wrapper = document.getElementById('top_users_wrapper');
     if (wrapper.style.display === 'none' || wrapper.innerHTML.trim() === '') {
@@ -738,7 +804,7 @@ document.addEventListener('DOMContentLoaded', function(){
         this.textContent = 'Hide Top Users';
       } catch(e) {
         console.error(e);
-        alert('Failed to load top‐users.');
+        alert(e.message || 'Failed to load top users.');
       }
     } else {
       wrapper.style.display = 'none';
@@ -756,13 +822,12 @@ document.addEventListener('DOMContentLoaded', function(){
         renderTopUsers(selectedMetric);
       } catch(e) {
         console.error(e);
-        alert('Failed to update top‐users.');
+        alert(e.message || 'Failed to update top users.');
       }
     }
   });
 
   document.getElementById('btn_top_dashboards').addEventListener('click', function(){
-    if (!isAllUsage) return;
     const wrapper = document.getElementById('top_dashboards_wrapper');
     if (wrapper.style.display === 'none' || wrapper.innerHTML.trim()==='') {
       renderTopDashboardsPaged();
