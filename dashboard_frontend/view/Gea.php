@@ -56,8 +56,6 @@
 */
    
    //Va studiata una soluzione, per ora tolto error reporting
-   error_reporting(0);
-   session_start();
 
    $dashId = escapeForJS(base64_decode($_REQUEST['iddasboard']));
    if (checkVarType($dashId, "integer") === false) {
@@ -81,20 +79,6 @@
     } catch (\Throwable $e) {
         // langSelectorVisible column not yet created (DB not migrated): selector disabled
         $langSelectorVisible = 'no';
-    }
-
-    $translations = array();
-    if (!empty($curr) && $langSelectorVisible === 'yes') {
-        $langEsc = mysqli_real_escape_string($link, $curr);
-        $q = "SELECT menuText, translatedText FROM multilanguage WHERE LOWER(TRIM(language)) = LOWER(TRIM('" . $langEsc . "'))";
-        $queryResultMulti = mysqli_query($link, $q);
-        if ($queryResultMulti) {
-            while ($rowMulti = mysqli_fetch_assoc($queryResultMulti)) {
-                $key = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['menuText']));
-                $value = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['translatedText']));
-                $translations[$key] = $value;
-            }
-        }
     }
 
     header("Cache-Control: private, " . ($langSelectorVisible === 'yes' ? "no-cache" : "max-age=$cacheControlMaxAge"));
@@ -178,6 +162,8 @@
         exit();
     }
     
+   require_once __DIR__ . '/dashboardTranslations.php';
+   $translations = loadDashboardViewTranslations($link, $dashId, isset($row) ? $row : null, $curr, $langSelectorVisible);
    mysqli_close($link);
    
    if(isset($_SERVER['HTTP_REFERER']))
@@ -2436,6 +2422,7 @@
               <!-- END SIDEBAR NAV -->
         </nav>
         
+        <?php include __DIR__ . '/dashboardMenuTranslations.php'; ?>
         <div id="dashboardViewWidgetsContainer" class="gridster">
             <ul id="gridsterUl"></ul>            
         </div>

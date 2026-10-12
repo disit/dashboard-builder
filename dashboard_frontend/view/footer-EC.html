@@ -1,0 +1,24 @@
+<?php
+require_once __DIR__ . '/../controllers/dashboardFooterTranslations.php';
+$footerPolicyTranslations = isset($translations) ? $translations : array();
+$footerPolicyLanguageEnabled = isset($langSelectorVisible) ? $langSelectorVisible : 'no';
+?>
+<hr id="horizontalFooterLine" />
+<div class="footerNavRow">
+    <div id="firstColumnFooter" class="footerNavColumn">
+        <!--<div class="profileButton">-->
+            <!--<a title="Snap4City" href='<?php echo $domainLink ?>' target="_blank"><span class="material-icons-round">person</span>My Profile</a>-->
+        <!--</div>-->
+        <div id="footerPolicyId" class="footerNavColumn">
+            <ul class="secondary-menu">
+              <li class="footerNavMenu"><a href='<?php echo $privacyPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($privacyPolicyLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $cookiesPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($cookiesPolicyLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $termsAndConditionsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($termsAndConditionsLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $contactUsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($contactUsLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+            </ul>
+        </div>
+        <div class="footerLogo">
+          <a title="Snap4City" href='<?php echo $domainLink ?>' target="_new" class="footerLogo"><img src="./img/powered-by-snap4-tech-v2-trasp.png" style="width: 60%" alt="Snap4Tech"></a>
+        </div>
+    </div>
+</div>

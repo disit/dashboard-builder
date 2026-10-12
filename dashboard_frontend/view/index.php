@@ -13,12 +13,41 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    include '../config.php';
-
-   header("Cache-Control: private, max-age=$cacheControlMaxAge");
-   
-   //Va studiata una soluzione, per ora tolto error reporting
+   header('Content-Type: text/html; charset=UTF-8');
    error_reporting(0);
    session_start();
+
+   $curr = '';
+   if (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['lang_dash'])) {
+       $curr = $_SESSION['lang_dash'];
+   } elseif (!empty($_COOKIE['lang_dash'])) {
+       $curr = $_COOKIE['lang_dash'];
+       if (session_status() === PHP_SESSION_ACTIVE) {
+           $_SESSION['lang_dash'] = $curr;
+       }
+   } elseif (session_status() === PHP_SESSION_ACTIVE && !empty($_SESSION['lang'])) {
+       $curr = $_SESSION['lang'];
+       $_SESSION['lang_dash'] = $curr;
+   } elseif (!empty($_COOKIE['lang'])) {
+       $curr = $_COOKIE['lang'];
+       if (session_status() === PHP_SESSION_ACTIVE) {
+           $_SESSION['lang_dash'] = $curr;
+       }
+   } elseif (!empty($curr_lang)) {
+       $curr = $curr_lang;
+       if (session_status() === PHP_SESSION_ACTIVE) {
+           $_SESSION['lang_dash'] = $curr;
+       }
+   }
+
+   if (session_status() === PHP_SESSION_ACTIVE) {
+       $_SESSION['lang_dash'] = $curr;
+   }
+   if ($curr !== '') {
+       setcookie('lang_dash', $curr, time() + 30*24*60*60, "/");
+   }
+
+   //Va studiata una soluzione, per ora tolto error reporting
 
    $dashId = escapeForJS(base64_decode($_REQUEST['iddasboard']));
    if (checkVarType($dashId, "integer") === false) {
@@ -31,6 +60,35 @@
 
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
+    mysqli_set_charset($link, 'utf8mb4');
+
+    // Translations only for dashboards with the language selector enabled
+    $langSelectorVisible = 'no';
+    try {
+        $rLang = mysqli_query($link, "SELECT langSelectorVisible FROM Dashboard.Config_dashboard WHERE Id = '$dashId'");
+        if ($rLang && ($rowLang = mysqli_fetch_assoc($rLang)) && $rowLang['langSelectorVisible'] === 'yes') {
+            $langSelectorVisible = 'yes';
+        }
+    } catch (\Throwable $e) {
+        // langSelectorVisible column not yet created (DB not migrated): selector disabled
+        $langSelectorVisible = 'no';
+    }
+
+    $translations = array();
+    if (!empty($curr) && $langSelectorVisible === 'yes') {
+        $langEsc = mysqli_real_escape_string($link, $curr);
+        $q = "SELECT menuText, translatedText FROM multilanguage WHERE LOWER(TRIM(language)) = LOWER(TRIM('" . $langEsc . "'))";
+        $queryResultMulti = mysqli_query($link, $q);
+        if ($queryResultMulti) {
+            while ($rowMulti = mysqli_fetch_assoc($queryResultMulti)) {
+                $key = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['menuText']));
+                $value = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['translatedText']));
+                $translations[$key] = $value;
+            }
+        }
+    }
+
+    header("Cache-Control: private, " . ($langSelectorVisible === 'yes' ? "no-cache" : "max-age=$cacheControlMaxAge"));
     
     $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '$dashId'";
     $queryResult = mysqli_query($link, $query);
@@ -173,6 +231,39 @@
     <meta name="author" content="">
 
     <title>Dashboard Management System</title>
+    <script>
+        var translations = <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        const curr = <?php echo json_encode($curr); ?>;
+    </script>
+    <style>
+        .lang-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.45);
+        }
+        .lang-modal-content {
+            background: #ffffff;
+            color: #222222;
+            margin: 10vh auto;
+            padding: 18px;
+            width: min(520px, calc(100vw - 32px));
+            border-radius: 4px;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
+        }
+        .lang-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+            gap: 8px;
+        }
+        .lang-item:hover {
+            background: rgba(0, 0, 0, 0.08);
+        }
+    </style>
 
     <!-- Bootstrap Core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
@@ -1034,7 +1125,11 @@
                 
                 $("#dashboardTitle").css("color", headerFontColor);
                 //$('#chatBtn').css("color", $('#dashboardTitle').css('color'));
-                $("#dashboardTitle span").text(dashboardParams.title_header);
+                var dashboardTitle = dashboardParams.title_header;
+                if (translations[dashboardTitle]) {
+                    dashboardTitle = translations[dashboardTitle];
+                }
+                $("#dashboardTitle span").text(dashboardTitle);
                 $("#clock").css("color", headerFontColor);
                 $('#fullscreenBtnContainer').css("color", headerFontColor);
                 
@@ -1337,6 +1432,30 @@
                     {
                         time = "12/HOUR";
                     }
+                    dashboardWidgets.forEach(function (widget) {
+                        if (widget._translated) {
+                            return;
+                        }
+
+                        if (widget.title_w && translations[widget.title_w]) {
+                            widget.title_w = translations[widget.title_w];
+                        }
+
+                        if (widget.serviceUri && widget.serviceUri.firstAxis && Array.isArray(widget.serviceUri.firstAxis.labels)) {
+                            widget.serviceUri.firstAxis.labels = widget.serviceUri.firstAxis.labels.map(function(label) {
+                                return translations[label] || label;
+                            });
+                        }
+
+                        if (widget.serviceUri && widget.serviceUri.secondAxis && Array.isArray(widget.serviceUri.secondAxis.labels)) {
+                            widget.serviceUri.secondAxis.labels = widget.serviceUri.secondAxis.labels.map(function(label) {
+                                return translations[label] || label;
+                            });
+                        }
+
+                        widget._translated = true;
+                    });
+
                     var widget = ['<li data-widgetType="' + dashboardWidgets[i]['type_w'] + '" data-widgetId="' + dashboardWidgets[i]['Id'] + '" id="' + dashboardWidgets[i]['name_w'] + '"></li>', dashboardWidgets[i]['size_columns'], dashboardWidgets[i]['size_rows'], dashboardWidgets[i]['n_column'], dashboardWidgets[i]['n_row']];
 
                     gridster.add_widget.apply(gridster, widget);
@@ -1876,6 +1995,8 @@
                             $link = mysqli_connect($host, $username, $password);
                             mysqli_select_db($link, $dbname);
 
+                            $orgMenuVisible = 'no';
+                            $langSelectorVisible = 'no';
                             $orgMenuVisibilityQuery = "SELECT * FROM Dashboard.Config_dashboard WHERE id = '$dashId';";
                             $r = mysqli_query($link, $orgMenuVisibilityQuery);
 
@@ -1883,6 +2004,7 @@
                                 while ($row = mysqli_fetch_assoc($r)) {
 
                                     $orgMenuVisible = $row['orgMenuVisible'];
+                                    $langSelectorVisible = isset($row['langSelectorVisible']) ? $row['langSelectorVisible'] : 'no';
 
                                     $orgMenuIconHidden = '<i id="orgMenuButton" class="fa fa-bars" style="display:none"></i>';
                                     $orgMenuIconShown = '<i id="orgMenuButton" class="fa fa-bars"></i>';
@@ -1893,6 +2015,12 @@
                                     }
 
                                 }
+                            }
+
+                            if ($langSelectorVisible == 'no') {
+                                echo "<style>
+                                    #langSelectorCnt { display: none !important; }
+                                </style>";
                             }
 
                             $domainId = null;
@@ -2264,6 +2392,94 @@
             <div id="clock">
                 <span id="tick2"><?php include('../widgets/time.php'); ?></span>
             </div>
+            <?php
+            $flagicon = '';
+            if ($curr !== '') {
+                $flagicon = 'serveFlag.php?code=' . rawurlencode($curr);
+            } elseif ($langSelectorVisible === 'yes') {
+                $flagicon = 'serveFlag.php?code=en_US';
+            }
+            ?>
+            <div id="langSelectorCnt" style="position:absolute; top:8px; right:10px; z-index:2; display:flex; align-items:center;">
+                <?php if ($flagicon !== ''): ?>
+                    <img id="langFlag" src="<?php echo htmlspecialchars($flagicon); ?>" alt="<?php echo htmlspecialchars($curr); ?>" style="height:20px;width:auto;display:inline-block;cursor:pointer;">
+                <?php endif; ?>
+
+                <div id="langPopup" class="lang-modal">
+                    <div class="lang-modal-content">
+                        <h3>Select your language</h3>
+                        <div class="lang-grid">
+                            <?php
+                            $languageNames = [
+                                'en_US' => 'English',
+                                'it_IT' => 'Italiano',
+                                'ja_JP' => '日本語',
+                                'ar_SA' => 'العربية',
+                                'el_GR' => 'Ελληνικά',
+                                'fr_FR' => 'Français',
+                                'de_DE' => 'Deutsche',
+                                'es_ES' => 'Español',
+                                'nl_NL' => 'Nederlands',
+                                'fi_FI' => 'Suomi',
+                                'sv_SE' => 'Svenska'
+                            ];
+
+                            if (!empty($localizations)) {
+                                $locObj = json_decode($localizations, true);
+                                $languages = isset($locObj['languages']) ? $locObj['languages'] : [];
+                                foreach ($languages as $lang) {
+                                    $code = htmlspecialchars($lang['code']);
+                                    $name = isset($languageNames[$code]) ? $languageNames[$code] : $code;
+                                    $flag = "serveFlag.php?code=" . rawurlencode($code);
+
+                                    echo "
+                                    <div class='lang-item' data-code='{$code}' style='display:flex;flex-direction:column;align-items:center;text-align:center;padding:6px;border-radius:4px;cursor:pointer;transition:background 0.2s;'>
+                                        <img src='{$flag}' alt='{$name}' style='width:32px;height:auto;margin-bottom:6px;' />
+                                        <span>{$name}</span>
+                                    </div>";
+                                }
+                            }
+                            ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <script>
+                const flag = document.getElementById('langFlag');
+                const modal = document.getElementById('langPopup');
+
+                if (flag && modal) {
+                    flag.addEventListener('click', () => {
+                        modal.style.display = 'block';
+                    });
+
+                    modal.addEventListener('click', e => {
+                        if (e.target === modal) {
+                            modal.style.display = 'none';
+                        }
+                    });
+                }
+
+                document.querySelectorAll('.lang-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                        const lang = item.dataset.code;
+                        $.ajax({
+                            type: 'POST',
+                            url: '../controllers/setDashboardLanguage.php',
+                            data: {lang_dash: lang},
+                            dataType: 'json',
+                            cache: false,
+                            success: function () {
+                                window.location.reload();
+                            },
+                            error: function () {
+                                console.error('Unable to update dashboard language');
+                            }
+                        });
+                    });
+                });
+            </script>
         </nav>
         
         <div id="dashboardViewWidgetsContainer" class="gridster">

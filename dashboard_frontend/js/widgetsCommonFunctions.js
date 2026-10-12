@@ -1118,6 +1118,100 @@ function escapeWidgetTranslationHTML(value) {
     });
 }
 
+// Registration is a separate, best-effort writer; it never delays or changes rendering.
+var widgetTranslationRegistration = (function () {
+    var contexts = Object.create(null);
+    function size(key) { try { return unescape(encodeURIComponent(key)).length; } catch (error) { return Infinity; } }
+    function schedule(context) {
+        if (context.disabled || context.busy || context.timer !== null || Date.now() < context.retryAt ||
+            (!context.metadata && !context.pending.size)) return;
+        context.timer = setTimeout(function () { context.timer = null; drain(context); }, 0);
+    }
+    function drain(context) {
+        if (context.disabled || context.busy) return;
+        var keys = [], bytes = 0, metadata = context.metadata;
+        context.pending.forEach(function (key) {
+            if (keys.length < 200 && bytes + size(key) <= 262144) { keys.push(key); bytes += size(key); }
+        });
+        if (!metadata && !keys.length) return;
+        context.busy = true;
+        function failed(status) {
+            context.busy = false;
+            if (status === 403 || status === 400 || status === 405) {
+                context.disabled = true; context.pending.clear(); context.pendingBytes = 0;
+            } else context.retryAt = Date.now() + 30000; // Only retry on a later interaction, never loop on outages.
+        }
+        try {
+            var requestData = {widgetName: context.widgetName, keys: JSON.stringify(keys), includeMetadata: metadata ? '1' : '0'};
+            if (context.scope === 'menu') {
+                delete requestData.widgetName;
+                requestData.translationScope = 'menu'; requestData.dashboardId = context.dashboardId;
+            }
+            $.ajax({url: '../controllers/registerWidgetTranslations.php', type: 'POST', dataType: 'json', timeout: 5000,
+                headers: {'X-S4C-Translation-Registration': '1'},
+                data: requestData})
+                .done(function (response) {
+                    if (response && response.detail === 'Ok' && response.skipped === true && response.language === 'en_US') {
+                        // Original language: stop this page's writer, not its translation reader.
+                        context.busy = false; context.metadata = false; context.disabled = true;
+                        context.pending.clear(); context.pendingBytes = 0;
+                        return;
+                    }
+                    if (!response || response.detail !== 'Ok' || Number(response.dashboardId) !== context.dashboardId ||
+                        typeof response.language !== 'string' || !/^[a-zA-Z0-9_.@-]{1,45}$/.test(response.language)) {
+                        failed(0); return;
+                    }
+                    context.metadata = false; context.busy = false; context.retryAt = 0;
+                    keys.forEach(function (key) {
+                        context.pending.delete(key); context.pendingBytes -= size(key);
+                        context.done.set(key, size(key)); context.doneBytes += size(key);
+                    });
+                    while (context.done.size > 5000 || context.doneBytes > 2097152) {
+                        var oldest = context.done.keys().next().value;
+                        context.doneBytes -= context.done.get(oldest); context.done.delete(oldest);
+                    }
+                    schedule(context);
+                }).fail(function (xhr) { failed(xhr.status); });
+        } catch (error) { failed(0); }
+    }
+    return {
+        arm: function (widgetName, dashboardId, scope) {
+            var id = Number(dashboardId);
+            if (!Number.isInteger(id) || id <= 0 || (scope !== 'menu' && (typeof widgetName !== 'string' || !widgetName))) return;
+            var contextKey = scope === 'menu' ? 'menu:' + id : id;
+            var context = contexts[contextKey];
+            if (!context) context = contexts[contextKey] = {dashboardId: id, widgetName: widgetName, scope: scope,
+                metadata: scope !== 'menu',
+                pending: new Set(), pendingBytes: 0, done: new Map(), doneBytes: 0,
+                busy: false, disabled: false, timer: null, retryAt: 0};
+            schedule(context);
+        },
+        queue: function (dashboardId, keys, scope) {
+            var context = contexts[scope === 'menu' ? 'menu:' + Number(dashboardId) : Number(dashboardId)];
+            if (!context || context.disabled) return;
+            keys.forEach(function (key) {
+                var bytes = typeof key === 'string' ? size(key) : Infinity;
+                if (!bytes || bytes > 65535 || !key.trim() || context.done.has(key) || context.pending.has(key) ||
+                    context.pending.size >= 5000 || context.pendingBytes + bytes > 2097152) return;
+                context.pending.add(key); context.pendingBytes += bytes;
+            });
+            schedule(context);
+        }
+    };
+})();
+
+// One metadata bootstrap per dashboard, including dashboards using only the older chart widgets.
+// The server independently checks SSO identity, ownership, selector and language. Readers stay pure.
+if (typeof document !== 'undefined' && typeof $ === 'function') {
+    $(document).on('ajaxSuccess.s4cTranslationRegistration', function (event, xhr, settings, response) {
+        if (!settings || !response) return;
+        var params = null;
+        if (/(?:^|\/)getWidgetParams(?:_join)?\.php(?:\?|$)/.test(settings.url || '') && response.detail === 'Ok') params = response.params;
+        else if (/(?:^|\/)getParametersWidgets\.php(?:\?|$)/.test(settings.url || '')) params = response.param;
+        if (params) widgetTranslationRegistration.arm(params.name_w, params.id_dashboard);
+    });
+}
+
 var widgetTextTranslationStore = (function () {
     var contexts = Object.create(null), entries = new Map(), bytes = 0, nextId = 0;
     var maxBytes = 2 * 1024 * 1024, maxEntries = 5000, batchBytes = 262144;
@@ -1198,6 +1292,9 @@ var widgetTextTranslationStore = (function () {
                         var value = getWidgetTextLabel(response.translations, key);
                         put(context, key, value === key ? null : value);
                     });
+                    widgetTranslationRegistration.queue(context.dashboardId, keys.filter(function (key) {
+                        return getWidgetTextLabel(response.translations, key) === key;
+                    }), context.scope);
                 } else { clear(context); context.queue.clear(); }
             }
             context.busy = false;
@@ -1205,18 +1302,23 @@ var widgetTextTranslationStore = (function () {
             schedule(context);
         }
         try {
+            var requestData = {widgetName: context.widgetName, keys: JSON.stringify(keys)};
+            if (context.scope === 'menu') {
+                delete requestData.widgetName;
+                requestData.translationScope = 'menu'; requestData.dashboardId = context.dashboardId;
+            }
             $.ajax({url: '../controllers/getWidgetTranslations.php', type: 'POST',
-                data: {widgetName: context.widgetName, keys: JSON.stringify(keys)},
+                data: requestData,
                 dataType: 'json', timeout: 5000}).done(complete).fail(function () { complete(null); });
         } catch (error) { complete(null); }
     }
     return {
-        create: function (widgetName, dashboardId) {
+        create: function (widgetName, dashboardId, scope) {
             var id = Number(dashboardId), validId = Number.isInteger(id) && id > 0;
-            var name = validId ? 'dashboard:' + id : 'widget:' + widgetName;
+            var name = scope === 'menu' ? 'menu:' + id : (validId ? 'dashboard:' + id : 'widget:' + widgetName);
             var context = contexts[name];
             if (!context) {
-                context = contexts[name] = {id: ++nextId, dashboardId: validId ? id : null,
+                context = contexts[name] = {id: ++nextId, dashboardId: validId ? id : null, scope: scope,
                     widgetName: widgetName, known: false, enabled: true, language: '',
                     queue: new Set(), inflight: new Set(), waiters: [], busy: false, timer: null};
             }
@@ -1227,6 +1329,12 @@ var widgetTextTranslationStore = (function () {
                 },
                 load: function (requested) {
                     var deferred = $.Deferred(), remaining = new Set();
+                    if (context.known && context.enabled) {
+                        widgetTranslationRegistration.queue(context.dashboardId, (Array.isArray(requested) ? requested : []).filter(function (key) {
+                            var entry = typeof key === 'string' && get(context, key);
+                            return entry && entry.value === null;
+                        }), context.scope);
+                    }
                     if (!context.known || context.enabled) {
                         (Array.isArray(requested) ? requested : []).forEach(function (key) {
                             if (typeof key !== 'string' || !key.trim() || size(key) > batchBytes || get(context, key)) return;
@@ -1243,8 +1351,26 @@ var widgetTextTranslationStore = (function () {
     };
 })();
 
-function createWidgetTextTranslator(widgetName, dashboardId) {
-    return widgetTextTranslationStore.create(widgetName, dashboardId);
+function createWidgetTextTranslator(widgetName, dashboardId, scope) {
+    return widgetTextTranslationStore.create(widgetName, dashboardId, scope);
+}
+
+// Dashboard menus use the same reader/writer, but an isolated context: disabling
+// the menu must never disable a widget translator on the same dashboard.
+function initializeDashboardMenuTranslations(dashboardId, enabled) {
+    var id = Number(dashboardId), root = document.querySelector('#s4c-sidebar .main-menu');
+    if (enabled !== true || !Number.isInteger(id) || id <= 0 || !root) return;
+    if (root.s4cMenuTranslationPromise) return root.s4cMenuTranslationPromise;
+    var labels = root.querySelectorAll('a.mainMenuLink .menu-item, a.orgMenuSubItemLink .menu-item, a.customLink .menu-item');
+    if (!labels.length) return;
+    Array.prototype.forEach.call(labels, function (node) {
+        if (!node.hasAttribute('data-s4c-i18n')) node.setAttribute('data-s4c-i18n', node.textContent);
+    });
+    widgetTranslationRegistration.arm(null, id, 'menu');
+    root.s4cMenuTranslationPromise = translateWidgetTextNodes(root, createWidgetTextTranslator(null, id, 'menu'), function () {
+        return root.isConnected;
+    });
+    return root.s4cMenuTranslationPromise;
 }
 
 // Only explicitly marked display nodes/attributes, never technical data-* attributes.

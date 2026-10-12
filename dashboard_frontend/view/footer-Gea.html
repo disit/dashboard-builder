@@ -1,23 +1,35 @@
 <hr id="horizontalFooterLine" />
 <?php
+require_once __DIR__ . '/../controllers/dashboardFooterTranslations.php';
+$footerPolicyTranslations = isset($translations) ? $translations : array();
+$footerPolicyLanguageEnabled = isset($langSelectorVisible) ? $langSelectorVisible : 'no';
 $dashboardProfileButtonTitleValue = s4cConfigValue('dashboardProfileButtonTitle', 'Snap4City');
 $dashboardProfileButtonLinkValue = s4cConfigValue('dashboardProfileButtonLink', $domainLink);
 $dashboardProfileButtonLabelValue = s4cConfigValue('dashboardProfileButtonLabel', 'My Profile');
 $dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', $domainLink);
 $dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', 'https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png');
 $dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'DISIT');
+$dashboardProfileButtonVisibleValue = strtolower(trim((string) s4cConfigValue('dashboardProfileButtonVisible', 'yes')));
+$dashboardProfileButtonVisible = !in_array($dashboardProfileButtonVisibleValue, array('0', 'false', 'no', 'off'), true);
 ?>
 <div class="footerNavRow">
     <div id="firstColumnFooter" class="footerNavColumn">
+        <?php if ($dashboardProfileButtonVisible) { ?>
         <div class="profileButton">
               <a title="<?php echo s4cHtmlAttr($dashboardProfileButtonTitleValue); ?>" href="<?php echo s4cHtmlAttr($dashboardProfileButtonLinkValue); ?>" target="_blank"><span class="material-icons-round">person</span><?php echo s4cHtmlText($dashboardProfileButtonLabelValue); ?></a>
         </div>
+        <?php } ?>
+        <?php
+        $dashboardFooterPartnerLogosVariant = 'gea';
+        include(__DIR__ . '/footer-partner-logos.php');
+        unset($dashboardFooterPartnerLogosVariant);
+        ?>
         <div id="footerPolicyId" class="footerNavColumn">
             <ul class="secondary-menu">
-              <li class="footerNavMenu"><a href='<?php echo $privacyPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $privacyPolicyLinkName ?></a></li>
-              <li class="footerNavMenu"><a href='<?php echo $cookiesPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $cookiesPolicyLinkName ?></a></li>
-              <li class="footerNavMenu"><a href='<?php echo $termsAndConditionsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $termsAndConditionsLinkName ?></a></li>
-              <li class="footerNavMenu"><a href='<?php echo $contactUsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo $contactUsLinkName ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $privacyPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($privacyPolicyLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $cookiesPolicyLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($cookiesPolicyLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $termsAndConditionsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($termsAndConditionsLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
+              <li class="footerNavMenu"><a href='<?php echo $contactUsLink ?>' target="_blank" style="font-size:13px;color:black;font-weight: bold;" title=""><?php echo dashboardFooterPolicyLabel($contactUsLinkName, $footerPolicyTranslations, $footerPolicyLanguageEnabled); ?></a></li>
             </ul>
         </div>
         <div class="footerLogo">

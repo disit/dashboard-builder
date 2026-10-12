@@ -15,8 +15,9 @@ try {
         http_response_code(405);
     } else {
         $widgetName = $_POST['widgetName'] ?? null;
+        $dashboardMenuId = dashboardMenuTranslationId($_POST);
         $keyJson = $_POST['keys'] ?? null;
-        if (!is_string($widgetName) || trim($widgetName) === '' || strlen($widgetName) > 512 ||
+        if (($dashboardMenuId === null && (!is_string($widgetName) || trim($widgetName) === '' || strlen($widgetName) > 512)) ||
             !is_string($keyJson) || strlen($keyJson) > 2097152) {
             throw new InvalidArgumentException('Invalid translation request');
         }
@@ -27,7 +28,7 @@ try {
         if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
         $link = mysqli_connect($host, $username, $password, $dbname);
         if (!$link || !mysqli_set_charset($link, 'utf8mb4')) throw new RuntimeException('Translation database unavailable');
-        $response = loadWidgetTextTranslations($link, $widgetName, $keys, $language);
+        $response = loadWidgetTextTranslations($link, $widgetName, $keys, $language, $dashboardMenuId);
         if ($response['detail'] !== 'Ok') http_response_code(503);
     }
 } catch (InvalidArgumentException $exception) {

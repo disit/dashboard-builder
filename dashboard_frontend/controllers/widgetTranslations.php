@@ -31,29 +31,45 @@ function normalizeWidgetTranslationKeys($keys)
     return array_values($unique);
 }
 
-function loadWidgetTextTranslations($link, $widgetName, array $keys, $language)
+function dashboardMenuTranslationId(array $request)
+{
+    if (!isset($request['translationScope'])) return null;
+    $id = $request['dashboardId'] ?? null;
+    if ($request['translationScope'] !== 'menu' || !is_string($id) ||
+        !preg_match('/^[1-9][0-9]{0,9}$/D', $id) || (float) $id > 2147483647)
+        throw new \InvalidArgumentException('Invalid dashboard menu translation context');
+    return (int) $id;
+}
+
+function loadWidgetTextTranslations($link, $widgetName, array $keys, $language, $dashboardMenuId = null)
 {
     $response = ['detail' => 'Ko', 'dashboardId' => null, 'enabled' => false,
         'language' => $language, 'translations' => []];
     $statement = null;
     try {
-        $statement = mysqli_prepare($link, 'SELECT w.id_dashboard, d.langSelectorVisible ' .
-            'FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ' .
-            'ON w.id_dashboard = d.Id WHERE w.name_w = ? LIMIT 1');
+        $contextQuery = $dashboardMenuId === null
+            ? 'SELECT w.id_dashboard, d.langSelectorVisible FROM Dashboard.Config_widget_dashboard w ' .
+                'JOIN Dashboard.Config_dashboard d ON w.id_dashboard = d.Id WHERE w.name_w = ? LIMIT 1'
+            : 'SELECT d.Id, d.langSelectorVisible, d.orgMenuVisible, d.deleted ' .
+                'FROM Dashboard.Config_dashboard d WHERE d.Id = ? LIMIT 1';
+        $contextParameter = $dashboardMenuId === null ? $widgetName : (string) $dashboardMenuId;
+        $statement = mysqli_prepare($link, $contextQuery);
         if (!$statement) {
             if (mysqli_errno($link) === 1054 && stripos(mysqli_error($link), 'langSelectorVisible') !== false) {
                 $response['detail'] = 'Ok';
             }
             return $response;
         }
-        if (!mysqli_stmt_bind_param($statement, 's', $widgetName) || !mysqli_stmt_execute($statement)) return $response;
-        mysqli_stmt_bind_result($statement, $dashboardId, $flag);
+        if (!mysqli_stmt_bind_param($statement, 's', $contextParameter) || !mysqli_stmt_execute($statement)) return $response;
+        if ($dashboardMenuId === null) mysqli_stmt_bind_result($statement, $dashboardId, $flag);
+        else mysqli_stmt_bind_result($statement, $dashboardId, $flag, $menuFlag, $deleted);
         if (!mysqli_stmt_fetch($statement)) return $response;
         mysqli_stmt_close($statement);
         $statement = null;
         $response['detail'] = 'Ok';
         $response['dashboardId'] = (int) $dashboardId;
-        $response['enabled'] = $flag === 'yes' && $language !== '';
+        $response['enabled'] = $flag === 'yes' && $language !== '' &&
+            ($dashboardMenuId === null || ($menuFlag === 'yes' && $deleted !== 'yes'));
         if (!$response['enabled'] || !$keys) return $response;
 
         $statement = mysqli_prepare($link, 'SELECT menuText, translatedText FROM Dashboard.multilanguage ' .

@@ -81,20 +81,6 @@
         $langSelectorVisible = 'no';
     }
 
-    $translations = array();
-    if (!empty($curr) && $langSelectorVisible === 'yes') {
-        $langEsc = mysqli_real_escape_string($link, $curr);
-        $q = "SELECT menuText, translatedText FROM multilanguage WHERE LOWER(TRIM(language)) = LOWER(TRIM('" . $langEsc . "'))";
-        $queryResultMulti = mysqli_query($link, $q);
-        if ($queryResultMulti) {
-            while ($rowMulti = mysqli_fetch_assoc($queryResultMulti)) {
-                $key = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['menuText']));
-                $value = trim(preg_replace('/\r\n|\r|\n/', '', $rowMulti['translatedText']));
-                $translations[$key] = $value;
-            }
-        }
-    }
-
     header("Cache-Control: private, " . ($langSelectorVisible === 'yes' ? "no-cache" : "max-age=$cacheControlMaxAge"));
     
     $query = "SELECT * FROM Dashboard.Config_dashboard WHERE Config_dashboard.Id = '$dashId'";
@@ -176,6 +162,8 @@
         exit();
     }
     
+   require_once __DIR__ . '/dashboardTranslations.php';
+   $translations = loadDashboardViewTranslations($link, $dashId, isset($row) ? $row : null, $curr, $langSelectorVisible);
    mysqli_close($link);
    
    if(isset($_SERVER['HTTP_REFERER']))
@@ -2432,6 +2420,7 @@
                 <link rel="stylesheet" href="../css/customLinks-side.css"> 
         </nav>
         
+        <?php include __DIR__ . '/dashboardMenuTranslations.php'; ?>
         <div id="dashboardViewWidgetsContainer" class="gridster">
             <ul id="gridsterUl"></ul>            
         </div>

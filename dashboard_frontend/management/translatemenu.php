@@ -18,6 +18,7 @@
 
 include '../config.php';
 require '../sso/autoload.php';
+require_once __DIR__ . '/../controllers/translationRegistration.php';
 
 use Jumbojett\OpenIDConnectClient;
 
@@ -42,6 +43,13 @@ if (isset($_SESSION['loggedRole'])) {
     $action = $_REQUEST['action'];
 //Selezionare
     if ($role_session_active == 'RootAdmin') {
+        $translationLockHeld = false;
+        try {
+            // Cooperate with automatic registration, including edits that rename a dictionary key.
+            if (in_array($action, ['add', 'edit', 'import'], true)) {
+                acquireTranslationRegistrationLock($link);
+                $translationLockHeld = true;
+            }
         if ($action == 'get_data') {
             $lang_query = '';
             $idquery = '';
@@ -139,7 +147,7 @@ if (isset($_SESSION['loggedRole'])) {
                         translatedText='" . $translate . "'
                     WHERE id='" . $id . "'";
             $result = mysqli_query($link, $query);
-            mysqli_close($link);
+            // Keep this connection open until the shared lock is released below.
 //
         } else if ($action == 'download') {
 //menulist
@@ -241,7 +249,7 @@ if (isset($_SESSION['loggedRole'])) {
                     while ($row = mysqli_fetch_assoc($result)) {
                         $response[$i] = $row['text'];
 //
-                        $query1 = "INSERT INTO multilanguage (menuText, language) VALUES ('" . $response[$i] . "', '" . $lang . "')";
+                        $query1 = "INSERT INTO multilanguage (menuText, language) VALUES ('" . mysqli_real_escape_string($link, $response[$i]) . "', '" . $lang . "')";
                         $result1 = mysqli_query($link, $query1);
 //
                         $i++;
@@ -261,6 +269,12 @@ if (isset($_SESSION['loggedRole'])) {
 //
         } else {
             
+        }
+        } catch (\Throwable $error) {
+            error_log('Translation manager write unavailable (code ' . (int) $error->getCode() . ')');
+            echo 'Error';
+        } finally {
+            if ($translationLockHeld) releaseTranslationRegistrationLock($link);
         }
     } else {
         echo('Not Authorized User');

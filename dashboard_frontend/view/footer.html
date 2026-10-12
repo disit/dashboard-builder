@@ -6,7 +6,11 @@ $dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'Mountai
 ?>
 <div class="footerNavRow">
     <div id="firstColumnFooter" class="footerNavColumn">
-        <!-- empty -->
+        <?php
+        $dashboardFooterPartnerLogosVariant = 'standard';
+        include(__DIR__ . '/footer-partner-logos.php');
+        unset($dashboardFooterPartnerLogosVariant);
+        ?>
     </div>
     <div id="footerPolicyId" class="footerNavColumn">
         <ul class="menu nav">
