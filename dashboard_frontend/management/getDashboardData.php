@@ -16,6 +16,7 @@
     include '../config.php';
     include 'ACLInternal.php';
     require '../sso/autoload.php';
+    require_once '../controllers/translationRegistration.php';
     use Jumbojett\OpenIDConnectClient;
    
     //Altrimenti restituisce in output le warning
@@ -465,6 +466,14 @@
     {
         $response["detail"] = "checkVisibilityQueryKo";
     }
+
+    // Reuse the authorization already completed above. Registration requests
+    // only need this session-scoped proof; they do not repeat owner/delegation checks.
+    if (($response['detail'] ?? null) === 'Ok' && ($response['context'] ?? null) === 'View')
+        translationRegistrationRememberDashboardView($_SESSION, $dashboardId);
+    else
+        translationRegistrationForgetDashboardView($_SESSION, $dashboardId);
+    if (session_status() === PHP_SESSION_ACTIVE) session_write_close();
 
     echo json_encode($response);
     mysqli_close($link);

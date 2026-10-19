@@ -227,7 +227,8 @@
 
     <title>Dashboard Management System</title>
     <script>
-        var translations = <?php echo json_encode($translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        var translations = <?php echo json_encode((object) $translations, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>;
+        var dashboardTranslationsEnabled = <?php echo $langSelectorVisible === 'yes' ? 'true' : 'false'; ?>;
         const curr = <?php echo json_encode($curr); ?>;
     </script>
     <style>
@@ -365,6 +366,11 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
     
     <script src="../js/widgetsCommonFunctions.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
+    <script>
+        if (typeof widgetTranslationRegistration !== 'undefined' && typeof widgetTranslationRegistration.setEnabled === 'function') {
+            widgetTranslationRegistration.setEnabled(<?php echo (int) $dashId; ?>, <?php echo $langSelectorVisible === 'yes' ? 'true' : 'false'; ?>);
+        }
+    </script>
     <script src="../widgets/trafficEventsTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/alarmTypes.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
     <script src="../widgets/fakeGeoJsons.js?v=<?php echo time();?>" type="text/javascript" charset="utf-8"></script>
@@ -1130,9 +1136,7 @@
                 //$("#dashboardTitle").css("color", headerFontColor);
                 //$('#chatBtn').css("color", $('#dashboardTitle').css('color'));
                 var dashboardTitle = dashboardParams.title_header;
-                if (translations[dashboardTitle]) {
-                    dashboardTitle = translations[dashboardTitle];
-                }
+                dashboardTitle = getDashboardTextLabel(translations, dashboardTitle, dashboardTranslationsEnabled);
                 $("#dashboardTitle span").text(dashboardTitle);
                 //$("#clock").css("color", headerFontColor);
                 //$('#fullscreenBtnContainer').css("color", headerFontColor);
@@ -1442,29 +1446,7 @@
                     {
                         time = "12/HOUR";
                     }
-                    dashboardWidgets.forEach(function (widget) {
-                        if (widget._translated) {
-                            return;
-                        }
-
-                        if (widget.title_w && translations[widget.title_w]) {
-                            widget.title_w = translations[widget.title_w];
-                        }
-
-                        if (widget.serviceUri && widget.serviceUri.firstAxis && Array.isArray(widget.serviceUri.firstAxis.labels)) {
-                            widget.serviceUri.firstAxis.labels = widget.serviceUri.firstAxis.labels.map(function(label) {
-                                return translations[label] || label;
-                            });
-                        }
-
-                        if (widget.serviceUri && widget.serviceUri.secondAxis && Array.isArray(widget.serviceUri.secondAxis.labels)) {
-                            widget.serviceUri.secondAxis.labels = widget.serviceUri.secondAxis.labels.map(function(label) {
-                                return translations[label] || label;
-                            });
-                        }
-
-                        widget._translated = true;
-                    });
+                    translateDashboardWidgets(dashboardWidgets, translations, dashboardTranslationsEnabled);
 
                     var widget = ['<li data-widgetType="' + dashboardWidgets[i]['type_w'] + '" data-widgetId="' + dashboardWidgets[i]['Id'] + '" id="' + dashboardWidgets[i]['name_w'] + '"></li>', dashboardWidgets[i]['size_columns'], dashboardWidgets[i]['size_rows'], dashboardWidgets[i]['n_column'], dashboardWidgets[i]['n_row']];
 

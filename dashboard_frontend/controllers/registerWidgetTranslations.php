@@ -30,12 +30,12 @@ try {
         $stage = 'configuration_failed';
         require __DIR__ . '/../config.php';
         if (session_status() !== PHP_SESSION_ACTIVE) session_start();
-        $identity = translationRegistrationIdentity($_SESSION ?? [], $reason);
         $session = $_SESSION ?? [];
-        session_write_close(); // Never serialize widgets on the PHP session while waiting for the DB lock.
-        if (!$identity) {
+        session_write_close();
+        if (empty($session['translationRegistrationDashboardViews']) ||
+            !is_array($session['translationRegistrationDashboardViews'])) {
             http_response_code(403);
-            $response = translationRegistrationFailureResponse($reason);
+            $response = translationRegistrationFailureResponse('dashboard_view_not_authorized');
         } else {
             $language = translationRegistrationLanguage(resolveWidgetTranslationLanguage($session, $_COOKIE ?? [], $curr_lang ?? ''), $localizations ?? null, $reason);
             if ($language === '') {
@@ -48,9 +48,13 @@ try {
                 $stage = 'database_charset_failed';
                 if (!mysqli_set_charset($link, 'utf8mb4')) throw new RuntimeException('Registration charset unavailable');
                 $stage = 'registration_lock_failed';
-                $response = withTranslationRegistrationLock($link, function () use ($link, $widgetName, $dashboardMenuId, $identity, $keys, $language, &$stage) {
+                $response = withTranslationRegistrationLock($link, function () use ($link, $widgetName, $dashboardMenuId,
+                    $session, $keys, $language, &$stage) {
                     $stage = 'dashboard_access_check_failed';
-                    $context = translationRegistrationContext($link, $widgetName, $identity, $reason, $dashboardMenuId);
+                    $context = translationRegistrationContext($link, $widgetName, $reason, $dashboardMenuId,
+                        function ($dashboardId) use ($session) {
+                            return translationRegistrationDashboardViewGranted($session, $dashboardId);
+                        });
                     if (!$context) { http_response_code(403); return translationRegistrationFailureResponse($reason); }
                     $stage = 'dictionary_registration_failed';
                     registerMissingTranslationKeys($link, $keys, $language);

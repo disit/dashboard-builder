@@ -18358,6 +18358,8 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 let traj_markers = new Array();
                 let traj_trajects = new Array();
                 let traj_controls = new Array();
+
+                
                 //ancora parsing dei dati
                 for (let j = 0; j < passedData.length; j++) {
 
@@ -18366,11 +18368,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     let points = passedData[j].points
                     let prevlat = -1;
                     let prevlng = -1;
+                    var simplify = passedData[j]?.simplify ?? true;
                     //BOLOGNA 07/05/26 funzione per ottimizzare 
-                    if (points.length > 2000){
-                    points = simplifyTrajectoryByZoom(points, map.defaultMapRef );
+                    if (points.length > 2000 && simplify){
+                        points = simplifyTrajectoryByZoom(points, map.defaultMapRef );
                     }
-
                     for (let o = 0; o < points.length; o++) { // per ogni punto 
                         await delay(0.1).then(async () => {
                             let position = points[o].position;

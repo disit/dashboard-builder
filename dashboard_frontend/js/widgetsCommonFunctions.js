@@ -1112,6 +1112,45 @@ function getWidgetTextLabel(translations, key) {
     return key;
 }
 
+// Dashboard-level translations must stay completely inert when the language selector is disabled.
+// Using getWidgetTextLabel also prevents Array/Object prototype members (for example "map" or
+// "constructor") from being mistaken for dictionary entries when the dictionary is empty.
+function getDashboardTextLabel(translations, key, enabled) {
+    return enabled === true ? getWidgetTextLabel(translations, key) : key;
+}
+
+function translateDashboardWidgets(widgets, translations, enabled) {
+    if (enabled !== true || !Array.isArray(widgets)) {
+        return widgets;
+    }
+
+    widgets.forEach(function (widget) {
+        if (!widget || widget._translated) {
+            return;
+        }
+
+        if (widget.title_w) {
+            widget.title_w = getWidgetTextLabel(translations, widget.title_w);
+        }
+
+        if (widget.serviceUri && widget.serviceUri.firstAxis && Array.isArray(widget.serviceUri.firstAxis.labels)) {
+            widget.serviceUri.firstAxis.labels = widget.serviceUri.firstAxis.labels.map(function (label) {
+                return getWidgetTextLabel(translations, label);
+            });
+        }
+
+        if (widget.serviceUri && widget.serviceUri.secondAxis && Array.isArray(widget.serviceUri.secondAxis.labels)) {
+            widget.serviceUri.secondAxis.labels = widget.serviceUri.secondAxis.labels.map(function (label) {
+                return getWidgetTextLabel(translations, label);
+            });
+        }
+
+        widget._translated = true;
+    });
+
+    return widgets;
+}
+
 function escapeWidgetTranslationHTML(value) {
     return String(value).replace(/[&<>"']/g, function (character) {
         return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[character];
@@ -1120,15 +1159,47 @@ function escapeWidgetTranslationHTML(value) {
 
 // Registration is a separate, best-effort writer; it never delays or changes rendering.
 var widgetTranslationRegistration = (function () {
-    var contexts = Object.create(null);
+    var contexts = Object.create(null), dashboardEnabled = Object.create(null);
     function size(key) { try { return unescape(encodeURIComponent(key)).length; } catch (error) { return Infinity; } }
     function schedule(context) {
-        if (context.disabled || context.busy || context.timer !== null || Date.now() < context.retryAt ||
+        if (context.disabled || context.enabled === false || dashboardEnabled[context.dashboardId] === false ||
+            context.busy || context.timer !== null || Date.now() < context.retryAt ||
             (!context.metadata && !context.pending.size)) return;
         context.timer = setTimeout(function () { context.timer = null; drain(context); }, 0);
     }
+    function requestData(context, keys) {
+        var data = {widgetName: context.widgetName, keys: JSON.stringify(keys)};
+        if (context.scope === 'menu') {
+            delete data.widgetName;
+            data.translationScope = 'menu'; data.dashboardId = context.dashboardId;
+        }
+        return data;
+    }
+    function checkEnabled(context) {
+        context.busy = true;
+        var version = context.version;
+        function complete(response) {
+            context.busy = false;
+            if (version !== context.version) { schedule(context); return; }
+            if (!response || response.detail !== 'Ok' || Number(response.dashboardId) !== context.dashboardId ||
+                typeof response.enabled !== 'boolean' || (response.enabled &&
+                (typeof response.language !== 'string' || !/^[a-zA-Z0-9_.@-]{1,45}$/.test(response.language)))) {
+                context.retryAt = Date.now() + 30000; return;
+            }
+            context.enabled = response.enabled;
+            if (context.enabled) schedule(context);
+            else { context.pending.clear(); context.pendingBytes = 0; }
+        }
+        try {
+            // A missing flag is resolved read-only; never discover it by a rejected write.
+            $.ajax({url: '../controllers/getWidgetTranslations.php', type: 'POST', dataType: 'json',
+                global: false, timeout: 5000, data: requestData(context, [])})
+                .done(complete).fail(function () { complete(null); });
+        } catch (error) { complete(null); }
+    }
     function drain(context) {
-        if (context.disabled || context.busy) return;
+        if (context.disabled || context.enabled === false || dashboardEnabled[context.dashboardId] === false || context.busy) return;
+        if (context.enabled !== true) { checkEnabled(context); return; }
         var keys = [], bytes = 0, metadata = context.metadata;
         context.pending.forEach(function (key) {
             if (keys.length < 200 && bytes + size(key) <= 262144) { keys.push(key); bytes += size(key); }
@@ -1139,23 +1210,18 @@ var widgetTranslationRegistration = (function () {
             context.busy = false;
             if (status === 403 || status === 400 || status === 405) {
                 context.disabled = true; context.pending.clear(); context.pendingBytes = 0;
-            } else context.retryAt = Date.now() + 30000; // Only retry on a later interaction, never loop on outages.
+            } else context.retryAt = Date.now() + 30000;
         }
         try {
-            var requestData = {widgetName: context.widgetName, keys: JSON.stringify(keys), includeMetadata: metadata ? '1' : '0'};
-            if (context.scope === 'menu') {
-                delete requestData.widgetName;
-                requestData.translationScope = 'menu'; requestData.dashboardId = context.dashboardId;
-            }
-            $.ajax({url: '../controllers/registerWidgetTranslations.php', type: 'POST', dataType: 'json', timeout: 5000,
-                headers: {'X-S4C-Translation-Registration': '1'},
-                data: requestData})
+            var data = requestData(context, keys);
+            data.includeMetadata = metadata ? '1' : '0';
+            // Registration is background work, outside the dashboard's global AJAX lifecycle.
+            $.ajax({url: '../controllers/registerWidgetTranslations.php', type: 'POST', dataType: 'json',
+                global: false, timeout: 5000, headers: {'X-S4C-Translation-Registration': '1'}, data: data})
                 .done(function (response) {
                     if (response && response.detail === 'Ok' && response.skipped === true && response.language === 'en_US') {
-                        // Original language: stop this page's writer, not its translation reader.
                         context.busy = false; context.metadata = false; context.disabled = true;
-                        context.pending.clear(); context.pendingBytes = 0;
-                        return;
+                        context.pending.clear(); context.pendingBytes = 0; return;
                     }
                     if (!response || response.detail !== 'Ok' || Number(response.dashboardId) !== context.dashboardId ||
                         typeof response.language !== 'string' || !/^[a-zA-Z0-9_.@-]{1,45}$/.test(response.language)) {
@@ -1163,7 +1229,7 @@ var widgetTranslationRegistration = (function () {
                     }
                     context.metadata = false; context.busy = false; context.retryAt = 0;
                     keys.forEach(function (key) {
-                        context.pending.delete(key); context.pendingBytes -= size(key);
+                        if (context.pending.delete(key)) context.pendingBytes -= size(key);
                         context.done.set(key, size(key)); context.doneBytes += size(key);
                     });
                     while (context.done.size > 5000 || context.doneBytes > 2097152) {
@@ -1175,20 +1241,32 @@ var widgetTranslationRegistration = (function () {
         } catch (error) { failed(0); }
     }
     return {
+        setEnabled: function (dashboardId, enabled) {
+            var id = Number(dashboardId);
+            if (!Number.isInteger(id) || id <= 0 || typeof enabled !== 'boolean') return;
+            dashboardEnabled[id] = enabled;
+            Object.keys(contexts).forEach(function (key) {
+                var context = contexts[key];
+                if (context.dashboardId !== id) return;
+                context.enabled = enabled; context.version++;
+                if (enabled) schedule(context);
+            });
+        },
         arm: function (widgetName, dashboardId, scope) {
             var id = Number(dashboardId);
-            if (!Number.isInteger(id) || id <= 0 || (scope !== 'menu' && (typeof widgetName !== 'string' || !widgetName))) return;
+            if (!Number.isInteger(id) || id <= 0 || dashboardEnabled[id] === false ||
+                (scope !== 'menu' && (typeof widgetName !== 'string' || !widgetName))) return;
             var contextKey = scope === 'menu' ? 'menu:' + id : id;
             var context = contexts[contextKey];
             if (!context) context = contexts[contextKey] = {dashboardId: id, widgetName: widgetName, scope: scope,
-                metadata: scope !== 'menu',
+                metadata: scope !== 'menu', enabled: dashboardEnabled[id], version: 0,
                 pending: new Set(), pendingBytes: 0, done: new Map(), doneBytes: 0,
                 busy: false, disabled: false, timer: null, retryAt: 0};
             schedule(context);
         },
         queue: function (dashboardId, keys, scope) {
             var context = contexts[scope === 'menu' ? 'menu:' + Number(dashboardId) : Number(dashboardId)];
-            if (!context || context.disabled) return;
+            if (!context || context.disabled || context.enabled === false || dashboardEnabled[context.dashboardId] === false) return;
             keys.forEach(function (key) {
                 var bytes = typeof key === 'string' ? size(key) : Infinity;
                 if (!bytes || bytes > 65535 || !key.trim() || context.done.has(key) || context.pending.has(key) ||
@@ -1200,11 +1278,14 @@ var widgetTranslationRegistration = (function () {
     };
 })();
 
-// One metadata bootstrap per dashboard, including dashboards using only the older chart widgets.
-// The server independently checks SSO identity, ownership, selector and language. Readers stay pure.
+// Metadata bootstrap is armed only after checking the dashboard's selector state.
 if (typeof document !== 'undefined' && typeof $ === 'function') {
     $(document).on('ajaxSuccess.s4cTranslationRegistration', function (event, xhr, settings, response) {
         if (!settings || !response) return;
+        if (/(?:^|\/)getDashboardData\.php(?:\?|$)/.test(settings.url || '') && response.detail === 'Ok' &&
+            response.dashboardParams && typeof response.dashboardParams.langSelectorVisible === 'string') {
+            widgetTranslationRegistration.setEnabled(response.dashboardParams.Id, response.dashboardParams.langSelectorVisible === 'yes');
+        }
         var params = null;
         if (/(?:^|\/)getWidgetParams(?:_join)?\.php(?:\?|$)/.test(settings.url || '') && response.detail === 'Ok') params = response.params;
         else if (/(?:^|\/)getParametersWidgets\.php(?:\?|$)/.test(settings.url || '')) params = response.param;
@@ -1309,7 +1390,7 @@ var widgetTextTranslationStore = (function () {
             }
             $.ajax({url: '../controllers/getWidgetTranslations.php', type: 'POST',
                 data: requestData,
-                dataType: 'json', timeout: 5000}).done(complete).fail(function () { complete(null); });
+                dataType: 'json', global: false, timeout: 5000}).done(complete).fail(function () { complete(null); });
         } catch (error) { complete(null); }
     }
     return {
@@ -1366,6 +1447,7 @@ function initializeDashboardMenuTranslations(dashboardId, enabled) {
     Array.prototype.forEach.call(labels, function (node) {
         if (!node.hasAttribute('data-s4c-i18n')) node.setAttribute('data-s4c-i18n', node.textContent);
     });
+    widgetTranslationRegistration.setEnabled(id, true);
     widgetTranslationRegistration.arm(null, id, 'menu');
     root.s4cMenuTranslationPromise = translateWidgetTextNodes(root, createWidgetTextTranslator(null, id, 'menu'), function () {
         return root.isConnected;

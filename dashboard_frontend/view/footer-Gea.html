@@ -10,11 +10,11 @@ $dashboardFooterLogoLinkValue = s4cConfigValue('dashboardFooterLogoLink', $domai
 $dashboardFooterLogoImageValue = s4cConfigValue('dashboardFooterLogoImage', 'https://dashboard.km4city.org/img/applicationLogos/disitLogoTransparent.png');
 $dashboardFooterLogoAltValue = s4cConfigValue('dashboardFooterLogoAlt', 'DISIT');
 $dashboardProfileButtonVisibleValue = strtolower(trim((string) s4cConfigValue('dashboardProfileButtonVisible', 'yes')));
-$dashboardProfileButtonVisible = !in_array($dashboardProfileButtonVisibleValue, array('0', 'false', 'no', 'off'), true);
+$dashboardProfileButtonIsVisible = !in_array($dashboardProfileButtonVisibleValue, array('0', 'false', 'no', 'off'), true);
 ?>
 <div class="footerNavRow">
     <div id="firstColumnFooter" class="footerNavColumn">
-        <?php if ($dashboardProfileButtonVisible) { ?>
+        <?php if ($dashboardProfileButtonIsVisible) { ?>
         <div class="profileButton">
               <a title="<?php echo s4cHtmlAttr($dashboardProfileButtonTitleValue); ?>" href="<?php echo s4cHtmlAttr($dashboardProfileButtonLinkValue); ?>" target="_blank"><span class="material-icons-round">person</span><?php echo s4cHtmlText($dashboardProfileButtonLabelValue); ?></a>
         </div>

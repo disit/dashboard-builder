@@ -1966,7 +1966,7 @@
             <!-- SIDEBAR NAV -->
             <div class="logo_menu_container">
             <?php include('dashboardLogo.php');?>
-            <div class="menu-btn click"><img src="../img/menu-white.png" width="32px"></div>
+            <div class="menu-btn click"><span class="material-icons-round"></span></div>
             </div>
             <nav id="s4c-sidebar" class="sidebar-menu" role="navigation">
               <div class="sidebar-container">

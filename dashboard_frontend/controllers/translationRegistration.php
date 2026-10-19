@@ -58,7 +58,7 @@ function translationRegistrationRequestAllowed(array $server, &$reason = null, &
     if (isset($server['HTTP_ORIGIN']) && $origin === null) { $reason = 'invalid_origin'; return false; }
     // Browser-controlled Fetch Metadata describes the PUBLIC request, independently
     // of TLS termination, rewritten Host/ports and any number of reverse proxies.
-    // This is a CSRF guard, not authentication: session/ownership checks still follow.
+    // This is a CSRF guard, not authorization: the session dashboard-view proof still follows.
     if (($server['HTTP_SEC_FETCH_SITE'] ?? '') === 'same-origin') return true;
     if ($origin !== null) {
         // Older clients (or unknown Fetch Metadata values) use a strict Origin check.
@@ -114,6 +114,7 @@ function translationRegistrationFailureResponse($reason, array $diagnostics = []
         'language_not_configured' => 'The selected language is not in the configured language list.',
         'dashboard_not_found' => 'No dashboard was found for this request.',
         'dashboard_not_found_or_not_owned' => 'The dashboard was not found or is not owned by the authenticated user.',
+        'dashboard_view_not_authorized' => 'This session has not been authorized to view the requested dashboard.',
         'language_selector_disabled' => 'The dashboard language selector is not enabled.',
         'dashboard_menu_disabled' => 'The dashboard links menu is not enabled.',
         'dashboard_deleted' => 'The dashboard is marked as deleted.',
@@ -202,29 +203,52 @@ function withTranslationRegistrationLock($link, callable $operation)
     finally { releaseTranslationRegistrationLock($link); }
 }
 
-function translationRegistrationContext($link, $widgetName, array $identity, &$reason = null, $dashboardMenuId = null)
+function translationRegistrationRememberDashboardView(array &$session, $dashboardId)
+{
+    if ((!is_int($dashboardId) && !is_string($dashboardId)) ||
+        !preg_match('/^[1-9][0-9]*$/D', (string) $dashboardId)) return false;
+    if (!isset($session['translationRegistrationDashboardViews']) ||
+        !is_array($session['translationRegistrationDashboardViews']))
+        $session['translationRegistrationDashboardViews'] = [];
+    $session['translationRegistrationDashboardViews'][(string) (int) $dashboardId] = true;
+    return true;
+}
+
+function translationRegistrationForgetDashboardView(array &$session, $dashboardId)
+{
+    if ((!is_int($dashboardId) && !is_string($dashboardId)) ||
+        !preg_match('/^[1-9][0-9]*$/D', (string) $dashboardId)) return;
+    unset($session['translationRegistrationDashboardViews'][(string) (int) $dashboardId]);
+}
+
+function translationRegistrationDashboardViewGranted(array $session, $dashboardId)
+{
+    return (is_int($dashboardId) || is_string($dashboardId)) &&
+        preg_match('/^[1-9][0-9]*$/D', (string) $dashboardId) &&
+        (($session['translationRegistrationDashboardViews'][(string) (int) $dashboardId] ?? null) === true);
+}
+
+function translationRegistrationContext($link, $widgetName, &$reason = null, $dashboardMenuId = null, callable $viewCheck = null)
 {
     $reason = null;
     $query = $dashboardMenuId === null
         ? 'SELECT d.Id, d.langSelectorVisible, d.deleted, d.title_header ' .
-        'FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON w.id_dashboard = d.Id ' .
-        'WHERE w.name_w = ? AND (? = \'RootAdmin\' OR d.user = ?) LIMIT 1'
+          'FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON w.id_dashboard = d.Id ' .
+          'WHERE w.name_w = ? LIMIT 1'
         : 'SELECT d.Id, d.langSelectorVisible, d.deleted, d.title_header, d.orgMenuVisible ' .
-        'FROM Dashboard.Config_dashboard d WHERE d.Id = ? AND (? = \'RootAdmin\' OR d.user = ?) LIMIT 1';
+          'FROM Dashboard.Config_dashboard d WHERE d.Id = ? LIMIT 1';
     $statement = translationRegistrationStatement($link, $query,
-        [$dashboardMenuId === null ? $widgetName : (string) $dashboardMenuId, $identity['role'], $identity['username']]);
+        [$dashboardMenuId === null ? $widgetName : (string) $dashboardMenuId]);
     try {
         if ($dashboardMenuId === null) mysqli_stmt_bind_result($statement, $id, $flag, $deleted, $title);
         else mysqli_stmt_bind_result($statement, $id, $flag, $deleted, $title, $menuFlag);
-        if (!mysqli_stmt_fetch($statement)) {
-            $reason = $identity['role'] === 'RootAdmin' ? 'dashboard_not_found' : 'dashboard_not_found_or_not_owned';
-            return null;
-        }
-        if ($flag !== 'yes') { $reason = 'language_selector_disabled'; return null; }
-        if ($deleted === 'yes') { $reason = 'dashboard_deleted'; return null; }
-        if ($dashboardMenuId !== null && $menuFlag !== 'yes') { $reason = 'dashboard_menu_disabled'; return null; }
-        return ['dashboardId' => (int) $id, 'title' => $title];
+        if (!mysqli_stmt_fetch($statement)) { $reason = 'dashboard_not_found'; return null; }
     } finally { mysqli_stmt_close($statement); }
+    if ($flag !== 'yes') { $reason = 'language_selector_disabled'; return null; }
+    if ($deleted === 'yes') { $reason = 'dashboard_deleted'; return null; }
+    if ($dashboardMenuId !== null && $menuFlag !== 'yes') { $reason = 'dashboard_menu_disabled'; return null; }
+    if (!$viewCheck || $viewCheck((int) $id) !== true) { $reason = 'dashboard_view_not_authorized'; return null; }
+    return ['dashboardId' => (int) $id, 'title' => $title];
 }
 
 function registerMissingTranslationKeys($link, array $keys, $language)
