@@ -225,6 +225,12 @@ $lastUsedColors = null;
 </head>
 
 <style type="text/css">
+    body > .modalContentWizardForm {
+        height: auto;
+        min-height: 100vh;
+        display: flow-root;
+    }
+
     .left {
         float: left;
     }
@@ -340,7 +346,7 @@ $lastUsedColors = null;
     }
 </style>
 
-<body style="overflow-y: hidden !important">
+<body>
   <?php include "../cookie_banner/cookie-banner.php"; ?>
 
     <!-- Inizio dei modali -->
@@ -355,6 +361,7 @@ $lastUsedColors = null;
             //include "addWidgetWizardInclusionCode2.php";
             ?>
             <!-- -->
+            <div class="translation-manager-toolbar">
             <div id="select_element_type" style="margin-left: 5%; margin: 2%;  float: left">
                 <!--<div id="buotton_files" style="width: 75%; padding-bottom:50px;">-->
                 <!-- -->
@@ -418,6 +425,8 @@ $lastUsedColors = null;
             </div>
 
             <!-- -->
+            <?php include __DIR__ . '/translationautoPanel.php'; ?>
+            </div>
             <div id="table_div" style="margin-left: 5%; margin-right: 5%">
                 <!-- -->
                 <table id="value_table" class="table table-striped table-bordered" style="width: 100%">

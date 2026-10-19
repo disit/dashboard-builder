@@ -41,9 +41,6 @@ try {
             if ($language === '') {
                 http_response_code(403);
                 $response = translationRegistrationFailureResponse($reason);
-            } elseif (translationRegistrationIsDefaultLanguage($language)) {
-                // Original language: no DB connection, lock, dictionary insert or metadata scan.
-                $response = ['detail' => 'Ok', 'language' => $language, 'skipped' => true];
             } else {
                 $stage = 'database_connection_failed';
                 $link = mysqli_connect($host, $username, $password, $dbname);

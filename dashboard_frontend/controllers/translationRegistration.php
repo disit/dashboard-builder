@@ -2,11 +2,6 @@
 /* Write-only registration primitives. Readers deliberately remain independent. */
 require_once __DIR__ . '/dashboardFooterTranslations.php';
 
-function translationRegistrationIsDefaultLanguage($language)
-{
-    return is_string($language) && strcasecmp(trim($language), 'en_US') === 0;
-}
-
 function translationRegistrationIdentity(array $session, &$reason = null)
 {
     $reason = null;
@@ -235,7 +230,6 @@ function translationRegistrationContext($link, $widgetName, array $identity, &$r
 function registerMissingTranslationKeys($link, array $keys, $language)
 {
     // Caller must hold the shared lock throughout this check-and-insert operation.
-    if (translationRegistrationIsDefaultLanguage($language)) return [];
     $keys = normalizeTranslationRegistrationKeys($keys);
     if (!$keys) return [];
     $statement = translationRegistrationStatement($link,
@@ -275,7 +269,6 @@ function collectConfiguredTranslationKeys(array $widget)
 
 function registerConfiguredDashboardTexts($link, array $context, $language)
 {
-    if (translationRegistrationIsDefaultLanguage($language)) return;
     $statement = translationRegistrationStatement($link,
         'SELECT title_w, rowParameters FROM Dashboard.Config_widget_dashboard WHERE id_dashboard = ?', [(string) $context['dashboardId']]);
     try {

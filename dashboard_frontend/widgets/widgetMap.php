@@ -2121,11 +2121,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
 
             if ((serviceProperties.roadElements !== '') && (serviceProperties.roadElements !== undefined) && (serviceProperties.roadElements !== 'undefined') && (serviceProperties.roadElements !== null) && (serviceProperties.roadElements !== 'null')) {
-                popupText += "Road Element Id: " + serviceProperties.roadElements + "<br>";
+                popupText += '<span data-s4c-i18n="Road Element Id:">Road Element Id:</span> ' + serviceProperties.roadElements + "<br>";
             }
 
             if ((serviceProperties.scenario !== '') && (serviceProperties.scenario !== undefined) && (serviceProperties.scenario !== 'undefined') && (serviceProperties.scenario !== null) && (serviceProperties.scenario !== 'null')) {
-                popupText += "Scenario: " + serviceProperties.scenario + "<br>";
+                popupText += '<span data-s4c-i18n="Scenario:">Scenario:</span> ' + serviceProperties.scenario + "<br>";
             }
 
             popupText += '</div>';
@@ -2883,6 +2883,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         async: true,
                         dataType: 'json',
                         success: function (geoJsonServiceData) {
+                            registerMapPopupDataTranslations(event.target._map, geoJsonServiceData);
                             var fatherNode = null;
                             if (geoJsonServiceData.hasOwnProperty("BusStop")) {
                                 fatherNode = geoJsonServiceData.BusStop;
@@ -3007,22 +3008,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
 
                             if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
-                                popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                                popupText += '<span data-s4c-i18n="Value Name:">Value Name:</span> ' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
                             }
 
                             if ((serviceProperties.serviceType !== '') && (serviceProperties.serviceType !== undefined) && (serviceProperties.serviceType !== 'undefined') && (serviceProperties.serviceType !== null) && (serviceProperties.serviceType !== 'null')) {
-                                popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
-                                popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                                popupText += '<span data-s4c-i18n="Nature:">Nature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[0]) + "<br>";
+                                popupText += '<span data-s4c-i18n="Subnature:">Subnature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[1]) + "<br><br>";
                             }
 
                             if (serviceProperties.hasOwnProperty('description')) {
                                 if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
                                     popupText += serviceProperties.description + "<br>";
                                 } else {
-                                    popupText += "No description available";
+                                    popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                                 }
                             } else {
-                                popupText += 'No description available';
+                                popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                             }
 
                             popupText += '</div>';
@@ -4662,6 +4663,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         async: true,
                         dataType: 'json',
                         success: function (geoJsonServiceData) {
+                            registerMapPopupDataTranslations(event.target._map, geoJsonServiceData);
                             var fatherNode = null;
                             if (geoJsonServiceData.hasOwnProperty("BusStop")) {
                                 fatherNode = geoJsonServiceData.BusStop;
@@ -4690,7 +4692,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             //Popup nuovo stile uguali a quelli degli eventi ricreativi
                             popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
                             if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
-                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                                popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + '<span data-s4c-i18n="Value Name:">Value Name:</span> ' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                                 //  popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                             }
                             popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button>' + (geoJsonServiceData.hasOwnProperty("BusStop") ? '<button data-id="' + latLngId + '" class="recreativeEventMapTplTmtblBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">TIMETABLE</button><button data-id="' + latLngId + '" class="recreativeEventMapTplBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">BROWSE</button>' : '') + '</div>';
@@ -4736,22 +4738,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
 
                             if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
-                                popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                                popupText += '<span data-s4c-i18n="Value Name:">Value Name:</span> ' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
                             }
 
                             if ((serviceProperties.serviceType !== '') && (serviceProperties.serviceType !== undefined) && (serviceProperties.serviceType !== 'undefined') && (serviceProperties.serviceType !== null) && (serviceProperties.serviceType !== 'null')) {
-                                popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
-                                popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                                popupText += '<span data-s4c-i18n="Nature:">Nature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[0]) + "<br>";
+                                popupText += '<span data-s4c-i18n="Subnature:">Subnature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[1]) + "<br><br>";
                             }
 
                             if (serviceProperties.hasOwnProperty('description')) {
                                 if ((serviceProperties.description !== '') && (serviceProperties.description !== undefined) && (serviceProperties.description !== 'undefined') && (serviceProperties.description !== null) && (serviceProperties.description !== 'null')) {
                                     popupText += serviceProperties.description + "<br>";
                                 } else {
-                                    popupText += "No description available";
+                                    popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                                 }
                             } else {
-                                popupText += 'No description available';
+                                popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                             }
 
                             popupText += '</div>';
@@ -5910,6 +5912,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 async: true,
                 dataType: 'json',
                 success: function (geoJsonServiceData) {
+                    registerMapPopupDataTranslations(event.target._map, geoJsonServiceData);
                     var fatherNode = null;
                     if (geoJsonServiceData.hasOwnProperty("BusStop")) {
                         fatherNode = geoJsonServiceData.BusStop;
@@ -5940,7 +5943,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     //Popup nuovo stile uguali a quelli degli eventi ricreativi
                     popupText = '<h3 class="recreativeEventMapTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + serviceProperties.name + '</h3>';
                     if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
-                        popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
+                        popupText += '<div class="recreativeEventMapSubTitle" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + '<span data-s4c-i18n="Value Name:">Value Name:</span> ' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                         //   popupText += '<div class="recreativeEventMapSubTitle">' + "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + '</div>';
                     }
                     popupText += '<div class="recreativeEventMapBtnContainer"><button data-id="' + latLngId + '" class="recreativeEventMapDetailsBtn recreativeEventMapBtn recreativeEventMapBtnActive" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Details</button><button data-id="' + latLngId + '" class="recreativeEventMapDescriptionBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">Description</button><button data-id="' + latLngId + '" class="recreativeEventMapContactsBtn recreativeEventMapBtn" type="button" style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">RT data</button></div>';
@@ -5964,10 +5967,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     if (serviceProperties.hasOwnProperty('website')) {
                         if ((serviceProperties.website !== '') && (serviceProperties.website !== undefined) && (serviceProperties.website !== 'undefined') && (serviceProperties.website !== null) && (serviceProperties.website !== 'null')) {
                             if (serviceProperties.website.includes('http') || serviceProperties.website.includes('https')) {
-                                popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
+                                popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank"><span data-s4c-i18n="Link">Link</span></a></td></tr>';
                             }
                             else {
-                                popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank">Link</a></td></tr>';
+                                popupText += '<tr><td>Website</td><td><a href="' + serviceProperties.website + '" target="_blank"><span data-s4c-i18n="Link">Link</span></a></td></tr>';
                             }
                         }
                         else {
@@ -6079,7 +6082,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                     if (geoJsonServiceData.hasOwnProperty('busLines')) {
                         if (geoJsonServiceData.busLines.results.bindings.length > 0) {
-                            popupText += '<b>Lines: </b>';
+                            popupText += '<b><span data-s4c-i18n="Lines:">Lines:</span> </b>';
                             for (var i = 0; i < geoJsonServiceData.busLines.results.bindings.length; i++) {
                                 popupText += '<span style="background: ' + color1 + '; background: -webkit-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -o-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: -moz-linear-gradient(right, ' + color1 + ', ' + color2 + '); background: linear-gradient(to right, ' + color1 + ', ' + color2 + ');">' + geoJsonServiceData.busLines.results.bindings[i].busLine.value + '</span> ';
                             }
@@ -6091,12 +6094,12 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDescContainer">';
 
                     if ((serviceProperties.serviceUri !== '') && (serviceProperties.serviceUri !== undefined) && (serviceProperties.serviceUri !== 'undefined') && (serviceProperties.serviceUri !== null) && (serviceProperties.serviceUri !== 'null')) {
-                        popupText += "Value Name: " + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
+                        popupText += '<span data-s4c-i18n="Value Name:">Value Name:</span> ' + serviceProperties.serviceUri.split("/")[serviceProperties.serviceUri.split("/").length - 1] + "<br>";
                     }
 
                     if ((serviceProperties.serviceType !== '') && (serviceProperties.serviceType !== undefined) && (serviceProperties.serviceType !== 'undefined') && (serviceProperties.serviceType !== null) && (serviceProperties.serviceType !== 'null')) {
-                        popupText += "Nature: " + serviceProperties.serviceType.split(/_(.+)/)[0] + "<br>";
-                        popupText += "Subnature: " + serviceProperties.serviceType.split(/_(.+)/)[1] + "<br><br>";
+                        popupText += '<span data-s4c-i18n="Nature:">Nature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[0]) + "<br>";
+                        popupText += '<span data-s4c-i18n="Subnature:">Subnature:</span> ' + mapPopupTranslationLabel(serviceProperties.serviceType.split(/_(.+)/)[1]) + "<br><br>";
                     }
 
                     if (serviceProperties.hasOwnProperty('description')) {
@@ -6104,11 +6107,11 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += serviceProperties.description + "<br>";
                         }
                         else {
-                            popupText += "No description available";
+                            popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                         }
                     }
                     else {
-                        popupText += 'No description available';
+                        popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                     }
 
                     popupText += '</div>';
@@ -7966,6 +7969,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     altViewMode = passedData.altViewMode;
                     if (passedData.selectedMetrics != null) {
                         selectedMetrics = passedData.selectedMetrics;
+                        registerMapPopupDataTranslations(map.defaultMapRef, passedData);
                     }
                     if (passedData.tooltipOnHover != null) {
                         tooltipOnHover = passedData.tooltipOnHover;
@@ -8131,6 +8135,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         timeout: 0,
                         dataType: 'json',
                         success: function (geoJsonData) {
+                            registerMapPopupDataTranslations(map.defaultMapRef, geoJsonData);
                             var fatherGeoJsonNode = {};
 
                             if (queryType === "Default") {
@@ -8727,6 +8732,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     var iconFilePath = passedData.iconFilePath;
                     if (passedData.selectedMetrics != null) {
                         selectedMetrics = passedData.selectedMetrics;
+                        registerMapPopupDataTranslations(map.defaultMapRef, passedData);
                     }
                     if (passedData.tooltipOnHover != null) {
                         tooltipOnHover = passedData.tooltipOnHover;
@@ -8971,6 +8977,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         timeout: 0,
                         dataType: 'json',
                         success: function (geoJsonData) {
+                            registerMapPopupDataTranslations(map.defaultMapRef, geoJsonData);
                             var fatherGeoJsonNode = {};
                             /*    if (queryType === "Default") {
                                     if (geoJsonData.hasOwnProperty("BusStops")) {
@@ -9406,17 +9413,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
                         if ((place !== 'undefined') || (address !== 'undefined')) {
                             if (categoryIT !== 'undefined') {
-                                popupText += '<b>Category: </b>' + categoryIT;
+                                popupText += '<b><span data-s4c-i18n="Category:">Category:</span> </b>' + categoryIT;
                             }
 
                             if (place !== 'undefined') {
                                 popupText += '<br/>';
-                                popupText += '<b>Location: </b>' + place;
+                                popupText += '<b><span data-s4c-i18n="Location:">Location:</span> </b>' + place;
                             }
 
                             if (address !== 'undefined') {
                                 popupText += '<br/>';
-                                popupText += '<b>Address: </b>' + address;
+                                popupText += '<b><span data-s4c-i18n="Address:">Address:</span> </b>' + address;
                                 if (civic !== 'undefined') {
                                     popupText += ' ' + civic;
                                 }
@@ -9426,19 +9433,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 popupText += '<br/>';
                                 if ((freeEvent !== 'yes') && (freeEvent !== 'YES') && (freeEvent !== 'Yes')) {
                                     if (price !== 'undefined') {
-                                        popupText += '<b>Price (€) : </b>' + price + "<br>";
+                                        popupText += '<b><span data-s4c-i18n="Price (€) :">Price (€) :</span> </b>' + price + "<br>";
                                     }
                                     else {
-                                        popupText += '<b>Price (€) : </b>N/A<br>';
+                                        popupText += '<b><span data-s4c-i18n="Price (€) :">Price (€) :</span> </b>N/A<br>';
                                     }
                                 }
                                 else {
-                                    popupText += '<b>Free event: </b>' + freeEvent + '<br>';
+                                    popupText += '<b><span data-s4c-i18n="Free event:">Free event:</span> </b>' + freeEvent + '<br>';
                                 }
                             }
                         }
                         else {
-                            popupText += 'No further details available';
+                            popupText += '<span data-s4c-i18n="No further details available">No further details available</span>';
                         }
                         popupText += '</div>';
 
@@ -9447,13 +9454,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += descriptionIT;
                         }
                         else {
-                            popupText += 'No description available';
+                            popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                         }
                         popupText += '</div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapTimingContainer">';
                         if ((startDate !== 'undefined') || (endDate !== 'undefined') || (startTime !== 'undefined')) {
-                            popupText += '<b>From: </b>';
+                            popupText += '<b><span data-s4c-i18n="From:">From:</span> </b>';
                             if (startDate !== 'undefined') {
                                 popupText += startDate;
                             }
@@ -9462,7 +9469,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             }
                             popupText += '<br/>';
 
-                            popupText += '<b>To: </b>';
+                            popupText += '<b><span data-s4c-i18n="To:">To:</span> </b>';
                             if (endDate !== 'undefined') {
                                 popupText += endDate;
                             }
@@ -9472,10 +9479,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += '<br/>';
 
                             if (startTime !== 'undefined') {
-                                popupText += '<b>Times: </b>' + startTime + '<br/>';
+                                popupText += '<b><span data-s4c-i18n="Times:">Times:</span> </b>' + startTime + '<br/>';
                             }
                             else {
-                                popupText += '<b>Times: </b>N/A<br/>';
+                                popupText += '<b><span data-s4c-i18n="Times:">Times:</span> </b>N/A<br/>';
                             }
 
                         }
@@ -9487,22 +9494,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
                         if ((phone !== 'undefined') || (website !== 'undefined')) {
                             if (phone !== 'undefined') {
-                                popupText += '<b>Phone: </b>' + phone + '<br/>';
+                                popupText += '<b><span data-s4c-i18n="Phone:">Phone:</span> </b>' + phone + '<br/>';
                             }
                             else {
-                                popupText += '<b>Phone: </b>N/A<br/>';
+                                popupText += '<b><span data-s4c-i18n="Phone:">Phone:</span> </b>N/A<br/>';
                             }
 
                             if (website !== 'undefined') {
                                 if (website.includes('http') || website.includes('https')) {
-                                    popupText += '<b><a href="' + website + '" target="_blank">Website</a></b><br>';
+                                    popupText += '<b><a href="' + website + '" target="_blank"><span data-s4c-i18n="Website">Website</span></a></b><br>';
                                 }
                                 else {
-                                    popupText += '<b><a href="' + website + '" target="_blank">Website</a></b><br>';
+                                    popupText += '<b><a href="' + website + '" target="_blank"><span data-s4c-i18n="Website">Website</span></a></b><br>';
                                 }
                             }
                             else {
-                                popupText += '<b>Website: </b>N/A';
+                                popupText += '<b><span data-s4c-i18n="Website:">Website:</span> </b>N/A';
                             }
                         }
                         else {
@@ -21276,6 +21283,9 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                     } else if (newTfrLayer) {
                         map.defaultMapRef.removeLayer(newTfrLayer);
                         newTfrLayer = null;
+                    } else if (animatedLayer!= null) {
+                        map.defaultMapRef.removeLayer(animatedLayer);
+                        animatedLayer = null;
                     }
                 }
                 
@@ -26399,6 +26409,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 var symbolcolor = passedData.symbolcolor;
                 var iconFilePath = passedData.iconFilePath;
                 selectedMetrics = passedData.selectedMetrics;
+                registerMapPopupDataTranslations(map.defaultMapRef, passedData);
                 var metricKey = passedData.bubbleSelectedMetric;
                 bubbleSelectedMetric[localDesc] = passedData.bubbleSelectedMetric;
                 altViewMode = passedData.altViewMode;
@@ -26548,6 +26559,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                 getSmartCityAPIData.done(function (jsonData) {
                     let countNullGeometry = 0;
                     geoJsonData = jsonData;
+                    registerMapPopupDataTranslations(map.defaultMapRef, geoJsonData);
                     if (geoJsonData.error == null && geoJsonData.failure == null) {
                         var realtimeDataJson = null;
                         var fatherGeoJsonNode = {};
@@ -30904,6 +30916,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             timeout: 0,
                             dataType: 'json',
                             success: function (geoJsonData) {
+                                registerMapPopupDataTranslations(fullscreendefaultMapRef, geoJsonData);
                                 var fatherGeoJsonNode = null;
 
                                 if (queryType === "Default") {
@@ -31107,17 +31120,17 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapDetailsContainer">';
                         if ((place !== 'undefined') || (address !== 'undefined')) {
                             if (categoryIT !== 'undefined') {
-                                popupText += '<b>Category: </b>' + categoryIT;
+                                popupText += '<b><span data-s4c-i18n="Category:">Category:</span> </b>' + categoryIT;
                             }
 
                             if (place !== 'undefined') {
                                 popupText += '<br/>';
-                                popupText += '<b>Location: </b>' + place;
+                                popupText += '<b><span data-s4c-i18n="Location:">Location:</span> </b>' + place;
                             }
 
                             if (address !== 'undefined') {
                                 popupText += '<br/>';
-                                popupText += '<b>Address: </b>' + address;
+                                popupText += '<b><span data-s4c-i18n="Address:">Address:</span> </b>' + address;
                                 if (civic !== 'undefined') {
                                     popupText += ' ' + civic;
                                 }
@@ -31127,19 +31140,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                                 popupText += '<br/>';
                                 if ((freeEvent !== 'yes') && (freeEvent !== 'YES') && (freeEvent !== 'Yes')) {
                                     if (price !== 'undefined') {
-                                        popupText += '<b>Price (€) : </b>' + price + "<br>";
+                                        popupText += '<b><span data-s4c-i18n="Price (€) :">Price (€) :</span> </b>' + price + "<br>";
                                     }
                                     else {
-                                        popupText += '<b>Price (€) : </b>N/A<br>';
+                                        popupText += '<b><span data-s4c-i18n="Price (€) :">Price (€) :</span> </b>N/A<br>';
                                     }
                                 }
                                 else {
-                                    popupText += '<b>Free event: </b>' + freeEvent + '<br>';
+                                    popupText += '<b><span data-s4c-i18n="Free event:">Free event:</span> </b>' + freeEvent + '<br>';
                                 }
                             }
                         }
                         else {
-                            popupText += 'No further details available';
+                            popupText += '<span data-s4c-i18n="No further details available">No further details available</span>';
                         }
                         popupText += '</div>';
 
@@ -31148,13 +31161,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += descriptionIT;
                         }
                         else {
-                            popupText += 'No description available';
+                            popupText += '<span data-s4c-i18n="No description available">No description available</span>';
                         }
                         popupText += '</div>';
 
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapTimingContainer">';
                         if ((startDate !== 'undefined') || (endDate !== 'undefined') || (startTime !== 'undefined')) {
-                            popupText += '<b>From: </b>';
+                            popupText += '<b><span data-s4c-i18n="From:">From:</span> </b>';
                             if (startDate !== 'undefined') {
                                 popupText += startDate;
                             }
@@ -31163,7 +31176,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             }
                             popupText += '<br/>';
 
-                            popupText += '<b>To: </b>';
+                            popupText += '<b><span data-s4c-i18n="To:">To:</span> </b>';
                             if (endDate !== 'undefined') {
                                 popupText += endDate;
                             }
@@ -31173,10 +31186,10 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                             popupText += '<br/>';
 
                             if (startTime !== 'undefined') {
-                                popupText += '<b>Times: </b>' + startTime + '<br/>';
+                                popupText += '<b><span data-s4c-i18n="Times:">Times:</span> </b>' + startTime + '<br/>';
                             }
                             else {
-                                popupText += '<b>Times: </b>N/A<br/>';
+                                popupText += '<b><span data-s4c-i18n="Times:">Times:</span> </b>N/A<br/>';
                             }
 
                         }
@@ -31188,22 +31201,22 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
                         popupText += '<div class="recreativeEventMapDataContainer recreativeEventMapContactsContainer">';
                         if ((phone !== 'undefined') || (website !== 'undefined')) {
                             if (phone !== 'undefined') {
-                                popupText += '<b>Phone: </b>' + phone + '<br/>';
+                                popupText += '<b><span data-s4c-i18n="Phone:">Phone:</span> </b>' + phone + '<br/>';
                             }
                             else {
-                                popupText += '<b>Phone: </b>N/A<br/>';
+                                popupText += '<b><span data-s4c-i18n="Phone:">Phone:</span> </b>N/A<br/>';
                             }
 
                             if (website !== 'undefined') {
                                 if (website.includes('http') || website.includes('https')) {
-                                    popupText += '<b><a href="' + website + '" target="_blank">Website</a></b><br>';
+                                    popupText += '<b><a href="' + website + '" target="_blank"><span data-s4c-i18n="Website">Website</span></a></b><br>';
                                 }
                                 else {
-                                    popupText += '<b><a href="' + website + '" target="_blank">Website</a></b><br>';
+                                    popupText += '<b><a href="' + website + '" target="_blank"><span data-s4c-i18n="Website">Website</span></a></b><br>';
                                 }
                             }
                             else {
-                                popupText += '<b>Website: </b>N/A';
+                                popupText += '<b><span data-s4c-i18n="Website:">Website:</span> </b>N/A';
                             }
                         }
                         else {
@@ -33914,6 +33927,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     });//Fine document ready
 
     // Map popup display translation adapter
+    // Build semantic category labels as text, without interpreting taxonomy values as HTML.
+    function mapPopupTranslationLabel(key) {
+        var span = document.createElement('span');
+        span.textContent = key;
+        if (typeof key === 'string' && key.trim()) span.setAttribute('data-s4c-i18n', key);
+        return span.outerHTML;
+    }
     function markMapPopupLabel(node) {
         if (node.hasAttribute('data-s4c-i18n')) return;
         if (!node.children.length) {
@@ -33933,17 +33953,86 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         });
     }
 
-    function translateMapPopupContent(popup, translator) {
-        var element = popup.getElement(), root = element && element.querySelector('.leaflet-popup-content');
-        if (!root) return;
-        var revision = popup._s4cPopupTextRevision = (popup._s4cPopupTextRevision || 0) + 1;
+    function markMapPopupLabels(root) {
         root.querySelectorAll('table.gisPopupGeneralDataTable thead th, table.gisPopupTable thead th, ' +
             'table.gisPopupGeneralDataTable tbody > tr > td:first-child, table.gisPopupTable tbody > tr > td:first-child, ' +
             '.recreativeEventMapBtn, button.timeTrendBtn, button.lastValueBtn').forEach(markMapPopupLabel);
+        root.querySelectorAll('.popupLastUpdateContainer > b').forEach(function (label) {
+            // Keep the non-breaking space separating the label from the live timestamp.
+            if (!label.children.length && !label.hasAttribute('data-s4c-i18n')) {
+                var key = label.textContent.trim(), suffix = label.textContent.slice(label.textContent.trimEnd().length);
+                if (key) {
+                    var span = document.createElement('span');
+                    span.textContent = key;
+                    span.setAttribute('data-s4c-i18n', key);
+                    label.textContent = '';
+                    label.appendChild(span);
+                    label.appendChild(document.createTextNode(suffix));
+                }
+            } else markMapPopupLabel(label);
+        });
         root.querySelectorAll('input.gisPopupKeepDataCheck').forEach(function (input) {
             var paragraph = input.closest('p');
             if (paragraph) paragraph.querySelectorAll('b').forEach(markMapPopupLabel);
         });
+    }
+
+    // Discover display labels from data already delivered to this map; never fetch services to discover text.
+    function registerMapPopupDataTranslations(mapRef, data) {
+        var translator = mapRef && mapRef._s4cPopupTextTranslator;
+        if (!translator || !data || typeof data !== 'object') return;
+        var keys = new Set(), excluded = ['targetWidgets', 'color1', 'color2', 'realtimeAttributes'];
+        function label(key) {
+            if (typeof key === 'string' && key.trim() && !/[<>\x00-\x1f]/.test(key) &&
+                !/^(?:[a-z][a-z0-9+.-]*:\/|www\.)/i.test(key) && !/^[\d\s.,:+-]+$/.test(key)) keys.add(key);
+        }
+        function metric(key) {
+            if (typeof key === 'string' && key.trim() && !/^(updating|measuredTime|instantTime)$/.test(key)) label(key);
+        }
+        function feature(item) {
+            if (!item || item.type !== 'Feature' || !item.properties) return;
+            Object.keys(item.properties).forEach(function (key) {
+                var value = item.properties[key];
+                if (excluded.indexOf(key) < 0 && value !== null && value !== undefined && value !== '' && value !== ' ') label(key);
+            });
+            // Only the explicitly rendered Nature/Subnature taxonomy is a display value.
+            if (typeof item.properties.serviceType === 'string') {
+                item.properties.serviceType.split(/_(.+)/).slice(0, 2).forEach(label);
+            }
+            var attributes = item.properties.realtimeAttributes;
+            if (attributes && typeof attributes === 'object') Object.keys(attributes).forEach(metric);
+        }
+        function collection(item) {
+            if (!item || typeof item !== 'object') return;
+            feature(item);
+            if (Array.isArray(item.features)) item.features.forEach(feature);
+        }
+        collection(data);
+        ['Service', 'Services', 'Sensor', 'SensorSites', 'BusStop', 'BusStops'].forEach(function (name) { collection(data[name]); });
+        var realtime = data.realtime;
+        if (realtime && realtime.head && Array.isArray(realtime.head.vars)) realtime.head.vars.forEach(metric);
+        if (Array.isArray(data.selectedMetrics)) data.selectedMetrics.forEach(metric);
+        translator.load(Array.from(keys));
+    }
+
+    function registerMapBoundPopupTranslations(layer, translator) {
+        var popup = layer.getPopup && layer.getPopup(), content = popup && popup.getContent();
+        // Function content is lazy application code; discovering labels must not invoke it.
+        if (typeof content !== 'string' && !(content && content.nodeType === 1)) return;
+        var root = document.createElement('template');
+        if (typeof content === 'string') root.innerHTML = content;
+        else root.content.appendChild(content.cloneNode(true));
+        markMapPopupLabels(root.content);
+        translator.load(Array.prototype.map.call(root.content.querySelectorAll('[data-s4c-i18n]'), function (node) {
+            return node.getAttribute('data-s4c-i18n');
+        }));
+    }
+
+    function translateMapPopupContent(popup, translator) {
+        var element = popup.getElement(), root = element && element.querySelector('.leaflet-popup-content');
+        if (!root) return;
+        var revision = popup._s4cPopupTextRevision = (popup._s4cPopupTextRevision || 0) + 1;
+        markMapPopupLabels(root);
         translateWidgetTextNodes(root, translator, function () {
             return popup._map && popup._s4cPopupTextRevision === revision;
         }).then(function () {
@@ -33958,6 +34047,31 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
     function installMapPopupTextTranslations(mapRef, translator) {
         if (mapRef._s4cPopupTextInstalled) return;
         mapRef._s4cPopupTextInstalled = true;
+        mapRef._s4cPopupTextTranslator = translator;
+        // These labels are known before any popup opens. load() reuses the dashboard's batched
+        // reader and its missing-key registration, including the existing language/selector guards.
+        translator.load(['Description', 'Value', 'Buttons', 'Last update:', 'Density', 'Details', 'RT data',
+            'Date & Time:', 'Metric Name:', 'Heatmap Value:', 'Coordinates:', 'Value Name', 'Value Name:', 'Website',
+            'Nature:', 'Subnature:', 'No description available', 'Road Element Id:', 'Scenario:', 'Link',
+            'Lines:', 'Category:', 'Location:', 'Address:', 'Price (€) :', 'Free event:', 'No further details available',
+            'From:', 'To:', 'Times:', 'Phone:', 'Website:',
+            'E-Mail', 'Address', 'Civic n.', 'C.A.P.', 'City', 'Province', 'Phone', 'Fax', 'Notes', 'Agency', 'Code',
+            'TIMETABLE', 'BROWSE', 'Timing', 'Contacts', 'Heatmap Details', 'Last', '4h', '24h',
+            '7d', '30d', '6m', '1y', '2y', '10y', 'value', '4 hours', '24 hours', '7 days', '30 days',
+            'Keep data on target widget(s) after popup close:']);
+        function discoverLayer(layer) {
+            if (!layer) return;
+            registerMapPopupDataTranslations(mapRef, layer.feature);
+            registerMapBoundPopupTranslations(layer, translator);
+            if (layer.eachLayer) layer.eachLayer(discoverLayer);
+        }
+        function added(event) { discoverLayer(event.layer); }
+        mapRef.on('layeradd', added);
+        mapRef.eachLayer(discoverLayer);
+        mapRef.on('unload', function () {
+            mapRef.off('layeradd', added);
+            mapRef._s4cPopupTextTranslator = null;
+        });
         mapRef.on('popupopen', function (event) {
             var popup = event.popup;
             if (popup._s4cPopupTextCleanup) popup._s4cPopupTextCleanup();
