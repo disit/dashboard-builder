@@ -87,7 +87,10 @@ class Worker
                     $results=parseCompletion($response,$batch['items'],$this->config);
                 } catch(ApiError $e) {
                     $error=$e->getMessage();$this->assertLock();
-                    if(($this->config['auth']['source'] ?? '')==='session' && in_array($error,['session_token_expired','api_http_401','api_http_403'],true)){
+                    if(in_array($this->config['auth']['source'] ?? '',['session','dedicated'],true) &&
+                        (in_array($error,['session_token_expired','dedicated_token_expired','api_http_401','api_http_403'],true) ||
+                         strpos($error,'dedicated_auth_')===0)){
+                        if(($this->config['auth']['source'] ?? '')==='dedicated' && strpos($error,'dedicated_')!==0)$error='dedicated_auth_'.$error;
                         $this->repository->waitingForAuth($id,$ids,$error);
                         return ['status'=>'waiting_auth']+$this->repository->status();
                     }

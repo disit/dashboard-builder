@@ -33955,10 +33955,41 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         });
     }
 
+    function mapPopupTranslatesValue(field) {
+        var key = String(field || '').replace(/[\s_:\-]/g, '').toLowerCase();
+        return /^(?:(?:short|long)?description(?:[a-z]{2,3}(?:[a-z]{2})?)?|notes?|comments?|category|nature|subnature|servicetype)$/.test(key);
+    }
+
+    // Mark descriptive text only; preserve HTML structure, handlers and technical values.
+    function markMapPopupValue(root) {
+        Array.prototype.slice.call(root.childNodes).forEach(function (node) {
+            if (node.nodeType === 3) {
+                var raw = node.nodeValue, key = raw.replace(/\s+/g, ' ').trim();
+                if (!key || /^[\d\s.,:;+\-/%€$£¥]+$/.test(key) ||
+                    /^(?:[a-z][a-z0-9+.-]*:\/|www\.|urn:|mailto:|tel:|\d{4}-\d{2}-\d{2}(?:\b|T)|\d{1,2}:\d{2}(?:\b|:))/i.test(key)) return;
+                var span = document.createElement('span'), fragment = document.createDocumentFragment();
+                span.setAttribute('data-s4c-i18n', key); span.textContent = raw.trim();
+                fragment.appendChild(document.createTextNode((raw.match(/^\s*/) || [''])[0]));
+                fragment.appendChild(span);
+                fragment.appendChild(document.createTextNode((raw.match(/\s*$/) || [''])[0]));
+                root.replaceChild(fragment, node);
+            } else if (node.nodeType === 1 && !node.hasAttribute('data-s4c-i18n') &&
+                node.getAttribute('translate') !== 'no' && !node.classList.contains('notranslate') &&
+                !/^(SCRIPT|STYLE|CODE|PRE|I|SVG|IMG|BR|INPUT|SELECT|TEXTAREA|BUTTON|IFRAME|VIDEO|AUDIO)$/.test(node.tagName)) {
+                markMapPopupValue(node);
+            }
+        });
+    }
+
     function markMapPopupLabels(root) {
         root.querySelectorAll('table.gisPopupGeneralDataTable thead th, table.gisPopupTable thead th, ' +
             'table.gisPopupGeneralDataTable tbody > tr > td:first-child, table.gisPopupTable tbody > tr > td:first-child, ' +
             '.recreativeEventMapBtn, button.timeTrendBtn, button.lastValueBtn').forEach(markMapPopupLabel);
+        root.querySelectorAll('table.gisPopupGeneralDataTable tbody > tr').forEach(function (row) {
+            if (!row.closest('table').classList.contains('gisPopupGeneralDataTable') || row.cells.length < 2) return;
+            var name = row.cells[0], marked = name.hasAttribute('data-s4c-i18n') ? name : name.querySelector('[data-s4c-i18n]');
+            if (mapPopupTranslatesValue(marked ? marked.getAttribute('data-s4c-i18n') : name.textContent)) markMapPopupValue(row.cells[1]);
+        });
         root.querySelectorAll('.popupLastUpdateContainer > b').forEach(function (label) {
             // Keep the non-breaking space separating the label from the live timestamp.
             if (!label.children.length && !label.hasAttribute('data-s4c-i18n')) {
@@ -33996,8 +34027,13 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             Object.keys(item.properties).forEach(function (key) {
                 var value = item.properties[key];
                 if (excluded.indexOf(key) < 0 && value !== null && value !== undefined && value !== '' && value !== ' ') label(key);
+                if (mapPopupTranslatesValue(key) && typeof value === 'string') {
+                    var content = document.createElement('template'); content.innerHTML = value;
+                    markMapPopupValue(content.content);
+                    content.content.querySelectorAll('[data-s4c-i18n]').forEach(function (node) { label(node.getAttribute('data-s4c-i18n')); });
+                }
             });
-            // Only the explicitly rendered Nature/Subnature taxonomy is a display value.
+            // The Description tab also renders the Nature/Subnature taxonomy as separate labels.
             if (typeof item.properties.serviceType === 'string') {
                 item.properties.serviceType.split(/_(.+)/).slice(0, 2).forEach(label);
             }
@@ -34061,17 +34097,68 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
             'TIMETABLE', 'BROWSE', 'Timing', 'Contacts', 'Heatmap Details', 'Last', '4h', '24h',
             '7d', '30d', '6m', '1y', '2y', '10y', 'value', '4 hours', '24 hours', '7 days', '30 days',
             'Keep data on target widget(s) after popup close:']);
+        // Leaflet emits layeradd before code can bind a popup, and closed popup updates
+        // do not emit contentupdate. Observe only this map's layer/popup instances.
+        var watchedLayers = new Map();
+        function observeMethod(object, name, after) {
+            var original = object[name], owned = Object.prototype.hasOwnProperty.call(object, name);
+            var wrapped = function () {
+                var result = original.apply(this, arguments);
+                // Registration failures must never interrupt Leaflet or application handlers.
+                if (this === object) { try { after(); } catch (error) {} }
+                return result;
+            };
+            object[name] = wrapped;
+            return function () {
+                if (object[name] !== wrapped) return;
+                if (owned) object[name] = original;
+                else delete object[name];
+            };
+        }
+        function observeLayer(layer) {
+            if (watchedLayers.has(layer) || typeof layer.bindPopup !== 'function' || typeof layer.getPopup !== 'function') return;
+            var state = {popup: null, content: null, restorePopup: null};
+            function changed() {
+                if (!mapRef.hasLayer(layer)) return;
+                var popup = layer.getPopup();
+                if (state.popup !== popup) {
+                    if (state.restorePopup) state.restorePopup();
+                    state.popup = popup; state.content = null; state.restorePopup = null;
+                    if (popup && typeof popup.setContent === 'function') state.restorePopup = observeMethod(popup, 'setContent', changed);
+                }
+                var content = popup && popup.getContent();
+                if (typeof content === 'string' && content === state.content) return;
+                registerMapBoundPopupTranslations(layer, translator);
+                state.content = content;
+            }
+            state.restoreBind = observeMethod(layer, 'bindPopup', changed);
+            watchedLayers.set(layer, state);
+            changed();
+        }
         function discoverLayer(layer) {
-            if (!layer) return;
-            registerMapPopupDataTranslations(mapRef, layer.feature);
-            registerMapBoundPopupTranslations(layer, translator);
-            if (layer.eachLayer) layer.eachLayer(discoverLayer);
+            if (!layer || layer instanceof L.Popup) return;
+            try {
+                observeLayer(layer);
+                registerMapPopupDataTranslations(mapRef, layer.feature);
+                if (layer.eachLayer) layer.eachLayer(discoverLayer);
+            } catch (error) {} // Optional label discovery must not block new map content.
+        }
+        function releaseLayer(layer) {
+            var state = watchedLayers.get(layer);
+            if (!state) return;
+            state.restoreBind();
+            if (state.restorePopup) state.restorePopup();
+            watchedLayers.delete(layer);
         }
         function added(event) { discoverLayer(event.layer); }
+        function removed(event) { releaseLayer(event.layer); }
         mapRef.on('layeradd', added);
+        mapRef.on('layerremove', removed);
         mapRef.eachLayer(discoverLayer);
         mapRef.on('unload', function () {
             mapRef.off('layeradd', added);
+            mapRef.off('layerremove', removed);
+            watchedLayers.forEach(function (state, layer) { releaseLayer(layer); });
             mapRef._s4cPopupTextTranslator = null;
         });
         mapRef.on('popupopen', function (event) {

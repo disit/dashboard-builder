@@ -10,6 +10,41 @@ class ApiError extends \RuntimeException
         parent::__construct($code); $this->retryable=$retryable; $this->retryAfter=max(0,(int)$retryAfter);
     }
 }
+
+/* Server-to-server only: no SSO bootstrap, browser cookies or refresh-token storage. */
+function dedicatedAccessToken(array $config,callable $transport=null,$timeout=null) {
+    $auth=$config['dedicated_auth'] ?? [];
+    if(($config['auth_mode'] ?? 'session')!=='dedicated' || !is_array($auth) || !validDedicatedAuth($auth))
+        throw new \RuntimeException('invalid_dedicated_auth_configuration');
+    $timeout=min(10,$config['timeout_seconds'],$timeout ?? 10);
+    if($timeout<=0)throw new ApiError('time_budget',true);
+    $form=['grant_type'=>'password','client_id'=>$auth['client_id'],'username'=>$auth['username'],'password'=>$auth['password']];
+    if(($auth['client_secret'] ?? '')!=='')$form['client_secret']=$auth['client_secret'];
+    // Token-response protection is independent of a small inference output budget.
+    $transport=$transport ?: function($url,$headers,$body,$seconds){return Client::http($url,$headers,$body,$seconds);};
+    try{$reply=$transport($auth['token_url'],['Accept: application/json','Content-Type: application/x-www-form-urlencoded'],
+        http_build_query($form,'','&',PHP_QUERY_RFC3986),$timeout);}
+    catch(\Throwable $e){throw new ApiError('dedicated_auth_unavailable',true);}
+    $status=$reply['status'] ?? 0;
+    if(!is_int($status) || $status<200 || $status>=300)
+        throw new ApiError('dedicated_auth_http_'.(int)$status,$status===429 || $status>=500);
+    $body=$reply['body'] ?? null;
+    if(!is_string($body) || strlen($body)>responseByteLimit(settings([])))throw new ApiError('dedicated_auth_invalid_response');
+    $data=json_decode($body,true);
+    $duration=is_array($data)?($data['expires_in'] ?? null):null;
+    if(!is_array($data) || isset($data['error']) || !validToken($data['access_token'] ?? null) ||
+        (!is_int($duration) && (!is_string($duration) || !ctype_digit($duration))) ||
+        filter_var($duration,FILTER_VALIDATE_INT)===false || $duration<=0)throw new ApiError('dedicated_auth_invalid_response');
+    $expires=time()+min(86400,(int)$duration);
+    $parts=explode('.',$data['access_token']);
+    if(count($parts)===3){
+        $claims=json_decode(base64_decode(strtr($parts[1],'-_','+/'),true),true);
+        if(is_array($claims) && isset($claims['exp']) && is_numeric($claims['exp']))$expires=min($expires,(int)$claims['exp']);
+    }
+    if($expires<=time()+5)throw new ApiError('dedicated_auth_invalid_response');
+    return ['access_token'=>$data['access_token'],'expires_at'=>$expires];
+}
+
 class Client
 {
     private $config;
@@ -17,7 +52,10 @@ class Client
     public function __construct(array $config, callable $transport = null) {
         $this->config=$config+settings([]);$config=$this->config;
         if (parse_url($config['api_url'], PHP_URL_SCHEME)!=='https') throw new \InvalidArgumentException('https_required');
-        $this->transport=$transport ?: function($url,$headers,$body,$timeout)use($config){return self::http($url,$headers,$body,$timeout,$config);};
+        $this->transport=$transport ?: function($url,$headers,$body,$timeout)use($config){
+            return self::http($url,$headers,$body,$timeout,
+                in_array('Content-Type: application/x-www-form-urlencoded',$headers,true)?null:$config);
+        };
     }
     public static function http($url,array $headers,$body,$timeout,array $config=null){
         $config=$config ?? settings([]);
@@ -37,9 +75,15 @@ class Client
     private function token() {
         $auth=$this->config['auth'] ?? [];
         $token=$auth['access_token'] ?? null;
-        if(!is_string($token) || $token==='' || preg_match('/[\s\x00-\x1F\x7F]/',$token))throw new ApiError('missing_session_access_token');
-        if(isset($auth['expires_at']) && (int)$auth['expires_at']<=time()+5)throw new ApiError('session_token_expired',true);
+        $source=$this->config['auth_mode']==='dedicated'?'dedicated':'session';
+        if(!validToken($token))throw new ApiError('missing_'.$source.'_access_token');
+        if(isset($auth['expires_at']) && (int)$auth['expires_at']<=time()+5)throw new ApiError($source.'_token_expired',true);
         return $token;
+    }
+    private function renewDedicatedToken($deadline) {
+        $remaining=$deadline-microtime(true);
+        if($remaining<=0)throw new ApiError('time_budget',true);
+        $this->config['auth']=dedicatedAccessToken($this->config,$this->transport,$remaining)+['source'=>'dedicated'];
     }
     private function checkHttp(array $reply,$prefix) {
         $status=$reply['status'];
@@ -48,13 +92,19 @@ class Client
     }
     public function complete($language,array $items,$timeout=null) {
         $deadline=microtime(true)+($timeout ?? $this->config['timeout_seconds']);
-        {
+        $renewed=false;
+        while(true){
             $remaining=$deadline-microtime(true);
             if($remaining<=0)throw new ApiError('time_budget',true);
-            $token=$this->token();
+            try{$token=$this->token();}
+            catch(ApiError $e){
+                if($this->config['auth_mode']!=='dedicated' || $renewed ||
+                    !in_array($e->getMessage(),['missing_dedicated_access_token','dedicated_token_expired'],true))throw $e;
+                $renewed=true;$this->renewDedicatedToken($deadline);continue;
+            }
             if(requestTextTokens($language,$items,$this->config)>inputContextBudget($this->config))
                 throw new ApiError('context_token_budget_exceeded');
-            $body=json_encode(['access_token'=>$token,'endpoint'=>'llama4-agentic-inference','params'=>[
+            $body=json_encode(['access_token'=>$token,'endpoint'=>$this->config['api_endpoint'],'params'=>[
                 'messages'=>[
                     ['role'=>'system','content'=>[['type'=>'text','text'=>systemPrompt($this->config['glossary'] ?? [])]]],
                     ['role'=>'user','content'=>[['type'=>'text','text'=>json_encode(['target_language'=>$language,'items'=>$items],JSON_UNESCAPED_UNICODE)]]]
@@ -65,6 +115,9 @@ class Client
             $reply=call_user_func($this->transport,$this->config['api_url'],[
                 'Accept: application/json','Content-Type: application/json','Authorization: Bearer '.$token
             ],$body,$remaining);
+            if($reply['status']===401 && $this->config['auth_mode']==='dedicated' && !$renewed){
+                $renewed=true;$this->renewDedicatedToken($deadline);continue;
+            }
             $this->checkHttp($reply,'api');
             if(strlen($reply['body'])>responseByteLimit($this->config))throw new ApiError('response_size_exceeded',true);
             if(!preg_match('//u',$reply['body']))throw new ApiError('invalid_gateway_response',true);

@@ -28,7 +28,7 @@ try {
     // Disabled installations can open the manager before applying the optional migration.
     if(!$config['enabled'] && ($body['action'] ?? '')==='status'){session_abort();echo '{"enabled":false,"busy":false,"run":null}';exit;}
     if(in_array($body['action'] ?? '',['status','missing'],true))session_abort();
-    $provider=function()use($base){$token=\S4C\TranslationAuto\sessionAccessToken($_SESSION,$base);if(!session_write_close())throw new RuntimeException('session_save_failed');return $token;};
+    $provider=function()use($base,$config){return \S4C\TranslationAuto\launchAccessToken($_SESSION,$base,$config);};
     echo json_encode(handleRequest(new Repository($base),$config,$identity,$body,null,$provider),JSON_UNESCAPED_UNICODE);
 } catch(InvalidArgumentException $e) {
     http_response_code(400);echo json_encode(['error'=>$e->getMessage()]);

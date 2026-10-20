@@ -23,7 +23,7 @@ function iniBoolean($value) {
 function settings(array $values=null) {
     $values=$values ?? dashboardConfig();
     $config=[
-        'enabled'=>false, 'api_url'=>'',
+        'enabled'=>false, 'api_url'=>'', 'api_endpoint'=>'llama4-agentic-inference', 'auth_mode'=>'session',
         'php_binary'=>'/usr/bin/php',
         'max_items'=>2000, 'batch_items'=>100, 'batch_tokens'=>12000, 'max_text_tokens'=>2048,
         'max_seconds'=>120, 'timeout_seconds'=>60, 'max_attempts'=>3,
@@ -40,7 +40,24 @@ function settings(array $values=null) {
         if(is_int($config[$key]) && ($value===null || (is_string($value) && trim($value)==='')))continue;
         $config[$key]=$value;
     }
+    foreach(['auth_mode'=>'AuthMode','api_endpoint'=>'ApiEndpoint'] as $key=>$suffix){
+        $value=$values['translationAuto'.$suffix] ?? '';
+        if(!is_string($value))throw new \RuntimeException($key==='auth_mode'?'invalid_translation_auth_mode':'invalid_translation_endpoint');
+        if(trim($value)!=='')$config[$key]=trim($value);
+    }
+    if(!in_array($config['auth_mode'],['session','dedicated'],true))throw new \RuntimeException('invalid_translation_auth_mode');
+    if(!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_.\/-]*$/D',$config['api_endpoint']))throw new \RuntimeException('invalid_translation_endpoint');
     if(array_key_exists('translationAutoEnabled',$values))$config['enabled']=iniBoolean($values['translationAutoEnabled']);
+    // Credentials are used only by the explicitly selected dedicated mode, never by session mode.
+    if($config['auth_mode']==='dedicated'){
+        $config['dedicated_auth']=[];
+        foreach(['token_url'=>'TokenUrl','client_id'=>'ClientId','client_secret'=>'ClientSecret','username'=>'Username','password'=>'Password'] as $key=>$suffix){
+            $value=$values['translationAuto'.$suffix] ?? '';
+            if(!is_string($value))throw new \RuntimeException('invalid_dedicated_auth_configuration');
+            $config['dedicated_auth'][$key]=in_array($key,['password','client_secret'],true)?$value:trim($value);
+        }
+        if($config['enabled'] && !validDedicatedAuth($config['dedicated_auth']))throw new \RuntimeException('invalid_dedicated_auth_configuration');
+    }
     if(array_key_exists('translationAutoIncludeEnglish',$values))$config['include_english']=iniBoolean($values['translationAutoIncludeEnglish']);
     if(array_key_exists('translationAutoGlossary',$values)){
         if(!is_string($values['translationAutoGlossary']))throw new \RuntimeException('invalid_translation_glossary');
@@ -64,6 +81,16 @@ function settings(array $values=null) {
         (parse_url($config['api_url'],PHP_URL_SCHEME)!=='https' || !parse_url($config['api_url'],PHP_URL_HOST)))
         throw new \RuntimeException('invalid_translation_configuration');
     return $config;
+}
+
+function validDedicatedAuth(array $auth) {
+    foreach(['token_url','client_id','username','password'] as $key)
+        if(!is_string($auth[$key] ?? null) || trim($auth[$key])==='')return false;
+    $url=parse_url($auth['token_url']);
+    return is_array($url) && ($url['scheme'] ?? '')==='https' && !empty($url['host']) &&
+        !isset($url['user']) && !isset($url['pass']) && !isset($url['fragment']) &&
+        filter_var($auth['token_url'],FILTER_VALIDATE_URL)!==false &&
+        is_string($auth['client_secret'] ?? '');
 }
 
 

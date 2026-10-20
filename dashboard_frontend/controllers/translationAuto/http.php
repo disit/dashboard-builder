@@ -2,6 +2,7 @@
 /* Shared HTTP controller and worker launcher for Linux and Windows. */
 namespace S4C\TranslationAuto;
 require_once __DIR__.'/repository.php';
+require_once __DIR__.'/client.php';
 
 function authorize(array $session,array $server) {
     $identity=\translationRegistrationIdentity($session);
@@ -139,9 +140,25 @@ function handleRequest(Repository $repository,array $config,array $identity,arra
             if(!validToken($token['access_token'] ?? null) || !is_int($token['expires_at'] ?? null) || $token['expires_at']<=time()+30)throw new \RuntimeException('session_token_unavailable');
             $context=['run_id'=>(int)$reserved['run']['id'],'launch_secret'=>$reserved['launch_secret'],'username'=>$identity['username'],'access_token'=>$token['access_token'],'expires_at'=>$token['expires_at']];
             ($launcher ?: __NAMESPACE__.'\\launchWorker')($context['run_id'],$config,$context);
-        }catch(\Throwable $e){$repository->launchFailed($reserved['run']['id'],$reserved['launch_secret']);throw new \RuntimeException('manual_translation_start_failed');}
+        }catch(\Throwable $e){
+            $error=$e instanceof ApiError && preg_match('/^dedicated_auth_(?:unavailable|invalid_response|http_[0-9]+)$/D',$e->getMessage())
+                ?$e->getMessage():'worker_launch_failed';
+            $repository->launchFailed($reserved['run']['id'],$reserved['launch_secret'],$error);
+            throw new \RuntimeException('manual_translation_start_failed');
+        }
     }
     return ['enabled'=>true,'already_running'=>$reserved['busy'],'resumed'=>$reserved['resumed'] ?? false]+$repository->status();
+}
+
+function launchAccessToken(array &$session,array $base,array $config,callable $transport=null) {
+    if($config['auth_mode']==='dedicated'){
+        // Release the local session before remote I/O; never replace its user or refresh token.
+        if(!session_write_close())throw new \RuntimeException('session_save_failed');
+        return dedicatedAccessToken($config,$transport);
+    }
+    $token=sessionAccessToken($session,$base);
+    if(!session_write_close())throw new \RuntimeException('session_save_failed');
+    return $token;
 }
 
 /* Refresh with the same SSO library/client as controllers/getAccessToken.php.

@@ -1,5 +1,5 @@
 <?php
-/* Internal finite worker. Only an authenticated web launch supplies a session token. */
+/* Internal finite worker. An authenticated RootAdmin web launch supplies an ephemeral token. */
 if(PHP_SAPI!=='cli'){http_response_code(404);exit;}
 require_once __DIR__.'/../controllers/translationAuto/worker.php';
 require_once __DIR__.'/../controllers/translationAuto/launchContext.php';
@@ -8,7 +8,7 @@ use S4C\TranslationAuto\Worker;
 use function S4C\TranslationAuto\dashboardConfig;
 use function S4C\TranslationAuto\settings;
 $options=getopt('',['check','run-id:','session-input','retry-items:','help']);
-if(isset($options['help'])){echo "Usage: php TranslateMissingTexts.php [--check | --retry-items=ID,ID]\nTranslation starts from the RootAdmin manager. No cron or stored credentials.\n";exit;}
+if(isset($options['help'])){echo "Usage: php TranslateMissingTexts.php [--check | --retry-items=ID,ID]\nTranslation starts from the RootAdmin manager. Authentication follows translationAutoAuthMode.\n";exit;}
 
 try{
     if(!isset($options['check']) && !isset($options['retry-items']) &&

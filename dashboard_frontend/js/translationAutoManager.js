@@ -81,15 +81,23 @@
             var run = data.run, text = '';
             if (run) {
                 var counts = run.counts || {};
+                var authentication = run.auth_mode === 'dedicated' ? 'Technical account' :
+                    (run.auth_mode === 'session' ? 'Signed-in user' : '');
                 if (logState) logState.textContent = (data.busy ? 'In progress' : (resumable ? 'Resume required' : run.status)) +
+                    (authentication ? ' · ' + authentication : '') +
                     ' · ' + (counts.applied || 0) + ' applied · ' + (counts.review || 0) + ' review';
                 if (data.busy) {
                     text = data.already_running ? 'Translation already running. ' : 'Translation in progress. ';
                     text += 'Started by ' + (run.started_by || run.requested_by || run.origin) + ' at ' + (run.launch_at || run.started_at || run.created_at) + ' UTC. ';
                     if (!data.worker_active) text += 'Waiting for the authenticated worker. ';
                 } else if (resumable) {
-                    text = run.status === 'waiting_auth' ? 'The session token expired or was rejected by the LLM. Sign in again or check API permissions, then resume. ' : 'Translation was interrupted. Resume with your current session; the original selection is preserved. ';
-                } else text = 'Last run: ' + run.status + ' (' + run.origin + '). ';
+                    text = run.status === 'waiting_auth' ?
+                        (String(run.error_code || '').indexOf('dedicated_') === 0 ?
+                            'Technical authentication is unavailable or was rejected. Check dedicated credentials and API/IP permissions, then resume. ' :
+                            'The session token expired or was rejected by the LLM. Sign in again or check API permissions, then resume. ') :
+                        'Translation was interrupted. Resume translation; the original selection is preserved. ';
+                } else text = 'Last run: ' + run.status + '. ';
+                if (authentication) text += 'Authentication: ' + authentication + '. ';
                 text += 'Applied: ' + (counts.applied || 0) +
                     ', preserved: ' + (counts.preserved || 0) + ', review: ' + (counts.review || 0) +
                     ', deferred/errors: ' + (counts.failed || 0) +

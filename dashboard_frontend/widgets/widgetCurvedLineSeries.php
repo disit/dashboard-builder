@@ -86,6 +86,32 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
         var nowUTC = now.toUTCString();
         var isoDate = new Date(nowUTC).toISOString();
         var errorsLog = null;
+        // CurvedLine no-data translation adapter
+        function createCurvedLineNoDataMessages(name, dashboardId) {
+            var keys = ['No data available', 'No Data Available in the Selected Time-Range.',
+                'No Data Available in the Selected Time-Range for:'];
+            var translator = typeof createWidgetTextTranslator === 'function' ? createWidgetTextTranslator(name, dashboardId) : null;
+            if (translator && typeof widgetTranslationRegistration !== 'undefined') widgetTranslationRegistration.arm(name, dashboardId);
+            function format(message) {
+                if (!translator) return message;
+                if (message === keys[0] || message === keys[1]) return translator.text(message);
+                return message.split(keys[2]).join(translator.text(keys[2]));
+            }
+            return {show: function (message) {
+                var node = document.getElementById(name.replace(/[.\-]/g, '_') + '_noDataAlertText');
+                var source = String(message), rendered = format(source);
+                var revision = node ? node._s4cNoDataTextRevision = (node._s4cNoDataTextRevision || 0) + 1 : 0;
+                if (node) node.textContent = rendered;
+                if (!translator) return $.Deferred().resolve().promise();
+                return translator.load(keys).then(function (result) {
+                    if (result.detail === 'Ok' && result.enabled && node && node.isConnected &&
+                        node._s4cNoDataTextRevision === revision && node.textContent === rendered) node.textContent = format(source);
+                });
+            }};
+        }
+        // End CurvedLine no-data translation adapter
+        var noDataMessages = createCurvedLineNoDataMessages(widgetName, <?= json_encode((int)($_REQUEST['id_dashboard'] ?? 0)) ?>);
+        noDataMessages.show('No data available');
         var typicaltrend = null;
         var trendType = null;
         var trendDate = null;
@@ -4065,9 +4091,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                                         //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                         if (errorsLog != null) {
-                                                $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                                noDataMessages.show(errorsLog);
                                         } else {
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
+                                            noDataMessages.show("No Data Available in the Selected Time-Range.");
                                         }
                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                     }
@@ -4304,9 +4330,9 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                         $("#<?= $_REQUEST['name_w'] ?>_table").hide();
                                         //    $('#<?= $_REQUEST['name_w'] ?>_noDataAlert').show();
                                         if (errorsLog != null) {
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text(errorsLog);
+                                            noDataMessages.show(errorsLog);
                                         } else {
-                                            $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlertText').text("No Data Available in the Selected Time-Range.");
+                                            noDataMessages.show("No Data Available in the Selected Time-Range.");
                                         }
                                         $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                                     }

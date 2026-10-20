@@ -73,7 +73,8 @@ class Repository
             if($run && $this->startupPending($run))return ['busy'=>true,'run'=>$run];
             if(!$run)$run=$this->reserve('manual',$user,$mode,$languages,$config,$key)['run'];
             $secret=bin2hex(random_bytes(32));
-            $this->query("UPDATE translation_auto_runs SET origin='manual',status='queued',launch_hash=?,launch_at=UTC_TIMESTAMP(),started_by=?,launch_request_key=?,error_code=NULL WHERE id=? AND active_slot=1",[hash('sha256',$secret),$user,$key,$run['id']]);
+            // Record the launch's authentication source in the existing origin field, including resumes.
+            $this->query("UPDATE translation_auto_runs SET origin=?,status='queued',launch_hash=?,launch_at=UTC_TIMESTAMP(),started_by=?,launch_request_key=?,error_code=NULL WHERE id=? AND active_slot=1",[$config['auth_mode'] ?? 'session',hash('sha256',$secret),$user,$key,$run['id']]);
             return ['busy'=>false,'run'=>$this->run($run['id']),'launch_secret'=>$secret,'resumed'=>$resumed];
         }finally{$this->query('SELECT RELEASE_LOCK(?)',[$lock]);}
     }
@@ -111,8 +112,9 @@ class Repository
         $active=$this->query('SELECT IS_USED_LOCK(?) AS owner',['Dashboard.multilanguage.autotranslate.worker.v1'])[0]['owner']!==null;
         $reserved=$run['active_slot']!==null;
         $starting=$reserved && $this->startupPending($run);
+        $authMode=in_array($run['origin'],['session','dedicated'],true)?$run['origin']:null;
         return ['busy'=>$active || $starting,'worker_active'=>$active,'resumable'=>$reserved && !$active && !$starting,'run'=>[
-            'id'=>(int)$run['id'],'origin'=>$run['origin'],'mode'=>$run['mode'],'status'=>$run['status'],
+            'id'=>(int)$run['id'],'origin'=>$authMode!==null?'manual':$run['origin'],'auth_mode'=>$authMode,'mode'=>$run['mode'],'status'=>$run['status'],
             'languages'=>json_decode($run['languages_json'],true) ?: [],'requested_by'=>$run['requested_by'],'started_by'=>$run['started_by'],'launch_at'=>$run['launch_at'],
             'created_at'=>$run['created_at'],'started_at'=>$run['started_at'],'heartbeat_at'=>$run['heartbeat_at'],
             'samples'=>$samples,'finished_at'=>$run['finished_at'],'error_code'=>$run['error_code'],'counts'=>$counts
@@ -125,10 +127,10 @@ class Repository
         $this->query("UPDATE translation_auto_runs SET status=?,error_code=?,active_slot=NULL,finished_at=UTC_TIMESTAMP(),heartbeat_at=UTC_TIMESTAMP() WHERE id=?",
             [$error?'completed_with_errors':'completed',$error,$id]);
     }
-    public function launchFailed($id,$secret=null) {
-        $params=[$id];$guard='';
+    public function launchFailed($id,$secret=null,$error='worker_launch_failed') {
+        $params=[$error,$id];$guard='';
         if($secret!==null){$guard=' AND launch_hash=?';$params[]=hash('sha256',$secret);}
-        $this->query("UPDATE translation_auto_runs SET status=IF(initialized=1,'waiting_auth','failed'),error_code='worker_launch_failed',active_slot=IF(initialized=1,1,NULL),launch_hash=NULL,finished_at=IF(initialized=1,NULL,UTC_TIMESTAMP()) WHERE id=? AND status='queued'".$guard,$params);
+        $this->query("UPDATE translation_auto_runs SET status=IF(initialized=1,'waiting_auth','failed'),error_code=?,active_slot=IF(initialized=1,1,NULL),launch_hash=NULL,finished_at=IF(initialized=1,NULL,UTC_TIMESTAMP()) WHERE id=? AND status='queued'".$guard,$params);
     }
     public function materialize(array $run,array $config) {
         if((int)$run['initialized']) return;
