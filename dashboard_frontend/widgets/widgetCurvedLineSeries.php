@@ -3875,6 +3875,15 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             return null; 
         }
         
+        function setupCurvedLineLoadingPanel(firstLoad)
+        {
+            setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+            if (firstLoad !== false) {
+                // Replace the chart while loading; keep silent background refreshes visible.
+                $("#" + widgetName + "_content").hide();
+            }
+        }
+
         function populateWidget(fromAggregate, localTimeRange, timeNavDirection, timeCount, dateInFuture, t1, t2, showContentOnLoad, codeFlag)
         {
             if (showContentOnLoad != null && showContentOnLoad == "no") {
@@ -3898,7 +3907,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
             errorsLog = null;
 
             if (fromAggregate) {
-                setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                setupCurvedLineLoadingPanel(firstLoad);
 
                 aggregationGetData = [];
                 getDataFinishCount = 0;
@@ -4382,7 +4391,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                     success: function (data) 
                     {
                         metricData = data;
-                        $("#" + widgetName + "_loading").css("display", "none");
+                        showWidgetContent(widgetName);
 
                         if(metricData.data.length !== 0)
                         {
@@ -4441,7 +4450,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                             $('#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_noDataAlert').show();
                         } 
                     },
-                    error: function()
+                    error: function(errorData)
                     {
                         metricData = null;
                         console.log("Error in data retrieval");
@@ -4549,7 +4558,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                  $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();*/
             } else {
                 $("#<?= str_replace('.', '_', str_replace('-', '_', $_REQUEST['name_w'])) ?>_nextButton").show();
-                setupLoadingPanel(widgetName, widgetContentColor, true);
+                setupCurvedLineLoadingPanel(true);
                 if (idMetric === 'AggregationSeries' || nrMetricType != null) {
                     populateWidget(true, timeRange, "minus", timeNavCount);
                 } else {
@@ -4646,7 +4655,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
             } else {
 
-                setupLoadingPanel(widgetName, widgetContentColor, true);
+                setupCurvedLineLoadingPanel(true);
                 if (idMetric === 'AggregationSeries' || nrMetricType != null) {
                     populateWidget(true, timeRange, "plus", timeNavCount);
                 } else {
@@ -4814,7 +4823,7 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                 }
                 else
                 {
-                    setupLoadingPanel(widgetName, widgetContentColor, firstLoad);
+                    setupCurvedLineLoadingPanel(firstLoad);
                 }
                 
                 if((widgetData.params.styleParameters !== "")&&(widgetData.params.styleParameters !== "null"))

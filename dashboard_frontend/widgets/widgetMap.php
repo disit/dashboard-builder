@@ -222,9 +222,59 @@ if (!isset($_SESSION)) {
 <script type="text/javascript" src="../js/leaflet-side-by-side-gh-pages/leaflet-side-by-side.js"></script>
 
 <script type='text/javascript'>
-const popupResizeObserver = new ResizeObserver(function(mutations) {
-    mutations[0].target._draggable.disable()
-});
+// Keep native resizing and Leaflet dragging separate, within this popup only.
+function makeMapPopupDraggable(popup, mapRef, excluding) {
+    var wrapper = popup._wrapper;
+    if (!wrapper || wrapper._draggable) return;
+    var draggable = new L.Draggable(popup._container, wrapper);
+    wrapper._draggable = draggable;
+    wrapper.style.cursor = 'move';
+    var excluded = (excluding || []).join(',');
+    var dragOffset = L.point(0, 0);
+    if (excluded) wrapper.querySelectorAll(excluded).forEach(function (node) { node.style.cursor = 'auto'; });
+    function prepareDrag(event) {
+        var target = event.target, point = event.touches ? event.touches[0] : event;
+        if (target && target.nodeType !== 1) target = target.parentElement;
+        var rect = wrapper.getBoundingClientRect(), style = getComputedStyle(wrapper);
+        var corner = point && point.clientY >= rect.bottom - 20 &&
+            (style.direction === 'rtl' ? point.clientX <= rect.left + 20 : point.clientX >= rect.right - 20);
+        var control = target && target.closest('button, a, input, select, textarea, label, [contenteditable="true"]');
+        var content = target && excluded && target.closest(excluded);
+        // Capture runs before Leaflet's drag-start handler; do not consume the native resize event.
+        if (style.resize !== 'none' && corner) {
+            draggable.disable();
+        }
+        else if (control || content) draggable.disable();
+        else draggable.enable();
+    }
+    function enable() {
+        wrapper.addEventListener('mousedown', prepareDrag, true);
+        wrapper.addEventListener('touchstart', prepareDrag, true);
+        wrapper.addEventListener('pointerdown', prepareDrag, true);
+        draggable.enable();
+    }
+    function disable() {
+        draggable.disable();
+        wrapper.removeEventListener('mousedown', prepareDrag, true);
+        wrapper.removeEventListener('touchstart', prepareDrag, true);
+        wrapper.removeEventListener('pointerdown', prepareDrag, true);
+    }
+    draggable.on('dragstart', function () {
+        var activeMap = popup._map || mapRef;
+        dragOffset = activeMap.latLngToLayerPoint(popup.getLatLng()).subtract(L.DomUtil.getPosition(popup._container));
+    });
+    draggable.on('dragend', function () {
+        var activeMap = popup._map || mapRef;
+        // Non-animated Leaflet popups use left/bottom in addition to the temporary drag transform.
+        if (!popup._zoomAnimated) L.DomUtil.setPosition(popup._container, L.point(0, 0));
+        if (activeMap) popup.setLatLng(activeMap.layerPointToLatLng(this._newPos.add(dragOffset)));
+        var tip = wrapper.parentNode && wrapper.parentNode.querySelector('.leaflet-popup-tip-container');
+        if (tip) tip.style.display = 'none';
+    });
+    popup.on('add', enable);
+    popup.on('remove', disable);
+    enable();
+}
     ////////////ADREANI Nuova Classe
     class KBRoadEditor {
         sensors;
@@ -2202,28 +2252,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
             // draggable
             var makeDraggable = function (popup, excluding) {
-                popupResizeObserver.observe(popup._wrapper)
-                var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
-                L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
-                var draggable = new L.Draggable(popup._container, popup._wrapper);
-                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
-                popup._wrapper._draggable = draggable
-                $(popup_content).css("width", "")
-                draggable.enable();
-                $(".draggableAndResizablePopup").css("cursor", "move");
-                draggable.on('dragend', function () {
-                    var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
-                    popup.setLatLng(pos);
-                    $(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
-                });
-                excluding.forEach((excluded) => {
-                    $(excluded).css("cursor", "auto").on("mouseover", function (e) {
-                        draggable.disable();
-                    }).on("mouseout", function (e) {
-                        draggable.enable();
-                    });
-                });
+                makeMapPopupDraggable(popup, map.defaultMapRef, excluding);
             };
             //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
             if (newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
@@ -3283,28 +3312,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             // draggable
                             var makeDraggable = function (popup, excluding) {
-                            	popupResizeObserver.observe(popup._wrapper)
-                                var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
-                                L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
-                                var draggable = new L.Draggable(popup._container, popup._wrapper);
-                                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
-                                popup._wrapper._draggable = draggable
-                                $(popup_content).css("width", "")
-                                draggable.enable();
-                                $(".draggableAndResizablePopup").css("cursor", "move");
-                                draggable.on('dragend', function () {
-                                    var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
-                                    popup.setLatLng(pos);
-                                    $(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
-                                });
-                                excluding.forEach((excluded) => {
-                                    $(excluded).css("cursor", "auto").on("mouseover", function (e) {
-                                        draggable.disable();
-                                    }).on("mouseout", function (e) {
-                                        draggable.enable();
-                                    });
-                                });
+                                makeMapPopupDraggable(popup, map.defaultMapRef, excluding);
                             };
                             //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
                             if (newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
@@ -5013,28 +5021,7 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
 
                             // draggable
                             var makeDraggable = function (popup, excluding) {
-                            	popupResizeObserver.observe(popup._wrapper)
-                                var pos = map.defaultMapRef.latLngToLayerPoint(popup.getLatLng());
-                                L.DomUtil.setPosition(popup._wrapper.parentNode, pos);
-                                console.log("POPUP", popup._wrapper, $(popup._wrapper).children(".leaflet-popup-content"))
-                                var draggable = new L.Draggable(popup._container, popup._wrapper);
-                                var popup_content = $(popup._wrapper).children(".leaflet-popup-content")[0]
-                                popup._wrapper._draggable = draggable
-                                $(popup_content).css("width", "")
-                                draggable.enable();
-                                $(".draggableAndResizablePopup").css("cursor", "move");
-                                draggable.on('dragend', function () {
-                                    var pos = map.defaultMapRef.layerPointToLatLng(this._newPos);
-                                    popup.setLatLng(pos);
-                                    $(popup._wrapper).siblings(".leaflet-popup-tip-container").hide();
-                                });
-                                excluding.forEach((excluded) => {
-                                    $(excluded).css("cursor", "auto").on("mouseover", function (e) {
-                                        draggable.disable();
-                                    }).on("mouseout", function (e) {
-                                        draggable.enable();
-                                    });
-                                });
+                                makeMapPopupDraggable(popup, map.defaultMapRef, excluding);
                             };
                             //	if(newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup table.gisPopupGeneralDataTable"]);
                             if (newpopup.options.className == "draggableAndResizablePopup") makeDraggable(newpopup, [".draggableAndResizablePopup .recreativeEventMapDataContainer"]);
@@ -34066,9 +34053,19 @@ const popupResizeObserver = new ResizeObserver(function(mutations) {
         }));
     }
 
+    function prepareMapPopupViewport(popup) {
+        if (!popup._container.classList.contains('draggableAndResizablePopup') ||
+            !popup._contentNode.querySelector('.recreativeEventMapDataContainer')) return;
+        popup._container.classList.add('mapPopupViewport');
+        // Keep the original Leaflet close node and its handlers, anchored to the resized frame.
+        if (popup._closeButton && popup._closeButton.parentNode !== popup._wrapper)
+            popup._wrapper.appendChild(popup._closeButton);
+    }
+
     function translateMapPopupContent(popup, translator) {
         var element = popup.getElement(), root = element && element.querySelector('.leaflet-popup-content');
         if (!root) return;
+        prepareMapPopupViewport(popup);
         var revision = popup._s4cPopupTextRevision = (popup._s4cPopupTextRevision || 0) + 1;
         markMapPopupLabels(root);
         translateWidgetTextNodes(root, translator, function () {
@@ -34365,6 +34362,45 @@ function simplifyTrajectoryByZoom(points, map) {
 
 <!-- OD POPUP STYLE -->
 <style>
+    .mapPopupViewport > .leaflet-popup-content-wrapper {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden !important;
+    }
+    .mapPopupViewport > .leaflet-popup-content-wrapper > .leaflet-popup-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        overflow: hidden;
+    }
+    .mapPopupViewport .leaflet-popup-content > :not(.recreativeEventMapDataContainer) {
+        flex: 0 0 auto;
+    }
+    .mapPopupViewport .leaflet-popup-content > .recreativeEventMapDataContainer {
+        flex: 1 1 auto;
+        min-height: 0;
+        min-width: 0;
+        height: auto !important;
+        overflow-x: auto;
+        overflow-y: auto;
+    }
+    .mapPopupViewport > .leaflet-popup-content-wrapper > .leaflet-popup-close-button {
+        top: 0;
+        right: 0;
+        z-index: 2;
+    }
+
+    table.gisPopupTable button.lastValueBtn,
+    table.gisPopupTable button.timeTrendBtn {
+        /* Fit translated labels while preserving the original table cells and columns. */
+        width: auto !important;
+        min-width: 30px;
+        white-space: nowrap;
+    }
+
     .leaflet-popup-content {
         margin: 0;
         line-height: 1.5;
