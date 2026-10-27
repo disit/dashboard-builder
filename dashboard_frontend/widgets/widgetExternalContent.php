@@ -144,13 +144,309 @@
             return styleParameters;
         }
 
-        function getWidgetCode()
+        async function getWidgetCode()
         {
             if (widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
-                return widgetCodeFromDb;
+                return await translateCode(widgetCodeFromDb);
             }
 
             return null;
+        }
+
+        //TRANSLATION
+
+        //extract text from HTML
+        function extractTextFromHTMLCode(code) {
+            // Decode HTML entities such as &lt;, &gt; and &quot;
+            const decoder = document.createElement("textarea");
+            decoder.innerHTML = code;
+            code = decoder.value;
+            // Parse the HTML without inserting it into the current document
+            const doc = new DOMParser().parseFromString(code, "text/html");
+            const texts = new Set();
+            // Check whether a string is an HTML tag or an incomplete markup fragment
+            const isMarkupFragment = (value) =>/^\s*<\/?[a-z][\w:-]*(?:\s+[^<>]*)?\s*\/?>?\s*$/i.test(value);
+            // Check whether a string should be excluded from translation
+            const isNonTranslatableText = (value) => {
+                value = value.trim();
+                if (!value) {
+                    return true;
+                }
+                // Exclude standalone HTML attributes and their values
+                if (/^(?:id|class|style|name|href|src|rel|type|role|for|onclick|onchange|placeholder|title|alt|value|aria-[\w-]+|data-[\w-]+)\s*=/i.test(value)
+                ) {
+                    return true;
+                }
+                // Exclude numeric values, including decimals and signed numbers
+                if (/^[+-]?\d+(?:[.,]\d+)?$/.test(value)) {
+                    return true;
+                }
+                // Exclude percentages
+                if (/^[+-]?\d+(?:[.,]\d+)?\s*%$/.test(value)) {
+                    return true;
+                }
+                // Exclude numbers followed by common units of measurement
+                if (/^[+-]?\d+(?:[.,]\d+)?\s*(?:px|em|rem|pt|vh|vw|vmin|vmax|s|ms|sec|min|h|km|m|cm|mm|kg|g|mg|mb|gb|kb|°c|°f)$/i.test(value)) {
+                    return true;
+                }
+                // Exclude Font Awesome icon class names
+                if (/^(?:fa|fas|far|fal|fab|fad)-[\w-]+$/i.test(value)) {
+                    return true;
+                }
+                // Exclude common hexadecimal font icon codes
+                if (/^\\?f[0-9a-f]{3,4}$/i.test(value)) {
+                    return true;
+                }
+                // Exclude strings that contain no letters
+                if (!/[A-Za-zÀ-ÖØ-öø-ÿΑ-ωА-я\u3040-\u30ff\u4e00-\u9fff]/.test(value)) {
+                    return true;
+                }
+                return false;
+            };
+            // Extract visible text nodes while ignoring scripts, styles and markup fragments
+            const walker = document.createTreeWalker(
+                doc.body,
+                NodeFilter.SHOW_TEXT
+            );
+            let node;
+            while ((node = walker.nextNode())) {
+                // Ignore text inside JavaScript and CSS elements
+                if (node.parentElement?.closest("script, style")) {
+                    continue;
+                }
+                const text = node.textContent.trim();
+                if (
+                    text !== "" &&
+                    !isMarkupFragment(text) &&
+                    !isNonTranslatableText(text)
+                ) {
+                    texts.add(text);
+                }
+            }
+            // Define the HTML attributes that may contain translatable text
+            const attributes = [
+                "placeholder",
+                "title",
+                "alt",
+                "aria-label",
+                "aria-description",
+                "value"
+            ];
+            // Extract translatable values from HTML attributes
+            doc.body.querySelectorAll("*").forEach((element) => {
+                for (const attr of attributes) {
+                    const value = element.getAttribute(attr);
+                    if (
+                        value &&
+                        value.trim() !== "" &&
+                        !isMarkupFragment(value.trim()) &&
+                        !isNonTranslatableText(value.trim())
+                    ) {
+                        texts.add(value.trim());
+                    }
+                }
+            });
+            // Return unique translatable strings as an array
+            return [...texts];
+        }
+
+        function extractStaticJsTexts(source) {
+          const found = new Set();
+          const decoder = document.createElement("textarea");
+          const elementNames = new Set((
+              "a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption " +
+              "circle cite clipPath code col colgroup data datalist dd defs del details dfn dialog div dl dt " +
+              "ellipse em embed fieldset figcaption figure footer foreignObject form g h1 h2 h3 h4 h5 h6 head " +
+              "header hgroup hr i iframe image img input ins kbd label legend li line linearGradient main map " +
+              "mark marker menu meta meter nav object ol optgroup option output p param path pattern picture " +
+              "polygon polyline portal pre progress q radialGradient rect rp rt ruby s samp script search section " +
+              "select slot small source span stop strong style sub summary sup svg switch symbol table tbody td " +
+              "template text tfoot th thead time title tr track u ul use var video wbr"
+          ).toLowerCase().split(/\s+/));
+          let decoded = source;
+          for (let i = 0; i < 4; i++) {
+              decoder.innerHTML = decoded;
+              const next = decoder.value;
+              if (next === decoded) break;
+              decoded = next;
+          }
+          // extract js
+          const scripts = [...decoded.matchAll(
+              /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi
+          )].map(match => match[1]);
+          // string patterns
+          const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
+          const patterns = [
+              // text content assignment
+              new RegExp(
+                  String.raw`\.(?:textContent|innerText|innerHTML|outerHTML|text|html)\s*=\s*${stringLiteral}`,
+                  "g"
+              ),
+              // functions that insert text content
+              new RegExp(
+                  String.raw`\.(?:append|prepend|before|after|insertAdjacentHTML)\s*\(\s*${stringLiteral}`,
+                  "g"
+              ),
+              // document.write() e document.writeln()
+              new RegExp(
+                  String.raw`\bdocument\s*\.\s*write(?:ln)?\s*\(\s*${stringLiteral}`,
+                  "g"
+              ),
+              // text passed in create buttons
+              new RegExp(
+                  String.raw`\bcreateButton\s*\(\s*${stringLiteral}`,
+                  "g"
+              )
+          ]
+          for (const script of scripts) {
+              for (const pattern of patterns) {
+                  for (const match of script.matchAll(pattern)) {
+                      const value = match[2]
+                          .replace(/\\([\\'"`])/g, "$1")
+                          .replace(/\\n/g, "\n")
+                          .trim();
+                      if (!value || /\$\{|<\/?(?:script|style)\b/i.test(value)) {
+                          continue;
+                      }
+                      //exclude icons
+                      if (!/[\p{L}\p{N}]/u.test(value)) {
+                          continue;
+                      }
+                      // Strings starting with "<" can be markup
+                      if (/^\s*</.test(value)) {
+                          const fragment = document.createElement("template");
+                          fragment.innerHTML = value;
+                          const hasMarkup = fragment.content.querySelector("*") !== null;
+                          const hasText = fragment.content.textContent.trim() !== "";
+                          const hasTranslatableAttribute =
+                              fragment.content.querySelector(
+                                  "[placeholder], [title], [alt], [aria-label], " +
+                                  "[aria-description], [value]"
+                              ) !== null;
+                          if (hasMarkup && (hasText || hasTranslatableAttribute)) {
+                              for (const text of extractTextFromHTMLCode(value)) {
+                                  found.add(text);
+                              }
+                          }
+                        
+                          continue;
+                      }
+                      //exclude tags used as names
+                      if (elementNames.has(value.toLowerCase())) {
+                          continue;
+                      }
+                    
+                      found.add(value);
+                  }
+              }
+          }
+        
+          return [...found];
+        }
+
+
+        function loadCsblTranslations(texts) {
+            var translations = Object.create(null);
+            // Preserve original texts when translations are unavailable.
+            texts.forEach(function (text) {
+                translations[text] = text;
+            });
+            return Promise.resolve().then(function () {
+                // Reuse the dashboard helpers from the parent of the Blob iframe.
+                var dashboardWindow = window.parent;
+                dashboardWindow.widgetTranslationRegistration.arm(
+                    widgetName,
+                    dashboardId
+                );
+                var translator = dashboardWindow.createWidgetTextTranslator(
+                    widgetName,
+                    dashboardId
+                );
+                // Load existing translations and queue missing entries for registration.
+                return translator.load(texts).then(function (result) {
+                    if (result.detail === 'Ok' && result.enabled) {
+                        texts.forEach(function (text) {
+                            translations[text] = translator.text(text);
+                        });
+                    }
+                    return translations;
+                });
+            }).catch(function () {
+                // Translation failures must not prevent the CSBL from rendering.
+                return translations;
+            });
+        }
+        async function translateCode(code) {
+
+            const htmlKeys = extractTextFromHTMLCode(code);
+            const jsKeys = extractStaticJsTexts(code);
+            const setKeys = [...new Set([...htmlKeys, ...jsKeys])];
+
+            const translations = await loadCsblTranslations(setKeys);
+
+            function translateExact(text) {
+                const leading = text.match(/^\s*/)?.[0] || "";
+                const trailing = text.match(/\s*$/)?.[0] || "";
+
+                const cleanText = text
+                    .slice(leading.length, text.length - trailing.length || undefined);
+
+                if (Object.prototype.hasOwnProperty.call(translations, cleanText)) {
+                    return leading + translations[cleanText] + trailing;
+                }
+
+                return text;
+            }
+
+            const protectedParts = [];
+
+            function protect(value) {
+                const index = protectedParts.push(value) - 1;
+                return `__PROTECTED_${index}__`;
+            }
+
+            code = code.replace(
+                /\b(?:id|class)\s*=\s*(?:"[^"]*"|'[^']*'|&quot;[\s\S]*?&quot;)/gi,
+                match => protect(match)
+            );
+
+            code = code.replace(
+                /(&gt;)([\s\S]*?)(?=&lt;|$)/g,
+                (match, prefix, text) => {
+                    return prefix + translateExact(text);
+                }
+            );
+
+            code = code.replace(
+                /(&quot;)([\s\S]*?)(&quot;)|(&#39;)([\s\S]*?)(&#39;)/g,
+                (
+                    match,
+                    doubleOpen,
+                    doubleText,
+                    doubleClose,
+                    singleOpen,
+                    singleText,
+                    singleClose
+                ) => {
+                    const text = doubleText ?? singleText;
+                    const translated = translateExact(text);
+
+                    if (doubleOpen) {
+                        return doubleOpen + translated + doubleClose;
+                    }
+
+                    return singleOpen + translated + singleClose;
+                }
+            );
+
+            code = code.replace(
+                /__PROTECTED_(\d+)__/g,
+                (match, index) => {
+                    return protectedParts[Number(index)];
+                }
+            );
+
+            return code;
         }
         
         //Va aggiornata con showWidgetContent
@@ -4080,21 +4376,22 @@
                        try {
                            widgetParameters = JSON.parse(widgetProperties.param.parameters);
                            if (widgetParameters && widgetParameters['mode'] == "ckeditor" && widgetParameters['svgCKEditor'] !=="svgMode") {
-                               let code = getWidgetCode();
-                               if (code != null) {
-                                   var text_ck_area = document.createElement("text_ck_area");
-                                   text_ck_area.innerHTML = code;
-                                   var newInfoDecoded = text_ck_area.innerText;
-                                   const getBlobURL = (code, type) => {
-                                       const blob = new Blob([code], {type})
-                                       return URL.createObjectURL(blob)
-                                   }
-                                   let htmlData = getBlobURL(newInfoDecoded, 'text/html');
-                                   //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                                   //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
-                                   $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
-                                   $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
-                               }
+                                getWidgetCode().then(code=>{
+                                    if (code != null) {
+                                        var text_ck_area = document.createElement("text_ck_area");
+                                        text_ck_area.innerHTML = code;
+                                        var newInfoDecoded = text_ck_area.innerText;
+                                        const getBlobURL = (code, type) => {
+                                            const blob = new Blob([code], {type})
+                                            return URL.createObjectURL(blob)
+                                        }
+                                        let htmlData = getBlobURL(newInfoDecoded, 'text/html');
+                                        //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                                        //    $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + encodeURI(rowParams));
+                                        $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", htmlData);
+                                        $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", "data:text/html;charset=utf-8," + htmlData);
+                                    }
+                                });
                            } else if(widgetParameters && widgetParameters['svgCKEditor'] == "svgMode"){
                                            $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
                                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("data-oldsrc", url);
@@ -4109,18 +4406,19 @@
                                           $('#<?= $_REQUEST['name_w'] ?>_iFrame').css("display", "none");
 
 
-                                           let code = getWidgetCode();
-                                           if (code != null) {
-                                                                    var text_ck_area = document.createElement("text_ck_area");
-                                                                    text_ck_area.innerHTML = code;
-                                                                    var newInfoDecoded = text_ck_area.innerText;
-                                                                    var elem = document.createElement('script');
-                                                                    elem.type = 'text/javascript';
-                                                                    elem.innerHTML = newInfoDecoded;
-                                                                    $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
-                                                                    $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
-                                                                    //
-                                             }
+                                            getWidgetCode().then(code=>{
+                                                if (code != null) {
+                                                    var text_ck_area = document.createElement("text_ck_area");
+                                                    text_ck_area.innerHTML = code;
+                                                    var newInfoDecoded = text_ck_area.innerText;
+                                                    var elem = document.createElement('script');
+                                                    elem.type = 'text/javascript';
+                                                    elem.innerHTML = newInfoDecoded;
+                                                    $('#<?= $_REQUEST['name_w'] ?>_code').append(elem);
+                                                    $('#<?= $_REQUEST['name_w'] ?>_code').css("display", "none");
+                                                    //
+                                                }
+                                            });
                                         //
                            } else {
                                $('#<?= $_REQUEST['name_w'] ?>_iFrame').attr("src", url);
