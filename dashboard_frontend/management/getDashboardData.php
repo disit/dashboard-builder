@@ -147,7 +147,6 @@
                 array_push($dashboardWidgets, $row);
             }
         }
-        mysqli_close($link);
         return $dashboardWidgets;
     }
     

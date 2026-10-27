@@ -925,7 +925,7 @@ class OpenIDConnectClient
 
         if($attribute === null) {
             return $this->userInfo;
-        } else if (array_key_exists($attribute, $this->userInfo)) {
+        } else if (is_object($this->userInfo) && property_exists($this->userInfo, $attribute)) {
             return $this->userInfo->$attribute;
         } else {
             return null;
@@ -955,7 +955,7 @@ class OpenIDConnectClient
 
         if($attribute === null) {
             return $this->verifiedClaims;
-        } else if (array_key_exists($attribute, $this->verifiedClaims)) {
+        } else if (is_object($this->verifiedClaims) && property_exists($this->verifiedClaims, $attribute)) {
             return $this->verifiedClaims->$attribute;
         } else {
             return null;

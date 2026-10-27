@@ -20,7 +20,7 @@ function translate_string($string, $language, $link) {
     $text = $string;
     $translatedText = "";
     if ($result) {
-        $n = count($result);
+        $n = mysqli_num_rows($result);
         if ($n > 0){
             while($row = mysqli_fetch_assoc($result)){
                 $translatedText = $row['translatedText'];
