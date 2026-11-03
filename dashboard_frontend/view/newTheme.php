@@ -1,4 +1,5 @@
 <?php 
+require_once __DIR__.'/../phpCompatibility.php';
     /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
@@ -98,9 +99,9 @@
                 $embeddable = $row['embeddable'];
                 $authorizedPages = $row['authorizedPagesJson'];
                 if($row['useBckImg'] == "yes" && $row['bckImgFilename'] != null){
-                    $_SESSION[isBckImgPresent] = true;
+                    $_SESSION['isBckImgPresent'] = true;
                 }else{
-                    $_SESSION[isBckImgPresent] = false;
+                    $_SESSION['isBckImgPresent'] = false;
                 }
            }
            else
@@ -136,9 +137,9 @@
             {
                 if(($authorizedPages != '')&&($authorizedPages != null)&&($authorizedPages != 'NULL'))
                 {
-                    $authorizedPages = json_decode($authorizedPages);
+                    $authorizedPages = dashboardDecodeStringList($authorizedPages);
                     $isAuthorized = false;
-                    for($i = 0; $i < count($authorizedPages); $i++)
+                    for($i = 0; is_array($authorizedPages) && $i < count($authorizedPages); $i++)
                     {
                         if(strpos($_SERVER['HTTP_REFERER'], $authorizedPages[$i]) !== false)
                         {
@@ -201,8 +202,8 @@
     <link href="../css/themes/newTheme/S4C-newTheme-dashboard-view.css?v=<?php echo time();?>" rel="stylesheet">
     <link rel="stylesheet" href="../css/themes/newTheme/style_widgets.css?v=<?php echo time();?>" type="text/css" />
 
-    <!-- <?php echo $_SESSION[isBckImgPresent] ?> -->
-    <?php if($_SESSION[isBckImgPresent]) echo "<style>:root { --bg-color: rgba(0, 0, 0, 0)}</style"?>
+    <!-- <?php echo $_SESSION['isBckImgPresent'] ?> -->
+    <?php if($_SESSION['isBckImgPresent']) echo "<style>:root { --bg-color: rgba(0, 0, 0, 0)}</style"?>
     
     <!-- Material icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons&display=swap" rel="stylesheet">

@@ -341,10 +341,43 @@ function addQueryParamsToUrl($url, $queryParams)
     return "{$url}?{$paramsString}";
 }
 
+function dashboardLdapUnavailable($connection)
+{
+    try {
+        if ($connection !== false && $connection !== null) @ldap_unbind($connection);
+    } catch (\Throwable $ignored) {
+        // A failed directory connection may already be closed.
+    }
+    $bufferLevel = $GLOBALS['dashboardLdapBufferLevel'] ?? ($GLOBALS['dashboardDbBufferLevel'] ?? null);
+    if (is_int($bufferLevel)) {
+        while (ob_get_level() > $bufferLevel) ob_end_clean();
+    }
+    error_log('Dashboard LDAP lookup failed');
+    http_response_code(502);
+    if (!headers_sent()) header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode(['result'=>'KO', 'error'=>'directory_unavailable']);
+    exit;
+}
+
+function dashboardLdapSearchEntries($connection, $baseDn, $filter, $bound = true)
+{
+    if (!$bound) dashboardLdapUnavailable($connection);
+    try {
+        $result = @ldap_search($connection, $baseDn, $filter);
+        if ($result === false) dashboardLdapUnavailable($connection);
+        $entries = @ldap_get_entries($connection, $result);
+    } catch (\Throwable $ignored) {
+        dashboardLdapUnavailable($connection);
+    }
+    if (!is_array($entries) || !isset($entries['count']) || !is_int($entries['count']) || $entries['count'] < 0) {
+        dashboardLdapUnavailable($connection);
+    }
+    return $entries;
+}
+
 function checkLdapMembership($connection, $userDn, $tool, $baseDn)
 {
-    $result = ldap_search($connection, $baseDn, '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))');
-    $entries = ldap_get_entries($connection, $result);
+    $entries = dashboardLdapSearchEntries($connection, $baseDn, '(&(objectClass=posixGroup)(memberUid=' . $userDn . '))');
     foreach ($entries as $key => $value) 
     {
         if(is_numeric($key)) 
@@ -361,8 +394,7 @@ function checkLdapMembership($connection, $userDn, $tool, $baseDn)
 
 function checkLdapRole($connection, $userDn, $role, $baseDn) 
  {
-    $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))');
-    $entries = ldap_get_entries($connection, $result);
+    $entries = dashboardLdapSearchEntries($connection, $baseDn, '(&(objectClass=organizationalRole)(cn=' . $role . ')(roleOccupant=' . $userDn . '))');
     foreach ($entries as $key => $value) 
     {
        if(is_numeric($key)) 
@@ -393,8 +425,7 @@ function checkLdapOrganization($connection, $userDn, $baseDn)
 
 function checkLdapOrganizations($connection, $userDn, $baseDn)
 {
-    $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalUnit)(l=' . $userDn . '))');
-    $entries = ldap_get_entries($connection, $result);
+    $entries = dashboardLdapSearchEntries($connection, $baseDn, '(&(objectClass=organizationalUnit)(l=' . $userDn . '))');
     $orgsArray = [];
     foreach ($entries as $key => $value)
     {
@@ -416,8 +447,7 @@ function checkLdapOrganizations($connection, $userDn, $baseDn)
 function checkLdapGroup($connection, $userDn, $baseDn, $userOrg)
 {
 //    $result = ldap_search($connection, $baseDn, '(&(objectClass=groupOfNames)(member=' . $userDn . ')(objectClass=organizationalUnit)(ou=' . $userOrg . '))');
-    $result = ldap_search($connection, $baseDn, '(&(objectClass=groupOfNames)(member=' . $userDn . '))');
-    $entries = ldap_get_entries($connection, $result);
+    $entries = dashboardLdapSearchEntries($connection, $baseDn, '(&(objectClass=groupOfNames)(member=' . $userDn . '))');
     $groupsArray = [];
     foreach ($entries as $key => $value)
     {
@@ -440,9 +470,8 @@ function checkLdapGroup($connection, $userDn, $baseDn, $userOrg)
 
 function checkLdapGroupUsers($connection, $userDn, $baseDn, $userOrg)
 {
-    $result = ldap_search($connection, $baseDn, '(&(objectClass=groupOfNames)(member='. $userOrg . '))');
+    $entries = dashboardLdapSearchEntries($connection, $baseDn, '(&(objectClass=groupOfNames)(member='. $userOrg . '))');
     //  $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalUnit))');
-    $entries = ldap_get_entries($connection, $result);
     $orgsArray = [];
     foreach ($entries as $key => $value)
     {
@@ -470,7 +499,15 @@ function checkUserLevel($username, $host, $usernameDb, $passwordDb)
     //  $result = ldap_search($connection, $baseDn, '(&(objectClass=organizationalUnit))');
 
     $query = "SELECT * FROM iot.roles_levels WHERE username = '$username'";
-    $r = mysqli_query($linkNew, $query);
+    try {
+        $r = mysqli_query($linkNew, $query);
+    } catch (\mysqli_sql_exception $exception) {
+        // Preserve the legacy fallback when the optional roles table is absent.
+        if ((int) $exception->getCode() !== 1146) {
+            throw $exception;
+        }
+        return $usrLevel;
+    }
 
     if($r)
     {
@@ -493,6 +530,19 @@ function checkUserLevel($username, $host, $usernameDb, $passwordDb)
     return "";
 }
 
+// Logging failures must not interrupt an operation or prevent session expiry.
+function dashboardAppendLog($path, $message) {
+    $stream = @fopen($path, 'ab');
+    if (!is_resource($stream)) {
+        return false;
+    }
+    try {
+        return @fwrite($stream, $message) === strlen($message);
+    } finally {
+        @fclose($stream);
+    }
+}
+
 function checkSession($role, $redirect = '') {
   $goodSession=true;
   if(isset($_SESSION['refreshToken'])) {
@@ -506,12 +556,12 @@ function checkSession($role, $redirect = '') {
     $goodSession=false;
   }
   if(!$goodSession) {
-      $f=fopen("/tmp/checkSession.log","a");
-      if(isset($claims->exp))
-        fwrite($f,date('c')." invalid session, expired refresh token, exp: ".($claims->exp-time())." sub: $claims->sub tkn: ".$_SESSION['refreshToken']."\n");
-      else
-        fwrite($f,date('c')." invalid session, no refresh token for ".$_SESSION['loggedUsername']."/".$_SESSION['loggedRole']."--- SESSION: ".var_export($_SESSION,true)." \n");
-      fclose($f);    
+      // Keep the reason useful without recording tokens, claims or the session.
+      $reason = isset($claims->exp) ? 'expired refresh token' : 'missing refresh token';
+      $message = date('c')." invalid session: ".$reason."\n";
+      if (!dashboardAppendLog("/tmp/checkSession.log", $message)) {
+          error_log(rtrim($message));
+      }
   }
   if(!isset($_SESSION['loggedRole']) || !$goodSession) {
     $_SESSION = array();
@@ -546,10 +596,21 @@ function checkDashboardId($link, $id, $user = NULL) {
   if(!isset($user)) {
     $user = $_SESSION['loggedUsername'];
   }
-  $r = mysqli_query($link, "SELECT Id FROM Dashboard.Config_dashboard WHERE Id = '$id' AND user='$user'");
-  if($r && mysqli_num_rows($r)>0)
-    return true;
-  return false;
+  //Prepared statement: $user arriva dalla sessione SSO e $id dalla request, entrambi finivano
+  //interpolati nella query. Criterio invariato: proprietario della dashboard (colonna user),
+  //lo stesso confronto usato dal percorso di visualizzazione in getDashboardData.php.
+  $stmt = mysqli_prepare($link, "SELECT Id FROM Dashboard.Config_dashboard WHERE Id = ? AND user = ?");
+  if(!$stmt)
+    return false;
+  mysqli_stmt_bind_param($stmt, "is", $id, $user);
+  if(!mysqli_stmt_execute($stmt)) {
+    mysqli_stmt_close($stmt);
+    return false;
+  }
+  $res = mysqli_stmt_get_result($stmt);
+  $found = ($res && mysqli_num_rows($res) > 0);
+  mysqli_stmt_close($stmt);
+  return $found;
 }
 
 function checkWidgetName($link, $wname, $user = NULL) {
@@ -701,9 +762,7 @@ function eventLog($msgArray)
     }
 
     $stCurLogFileName='log_'.date('Ymd').'.txt';
-    $fHandler=fopen("../logs/".$stCurLogFileName,'a+');
-    fwrite($fHandler,$string);
-    fclose($fHandler);
+    dashboardAppendLog("../logs/".$stCurLogFileName, $string);
 }
 
 function eventLogReq($msgArray)
@@ -722,9 +781,7 @@ function eventLogReq($msgArray)
     }
 
     $stCurLogFileName='log_'.date('Ymd').'.txt';
-    $fHandler=fopen("../logs/".$stCurLogFileName,'a+');
-    fwrite($fHandler,$string);
-    fclose($fHandler);
+    dashboardAppendLog("../logs/".$stCurLogFileName, $string);
 }
 
 function sanitizeTitle($title)

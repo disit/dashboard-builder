@@ -1,13 +1,14 @@
 <?php
     include '../config.php';
+    require_once __DIR__.'/../phpCompatibility.php';
     
-    $link = mysqli_connect($host, $username, $password);
-    mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
     
-    $lastUsedColors = null;
-    $dashId = escapeForSQL($_REQUEST['id_dashboard'], $link);
+    $lastUsedColors = [];
     if ($_REQUEST['name_w'] !== 'preview'){
+    $link = mysqli_connect($host, $username, $password);
+    mysqli_select_db($link, $dbname);
+    $dashId = escapeForSQL($_REQUEST['id_dashboard'], $link);
     if (checkVarType($dashId, "integer") === false) {
         eventLog("Returned the following ERROR in widgetCtxMenu.php for dashboard_id = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
         exit();
@@ -18,7 +19,7 @@
     if($r) 
     {
         $row = mysqli_fetch_assoc($r);
-        $lastUsedColors = json_decode($row['lastUsedColors']);
+        $lastUsedColors = dashboardDecodeStringList($row['lastUsedColors'] ?? null) ?? [];
     }
 
     if (checkWidgetNameInDashboard($link, $_REQUEST['name_w'], $dashId) === false) {

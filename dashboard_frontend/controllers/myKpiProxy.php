@@ -14,6 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 if (!isset($_SESSION)) {
@@ -99,8 +100,10 @@ if(isset($_SESSION['refreshToken'])) {
     );
 
     $context = stream_context_create($options);
-    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
+    $http_response_header = [];
+    $myKpiDataJson = @file_get_contents($apiUrl, false, $context);
 
+    $seriesHeaders = $http_response_header ?? [];
     $myKpiData = json_decode($myKpiDataJson);
 
     if (strpos($action, "getValueUnit") !== false) {
@@ -116,36 +119,26 @@ if(isset($_SESSION['refreshToken'])) {
 
 
         $contextUnit = stream_context_create($optionsUnit);
-        $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
+        $http_response_header = [];
+        $myKpiUnitJson = @file_get_contents($apiUrlUnit, false, $contextUnit);
 
-        $myKpiUnit = json_decode($myKpiUnitJson);
-
-
-		if (array_key_exists('valueUnit', $myKpiUnit)) {
-			$myKpiData[0]->valueUnit = $myKpiUnit->valueUnit;
-		}else{
-			//$myKpiData[0]->valueUnit = null;
-		}
-        $myKpiDataJson = json_encode($myKpiData);
-    }
-
-    if (strpos($action, "getValueUnitForTrend") !== false) {
-        $apiUrlUnit = $personalDataApiBaseUrl . "/v1/kpidata/" . $myKpiId . "/?sourceRequest=dashboardmanager&accessToken=" . $accessToken;
-        $optionsUnit = array(
-            'http' => array(
-                'header' => "Content-type: application/x-www-form-urlencoded\r\n",
-                'method' => 'GET',
-                'timeout' => 30,
-                'ignore_errors' => true
-            )
-        );
-
-        $contextUnit = stream_context_create($optionsUnit);
-        $myKpiUnitJson = file_get_contents($apiUrlUnit, false, $contextUnit);
-
-        $myKpiUnit = json_decode($myKpiUnitJson);
-        for ($i = 0; $i < sizeof($myKpiData); $i++) {
-            $myKpiData[$i]->valueUnit = $myKpiUnit->valueUnit;
+        try {
+            dashboardControllerAssertServiceHttp($http_response_header ?? []);
+            $myKpiUnit = dashboardDecodeServiceJson($myKpiUnitJson);
+            $myKpiData = dashboardControllerDecodeList($myKpiDataJson, $seriesHeaders);
+            if (!is_object($myKpiUnit) || property_exists($myKpiUnit, 'error') ||
+                (property_exists($myKpiUnit, 'valueUnit') && $myKpiUnit->valueUnit !== null && !is_scalar($myKpiUnit->valueUnit))) {
+                throw new UnexpectedValueException('invalid_data_service_response');
+            }
+        } catch (UnexpectedValueException $e) {
+            dashboardControllerServiceError(); exit;
+        }
+        if (property_exists($myKpiUnit, 'valueUnit')) {
+            if (strpos($action, "getValueUnitForTrend") !== false) {
+                foreach ($myKpiData as $value) $value->valueUnit = $myKpiUnit->valueUnit;
+            } elseif (isset($myKpiData[0]) && is_object($myKpiData[0])) {
+                $myKpiData[0]->valueUnit = $myKpiUnit->valueUnit;
+            }
         }
         $myKpiDataJson = json_encode($myKpiData);
     }
@@ -188,7 +181,8 @@ if(isset($_SESSION['refreshToken'])) {
     );
 
     $context = stream_context_create($options);
-    $myKpiDataJson = file_get_contents($apiUrl, false, $context);
+    $http_response_header = [];
+    $myKpiDataJson = @file_get_contents($apiUrl, false, $context);
 
     $myKpiData = json_decode($myKpiDataJson);
     echo $myKpiDataJson;

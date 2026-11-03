@@ -19,7 +19,6 @@ use Jumbojett\OpenIDConnectClient;
 
 //Altrimenti restituisce in output le warning
 error_reporting(E_ERROR | E_NOTICE);
-mysqli_select_db($link, $dbname);
 session_start();
 
 $proceed = false;

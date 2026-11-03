@@ -16,6 +16,7 @@
 
 include '../config.php';
 require '../sso/autoload.php';
+require_once __DIR__.'/serviceResponse.php';
 use Jumbojett\OpenIDConnectClient;
 
 error_reporting(E_ERROR | E_NOTICE);
@@ -125,15 +126,27 @@ if(isset($_SESSION['loggedUsername']))
         );
 
         $context  = stream_context_create($options);
-        $j1=$j2=array();
-        $myPersonalDataJson = file_get_contents($apiUrl, false, $context);
-        if($myPersonalDataJson)
-          $j1=json_decode($myPersonalDataJson, true);
-        $myPersonalDataJson = file_get_contents($apiUrl."&delegated=true", false, $context);
-        if($myPersonalDataJson)
-          $j2=json_decode($myPersonalDataJson, true);
+        $http_response_header = [];
+        $myPersonalDataJson = @file_get_contents($apiUrl, false, $context);
+        $j1 = dashboardControllerRequireList($myPersonalDataJson, $http_response_header, [], true);
+        $http_response_header = [];
+        $myPersonalDataJson = @file_get_contents($apiUrl."&delegated=true", false, $context);
+        $j2 = dashboardControllerRequireList($myPersonalDataJson, $http_response_header, [], true);
+        $sortByDataTime = count($j1)>0 && count($j2)>0;
+        if($sortByDataTime) {
+            // dataTime is consumed only when both sources need to be sorted together.
+            foreach ([$j1, $j2] as $rows) {
+                foreach ($rows as $row) {
+                    if (!isset($row['dataTime']) ||
+                        (!is_string($row['dataTime']) && !is_int($row['dataTime']) && !is_float($row['dataTime']))) {
+                        dashboardControllerServiceError();
+                        exit;
+                    }
+                }
+            }
+        }
         $result=array_merge($j1,$j2);
-        if(count($j1)>0 && count($j2)>0) {
+        if($sortByDataTime) {
           usort($result,"cmpDataTime");
         }
         echo json_encode($result);

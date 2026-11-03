@@ -121,11 +121,17 @@ include '../config.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
+require_once __DIR__.'/../databaseException.php';
+$dashboardDbBufferLevel = ob_get_level();
+ob_start();
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
 session_start();
 checkSession('Public');
 // $link = mysqli_connect($host, $username, $password) or die("failed to connect to server !!");
 $link = mysqli_connect($sql_host_pd, $usrDb, $pwdDb) or die("failed to connect to server !!");
-mysqli_select_db($link, $dbname);
+// Queries below qualify the Personal Data schema explicitly (profiledb).
+// The dashboard database may not exist on this separate server.
 
 // Personal Data used params
 $dmUsername = $_SESSION['loggedUsername'];
@@ -172,6 +178,7 @@ if(!isset($_SESSION['refreshToken'])) {
         }   
     }
 }
+
 
 else if(isset($_SESSION['refreshToken'])) {
     $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
@@ -292,4 +299,8 @@ else if(isset($_SESSION['refreshToken'])) {
         }   
     }
 }
+} catch (\mysqli_sql_exception $exception) {
+    dashboardDatabaseFailure($exception, isset($link) ? $link : null, $dashboardDbBufferLevel);
+}
+if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();
 

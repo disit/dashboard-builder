@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__.'/../phpCompatibility.php';
+require_once __DIR__.'/../databaseException.php';
 /* Dashboard Builder.
   Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
@@ -23,6 +25,10 @@ require "../sso/autoload.php";
 //include "../../iot-directory/api/common.php";
 
 use Jumbojett\OpenIDConnectClient;
+$dashboardOutputLevel = ob_get_level();
+// File downloads stream directly: do not buffer an entire uploaded file in memory.
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
 
 session_start();
 header("Access-Control-Allow-Origin: *");
@@ -98,7 +104,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $apiCall = curl_exec($ch);
         if ($apiCall) {
-            $apiArray = json_decode($apiCall, true);
+            $apiArray = dashboardDecodeServiceJson($apiCall, true, [['data']]);
             if (!$apiArray) {
                 $message_output["code"] = "404";
                 $message_output["message"] = "failed get_all_device";
@@ -106,7 +112,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                 echo json_encode($message_output);
                 exit();
             }
-            $data = $apiArray["data"];
+            $data = dashboardServiceList($apiArray, 'data');
             $devices_list = [];
             $length = count($data);
             for ($i = 0; $i < $length; $i++) {
@@ -136,8 +142,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
                     curl_setopt($ch1, CURLOPT_RETURNTRANSFER, 1);
                     $deviceCall01 = curl_exec($ch1);
                     if ($deviceCall01) {
-                        $response0 = json_decode($deviceCall01, true);
-                        $var_length = count($response0["attributes"]);
+                        $response0 = dashboardDecodeServiceJson($deviceCall01, true, [['attributes']]);
+                        $attributes = dashboardServiceList($response0, 'attributes');
+                        $var_length = count($attributes);
                         $dateObserved = "";
                         $newfileid = "";
                         $description = "";
@@ -295,9 +302,9 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         ]);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         $apiCall = curl_exec($ch);
-        $apiArray = json_decode($apiCall, true);
+        $apiArray = dashboardDecodeServiceJson($apiCall, true, [['features']]);
         $message_output["result_api"] = $apiArray;
-        $data = $apiArray['features'];
+        $data = dashboardServiceList($apiArray, 'features');
         /*$data = array_values(array_filter($apiArray['features'], function($feature) {
             return isset($feature['properties']['values']['newfileid']) && !empty($feature['properties']['values']['newfileid']);
         }));*/
@@ -309,7 +316,7 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
         //
         $debug = $length . '-';
         //
-        $num_data = count($apiArray['features']);
+        $num_data = count($data);
         for ($i = 0; $i < $num_data; $i++) {
             $current_device = $data[$i]['properties'];
 
@@ -1579,6 +1586,13 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
     mysqli_close($link);
     exit();
 }
+} catch (\UnexpectedValueException $exception) {
+    dashboardInvalidServiceResponse($dashboardOutputLevel);
+} catch (\mysqli_sql_exception $exception) {
+    dashboardDatabaseFailure($exception, isset($link) ? $link : null, $dashboardOutputLevel);
+}
+if (ob_get_level()>$dashboardOutputLevel) ob_end_flush();
+
 function human_filesize($bytes, $dec = 2)
 {
     $bytes = number_format($bytes, 0, ".", "");
@@ -1609,7 +1623,7 @@ function getOwnerShipDevice($token, &$result, $elementId = null)
         $local_result = file_get_contents($url);
         $result["log"] .= $local_result;
         if (strpos($http_response_header[0], '200') == true || strpos($http_response_header[0], '204') == true) {
-            $lists = json_decode($local_result);
+            $lists = dashboardServiceList(['items'=>dashboardDecodeServiceJson($local_result)], 'items');
             for ($i = 0; $i < count($lists); $i++) {
                 if (!isset($lists[$i]->deleted)) {
                     if (strpos($lists[$i]->elementId, ":") > 0) {

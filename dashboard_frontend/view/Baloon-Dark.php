@@ -1,4 +1,5 @@
 <?php 
+require_once __DIR__.'/../phpCompatibility.php';
     /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
@@ -138,9 +139,9 @@
             {
                 if(($authorizedPages != '')&&($authorizedPages != null)&&($authorizedPages != 'NULL'))
                 {
-                    $authorizedPages = json_decode($authorizedPages);
+                    $authorizedPages = dashboardDecodeStringList($authorizedPages);
                     $isAuthorized = false;
-                    for($i = 0; $i < count($authorizedPages); $i++)
+                    for($i = 0; is_array($authorizedPages) && $i < count($authorizedPages); $i++)
                     {
                         if(strpos($_SERVER['HTTP_REFERER'], $authorizedPages[$i]) !== false)
                         {

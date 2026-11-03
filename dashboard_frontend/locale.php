@@ -1,4 +1,18 @@
 <?php
+/* Dashboard Builder.
+   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+ require_once __DIR__.'/phpCompatibility.php';  
  include 'config.php';
 function validLocale($locale, $set_languages) {
     return in_array($locale, $set_languages);
@@ -16,12 +30,15 @@ function selectLanguage($localizations) {
     }
 
     $obj = json_decode($localizations, true);
-    $set_languages0 = $obj['languages'];
+    $set_languages0 = is_array($obj) && isset($obj['languages']) && dashboardIsList($obj['languages']) ? $obj['languages'] : [];
+    $set_languages = [];
     //converti Array
     $cont = count($set_languages0);
     for ($i = 0; $i < $cont; $i++) {
         //echo($i);
-        $set_languages[$i] = $set_languages0[$i]['code'];
+        if (is_array($set_languages0[$i]) && isset($set_languages0[$i]['code']) && is_string($set_languages0[$i]['code'])) {
+            $set_languages[] = $set_languages0[$i]['code'];
+        }
     }
     //print_r[$set_languages];
     //
@@ -60,7 +77,7 @@ function selectLanguage($localizations) {
         $lang = $current_language;*/
         $lang= 'en_US';
         $_SESSION['lang'] = $lang;
-        if (isset($_COOKIE['lang'])){
+        if (isset($_COOKIE['lang']) && validLocale($_COOKIE['lang'], $set_languages)){
             $_SESSION['lang'] = $_COOKIE['lang'];
         }
     }

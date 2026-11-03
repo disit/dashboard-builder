@@ -2,6 +2,23 @@
 
 //$data = 'data:image/png;base64,AAAFBfj42Pj4';
 
+function writePngIconFile($path, $data) {
+    $file = @fopen($path, 'wb');
+    if ($file === false) return false;
+    $written = @fwrite($file, $data);
+    $closed = fclose($file);
+    if ($written === false || $written !== strlen($data) || !$closed) {
+        @unlink($path);
+        return false;
+    }
+    return true;
+}
+
+function pngIconWriteFailure() {
+    http_response_code(500);
+    return ['result' => 'KO', 'detail' => 'File could not be written.'];
+}
+
 $response = [];
 
 if (isset($_REQUEST['imgBase64Data'])) {
@@ -53,14 +70,18 @@ if (isset($_REQUEST['imgBase64Data'])) {
             if(!file_exists($_REQUEST['nameFolder']))
             {
                 $oldMask = umask(0);
-                mkdir($_REQUEST['nameFolder'], 0777);
+                $created = @mkdir($_REQUEST['nameFolder'], 0777);
                 umask($oldMask);
+                if (!$created && !is_dir($_REQUEST['nameFolder'])) {
+                    echo json_encode(pngIconWriteFailure());
+                    return;
+                }
             }
 
             if(!file_exists($uploadFolder))
             {
                 $oldMask = umask(0);
-                mkdir($uploadFolder, 0777);
+                $created = @mkdir($uploadFolder, 0777);
                 umask($oldMask);
             }
 
@@ -70,11 +91,11 @@ if (isset($_REQUEST['imgBase64Data'])) {
                 $fileName = $_REQUEST['nameFile'];
             }
 
-            $file = fopen($_REQUEST['nameFolder'] . "/" . $serviceType . "/" .$fileName . ".png", "wb");
-            fwrite($file, $data);
-            fclose($file);
-
-            $response['detail'] = 'File Written.';
+            if (writePngIconFile($_REQUEST['nameFolder'] . "/" . $serviceType . "/" .$fileName . ".png", $data)) {
+                $response['detail'] = 'File Written.';
+            } else {
+                $response = pngIconWriteFailure();
+            }
 
         /*    $files = glob($uploadFolder.'*');
             foreach($files as $file) {
@@ -96,9 +117,11 @@ if (isset($_REQUEST['imgBase64Data'])) {
             } else {
                 $fileName = $_REQUEST['nameFile'];
             }
-            $file = fopen("../img/outputPngIcons/" . $fileName . ".png", "wb");
-            fwrite($file, $data);
-            fclose($file);
+            if (writePngIconFile("../img/outputPngIcons/" . $fileName . ".png", $data)) {
+                $response['detail'] = 'File Written.';
+            } else {
+                $response = pngIconWriteFailure();
+            }
         }
     } else {
         $response['detailFile'] = 'No File Name Passed';

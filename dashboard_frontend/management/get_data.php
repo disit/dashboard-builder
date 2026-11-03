@@ -583,6 +583,16 @@ else
         }
         else if($action == "get_dashboards")
         {
+            require_once __DIR__.'/../controllers/serviceResponse.php';
+            $requireDashboardId = function($dashboard) {
+                if (!isset($dashboard->elementId) ||
+                    (!is_int($dashboard->elementId) && !is_string($dashboard->elementId)) ||
+                    preg_match('/^[0-9]+$/D', (string)$dashboard->elementId) !== 1) {
+                    dashboardControllerServiceError();
+                    exit;
+                }
+                return $dashboard->elementId;
+            };
             $time_elapsed_get_data_secs = microtime(true) - $start_get_data;
         //    eventLog("Init get_data: " . $time_elapsed_get_data_secs ." sec.");
             $start_get_dashboards = microtime(true);
@@ -766,12 +776,13 @@ else
                             );
 
                             $context = stream_context_create($options);
-                            $myDashboardsJson = file_get_contents($apiUrl, false, $context);
+                            $http_response_header = [];
+                            $myDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $myDashboards = json_decode($myDashboardsJson);
+                            $myDashboards = dashboardControllerRequireList($myDashboardsJson, $http_response_header);
 
                             for ($i = 0; $i < count($myDashboards); $i++) {
-                                array_push($dashIds, $myDashboards[$i]->elementId);
+                                array_push($dashIds, $requireDashboardId($myDashboards[$i]));
                             }
 
                             //echo "Dashboards: " . count($dashIds);
@@ -809,9 +820,10 @@ else
                             );
 
                             $context = stream_context_create($options);
-                            $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+                            $http_response_header = [];
+                            $delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $delegatedDashboards = json_decode($delegatedDashboardsJson);
+                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType']);
 
                             // Patch per filtrare le public di roottooladmin1
                             $orgNameSql = mysqli_real_escape_string($link, $_SESSION['loggedOrganization']);
@@ -834,12 +846,13 @@ else
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if (!isset($delegatedDashboards->error)) {
                                     if (@$delegatedDashboards[$i]->elementType == 'DashboardID') {
+                                        $dashboardId = $requireDashboardId($delegatedDashboards[$i]);
                                         if ($orgFlag != "all") {
-                                            if (in_array($delegatedDashboards[$i]->elementId, $dashboardOrgList, true)) {
-                                                array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                            if (in_array($dashboardId, $dashboardOrgList, true)) {
+                                                array_push($dashIds, $dashboardId);
                                             }
                                         } else {
-                                            array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                            array_push($dashIds, $dashboardId);
                                         }
                                     }
                                 }
@@ -861,20 +874,28 @@ else
                             );
 
                             $context = stream_context_create($options);
-                            $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+                            $http_response_header = [];
+                            $delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $delegatedDashboards = json_decode($delegatedDashboardsJson);
-                            if(!is_array($delegatedDashboards)) {
-                                 //errore
-                                 $delegatedDashboards = array();
-                            }
+                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType']);
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if ($delegatedDashboards[$i]->elementType == 'DashboardID') {
-                                    array_push($dashIds, $delegatedDashboards[$i]->elementId);
+                                    $dashboardId = $requireDashboardId($delegatedDashboards[$i]);
+                                    if (!isset($delegatedDashboards[$i]->usernameDelegator) ||
+                                        (!is_string($delegatedDashboards[$i]->usernameDelegator) && !is_int($delegatedDashboards[$i]->usernameDelegator) && !is_float($delegatedDashboards[$i]->usernameDelegator))) {
+                                        dashboardControllerServiceError();
+                                        exit;
+                                    }
+                                    if (!property_exists($delegatedDashboards[$i], 'groupnameDelegated')) $delegatedDashboards[$i]->groupnameDelegated = null;
+                                    if ($delegatedDashboards[$i]->groupnameDelegated !== null && !is_string($delegatedDashboards[$i]->groupnameDelegated)) {
+                                        dashboardControllerServiceError();
+                                        exit;
+                                    }
+                                    array_push($dashIds, $dashboardId);
                                     //   }
                                     // CHECK GROUPNAMEDELEGATED
                                     if (!is_null($delegatedDashboards[$i]->groupnameDelegated)) {
-                                        $groupDelegationString = "";
+                                        $newDelegationString = "";
                                         if ($delegatedDashboards[$i]->groupnameDelegated != "") {
                                             if (strpos($delegatedDashboards[$i]->groupnameDelegated, 'cn') !== false) {
                                                 if (strpos($delegatedDashboards[$i]->groupnameDelegated, 'ou') !== false) {
@@ -890,7 +911,6 @@ else
                                                         $auxString = explode("ou=", $delegatedDashboards[$i]->groupnameDelegated)[1];
                                                         $auxString = explode(",", $auxString)[0];
                                                     }
-                                                    $newDelegation = ["delegationId" => $delegatedDashboards[$i]->id, "delegatedGroup" => $auxString];
                                                     $newDelegationString = $auxString;
                                                 }
                                             } else {
@@ -899,7 +919,6 @@ else
                                                     explode("ou=", $delegatedDashboards[$i]->groupnameDelegated) != "";
                                                     $auxString = explode("ou=", $delegatedDashboards[$i]->groupnameDelegated)[1];
                                                     $auxString = explode(",", $auxString)[0];
-                                                    $newDelegation = ["delegationId" => $delegatedDashboards[$i]->id, "delegatedGroup" => $auxString . " - All Groups"];
                                                     $newDelegationString = $auxString . " - All Groups";
                                                 }
                                             }
@@ -913,6 +932,11 @@ else
                         }
 
                         //4) Scrittura ed esecuzione query
+                        if (count($dashIds) === 0) {
+                            mysqli_close($link);
+                            echo json_encode([]);
+                            exit;
+                        }
                         $dashIdsForQuery = implode(",", $dashIds);
                         $orgFilter = strpos($orgFlag , 'My org') !== false ? " AND dashboards.organizations = '".$_SESSION['loggedOrganization']."'" : "";
                     //    $orgFilter = "";

@@ -21,6 +21,11 @@
    
     //Altrimenti restituisce in output le warning
     error_reporting(E_ERROR);
+require_once __DIR__.'/../databaseException.php';
+$dashboardDbBufferLevel = ob_get_level();
+ob_start();
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     session_start(); 
@@ -38,15 +43,12 @@
 
             if($bind)
             {
-                $toolAdminsResult = ldap_search(
-                    $ds1, $ldapBaseDn, 
-                    '(cn=Dashboard)'
-                 );
-
-                 $toolAdminsEntries = ldap_get_entries($ds1, $toolAdminsResult);
+                $toolAdminsEntries = dashboardLdapSearchEntries($ds1, $ldapBaseDn, '(cn=Dashboard)', $bind);
 
                  foreach($toolAdminsEntries as $key => $value) 
                  {
+                     // ldap_get_entries also returns metadata such as count, not an entry.
+                     if (!is_int($key) || !is_array($value) || !isset($value["memberuid"]) || !is_array($value["memberuid"])) continue;
                     for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
                     { 
                        $ldapusr = $value["memberuid"][$index];
@@ -147,6 +149,7 @@
                 array_push($dashboardWidgets, $row);
             }
         }
+        // The endpoint owns this shared connection and closes it after the response.
         return $dashboardWidgets;
     }
     
@@ -238,7 +241,15 @@
            $authorOrigin = '';
         }
 
-        $acl_auth_result = ACLAPI_check_dashboard([ 'dashboard_id'=> $dashboardId, 'preferred_username'=> $_SESSION['loggedUsername'] ?? '']);
+        try {
+            $acl_auth_result = ACLAPI_check_dashboard([ 'dashboard_id'=> $dashboardId, 'preferred_username'=> $_SESSION['loggedUsername'] ?? '']);
+        } catch (\mysqli_sql_exception $exception) {
+            if ((int) $exception->getCode() !== 1146) {
+                throw $exception;
+            }
+            // Missing ACL tables grant no ACL access; keep the ordinary visibility checks.
+            $acl_auth_result = ['authorized' => false, 'error' => 'ACL tables unavailable', 'debug' => []];
+        }
         $allowedByACL = $acl_auth_result['authorized'];
 
         switch($visibility)
@@ -476,6 +487,10 @@
 
     echo json_encode($response);
     mysqli_close($link);
+} catch (\mysqli_sql_exception $exception) {
+    dashboardDatabaseFailure($exception, isset($link) ? $link : null, $dashboardDbBufferLevel);
+}
+if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();
     
    
     

@@ -18,6 +18,24 @@ if (!isset($_SESSION)) {
     session_start();
   }
 
+// INI values can be strings; an omitted port uses MySQLi's configured default.
+if (!empty($resourcesconsumptionHost) && (!empty($_REQUEST['updateHour']) || !empty($_REQUEST['updateAccess']))) {
+    $monitoringPort = $resourcesconsumptionPort ?? null;
+    if (is_string($monitoringPort)) {
+        $monitoringPort = trim($monitoringPort);
+        if ($monitoringPort === '' || strcasecmp($monitoringPort, 'null') === 0) {
+            $monitoringPort = null;
+        }
+    }
+    if ($monitoringPort !== null) {
+        if ((!is_int($monitoringPort) && !(is_string($monitoringPort) && ctype_digit($monitoringPort))) ||
+            (int) $monitoringPort < 0 || (int) $monitoringPort > 65535) {
+            throw new \InvalidArgumentException('resourcesconsumptionPort must be an integer from 0 to 65535, or empty for the MySQLi default.');
+        }
+        $monitoringPort = (int) $monitoringPort;
+    }
+}
+
 if (!empty($_REQUEST["updateHour"])) {
 
     $link = mysqli_connect($host, $username, $password);
@@ -62,7 +80,7 @@ if (!empty($_REQUEST["updateHour"])) {
 
     $logFile = 'dailyaccess.log';
     if ($resourcesconsumptionHost) {
-        $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+        $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $monitoringPort);
         if (!isset($_SESSION['loggedUsername'])) {
             $userMonitoring = 'false';
             $logMessage = date("Y-m-d H:i:s") . " - WARN - No username.\n";
@@ -141,7 +159,7 @@ if (!empty($_REQUEST["updateAccess"])) {
     //user monitoring part
     $logFile = 'dailyaccess.log';
     if ($resourcesconsumptionHost) {
-        $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+        $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $monitoringPort);
         if (!isset($_SESSION['loggedUsername'])) {
             $userMonitoring = 'false';
             $logMessage = date("Y-m-d H:i:s") . " - WARN - No username.\n";
