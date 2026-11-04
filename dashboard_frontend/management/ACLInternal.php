@@ -18,6 +18,7 @@
     error_reporting(E_ERROR | E_PARSE);
 
     include '../config.php';
+require_once __DIR__.'/../phpCompatibility.php';
 
     function getDbLink_internal() {
         global $host, $username, $password, $dbname;
@@ -330,9 +331,11 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     if ($dashID === 0) {
         return true;
     }
+    $link2 = null;
+    try {
     // connect to userstats
     global $resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort;
-    $link2 = mysqli_connect($resourcesconsumptionHost,$resourcesconsumptionUser,$resourcesconsumptionPassword,$resourcesconsumptionDb,$resourcesconsumptionPort);
+    $link2 = mysqli_connect($resourcesconsumptionHost,$resourcesconsumptionUser,$resourcesconsumptionPassword,$resourcesconsumptionDb,dashboardNormalizeMysqlPort($resourcesconsumptionPort ?? null));
     if (! $link2) {
         error_log("check_userstats_accesses: Cannot connect to resources DB: ".mysqli_connect_error());
         // conservatively deny if you can't check
@@ -351,9 +354,9 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
             $types .= is_int($p) ? 'i' : 's';
         }
         mysqli_stmt_bind_param($stmt, $types, ...$params);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $sum);
-        mysqli_stmt_fetch($stmt);
+        if (!mysqli_stmt_execute($stmt)) { mysqli_stmt_close($stmt); throw new UnexpectedValueException('usage_query_failed'); }
+        if (!mysqli_stmt_bind_result($stmt, $sum)) { mysqli_stmt_close($stmt); throw new UnexpectedValueException('usage_result_failed'); }
+        if (mysqli_stmt_fetch($stmt) !== true) { mysqli_stmt_close($stmt); throw new UnexpectedValueException('usage_fetch_failed'); }
         mysqli_stmt_close($stmt);
         return (int)$sum;
     };
@@ -418,13 +421,15 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
         $stmt = mysqli_prepare($link2, $sql);
         if (! $stmt) {
             error_log("check_userstats: prepare failed: ".mysqli_error($link2));
-            return PHP_INT_MAX;
+            mysqli_close($link2);
+            return false;
         }
         mysqli_stmt_bind_param($stmt, 'iss', $dashID, $owner, $today);
-        mysqli_stmt_execute($stmt);
-        mysqli_stmt_bind_result($stmt, $todayCount);
+        if (!mysqli_stmt_execute($stmt)) { mysqli_stmt_close($stmt); throw new UnexpectedValueException('usage_query_failed'); }
+        if (!mysqli_stmt_bind_result($stmt, $todayCount)) { mysqli_stmt_close($stmt); throw new UnexpectedValueException('usage_result_failed'); }
         $found = mysqli_stmt_fetch($stmt);
         mysqli_stmt_close($stmt);
+        if ($found === false) throw new UnexpectedValueException('usage_fetch_failed');
 
         // if there's already an entry for today, compare it
         if ($found && (int)$todayCount >= $maxByDay) {
@@ -434,6 +439,11 @@ function check_userstats_accesses_dashboards(string $owner, int $dashID, ?int $m
     }
     mysqli_close($link2);
     return true;
+    } catch (\Throwable $e) {
+        if ($link2 !== null && $link2 !== false) { try { mysqli_close($link2); } catch (\Throwable $ignored) {} }
+        error_log('ACL usage check unavailable; access denied');
+        return false;
+    }
 }
 
 //Check if requested user has access to that dash ID

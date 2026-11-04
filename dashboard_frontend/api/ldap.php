@@ -40,6 +40,34 @@ function compare_values($obj_a, $obj_b) {
   return  strcasecmp($obj_a->value_name,$obj_b->value_name);
 }
 
+// Keep failed directory lookups separate from genuinely empty LDAP results.
+function ldapApiReadEntries($server, $port, $baseDn, $filter, $list = false) {
+    $connection = false;
+    $entries = false;
+    try {
+        $connection = @ldap_connect($server, $port);
+        if ($connection === false) throw new \RuntimeException('directory_unavailable');
+        $search = $list ? @ldap_list($connection, $baseDn, $filter) : @ldap_search($connection, $baseDn, $filter);
+        if ($search === false) throw new \RuntimeException('directory_unavailable');
+        $entries = @ldap_get_entries($connection, $search);
+        if (!is_array($entries) || !isset($entries['count']) || !is_int($entries['count']) || $entries['count'] < 0) {
+            throw new \RuntimeException('directory_unavailable');
+        }
+    } catch (\Throwable $ignored) {
+        $entries = false;
+    } finally {
+        if ($connection !== false) {
+            try { @ldap_unbind($connection); } catch (\Throwable $ignored) {}
+        }
+    }
+    if ($entries === false) {
+        http_response_code(502);
+        echo json_encode(['status'=>'ko', 'msg'=>'directory_unavailable', 'content'=>'', 'log'=>'']);
+        exit;
+    }
+    return $entries;
+}
+
 if(isset($_REQUEST['action']) && !empty($_REQUEST['action'])) 
     {
         $action = $_REQUEST['action'];
@@ -79,11 +107,9 @@ if (isset($_REQUEST['username'])) {
 
 if($action == 'get_all_ou')
 {
-	$connection = ldap_connect($ldapServer, $ldapPort);
-	$resultldap = ldap_search($connection, $ldapBaseDN, '(objectClass=organizationalUnit)');
-	$entries = ldap_get_entries($connection, $resultldap);
+	$entries = ldapApiReadEntries($ldapServer, $ldapPort, $ldapBaseDN, '(objectClass=organizationalUnit)');
 
-	if (ldap_count_entries($connection,$resultldap)==0){
+	if ($entries['count']==0){
         	error_log("No LDAP organization Unit found at all");
 		$result['status'] = 'ko'; 
         	$result['msg'] = 'Error: No LDAP organization Unit found at all <br/>';
@@ -103,12 +129,10 @@ if($action == 'get_all_ou')
 
 else if($action == 'get_logged_ou')
 {
-	$connection = ldap_connect($ldapServer, $ldapPort);
 	$userDN="cn=". $currentUser .",".$ldapBaseDN;
-	$resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=organizationalUnit)(l=' . $userDN . '))');
-        $entries = ldap_get_entries($connection, $resultldap);
+	$entries = ldapApiReadEntries($ldapServer, $ldapPort, $ldapBaseDN, '(&(objectClass=organizationalUnit)(l=' . $userDN . '))');
 
-        if (ldap_count_entries($connection,$resultldap)==0){
+        if ($entries['count']==0){
                 error_log("No LDAP organization Unit found for user".$userDN);
                 $result['status'] = 'ko';
                 $result['msg'] = 'Error: No LDAP organization Unit found for user '.$userDN.' <br/>';
@@ -131,14 +155,12 @@ else if($action == 'get_logged_ou')
 
 else if($action == 'get_group_for_ou')
 {
-        $connection = ldap_connect($ldapServer, $ldapPort);
 	if (checkAlphaNumAndSpaces($_REQUEST['ou']) === true || preg_match('/^[\w\-\s\p{L}]+$/', $_REQUEST['ou'])) {
 	    if($_REQUEST['ou']=='No Organization') {
-                $resultldap = ldap_list($connection, $ldapBaseDN, '(objectClass=groupOfNames)');
+                $entries = ldapApiReadEntries($ldapServer, $ldapPort, $ldapBaseDN, '(objectClass=groupOfNames)', true);
             } else {
-                $resultldap = ldap_search($connection, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
+                $entries = ldapApiReadEntries($ldapServer, $ldapPort, $ldapBaseDN, '(&(objectClass=groupOfNames)(ou=' . $_REQUEST['ou'] . '))');
 	    }
-            $entries = ldap_get_entries($connection, $resultldap);
         } else {
             eventLog("Returned the following ERROR in ldap.php: organization '" . escapeForHTML($_REQUEST['ou']) ."' is not an alpha-numeric string.");
             $entries["count"] = 0;

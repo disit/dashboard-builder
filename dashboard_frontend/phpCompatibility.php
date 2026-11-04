@@ -51,3 +51,17 @@ function dashboardInvalidServiceResponse($bufferLevel)
     if (!headers_sent()) header('Content-Type: application/json; charset=UTF-8');
     echo json_encode(['code'=>'502','message'=>'Invalid response from data service']);
 }
+
+// Match the optional MySQLi port contract without relying on PHP 7 coercions.
+function dashboardNormalizeMysqlPort($port)
+{
+    if (is_string($port)) {
+        $port=trim($port);
+        if ($port==='' || strcasecmp($port,'null')===0) return null;
+    }
+    if ($port===null) return null;
+    if ((!is_int($port) && !(is_string($port) && ctype_digit($port))) || (int)$port<0 || (int)$port>65535) {
+        throw new InvalidArgumentException('Invalid database port');
+    }
+    return (int)$port;
+}

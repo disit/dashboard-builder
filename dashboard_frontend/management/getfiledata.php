@@ -538,9 +538,10 @@ if (isset($_SESSION["loggedRole"]) || isset($_REQUEST["accessToken"]) || $action
             $mesagge_output["message"] = $apiCall;
             echo json_encode($message_output);
         }
-        curl_close($ch_datamanager);
-        curl_close($ch);
-        curl_close($ch_device);
+        // These handles are created in alternative visibility branches.
+        if (isset($ch_datamanager) && $ch_datamanager !== false) curl_close($ch_datamanager);
+        if (isset($ch) && $ch !== false) curl_close($ch);
+        if (isset($ch_device) && $ch_device !== false) curl_close($ch_device);
     } elseif ($action == "upload_file") {
         $latitude = mysqli_real_escape_string($link, $_POST["latitude"]);
         $latitude = filter_var($latitude, FILTER_SANITIZE_STRING);

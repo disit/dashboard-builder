@@ -13,6 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include '../config.php';
+require_once __DIR__.'/../phpCompatibility.php';
 require '../sso/autoload.php';
 
 use Jumbojett\OpenIDConnectClient;
@@ -379,7 +380,7 @@ function get_user_ldap_groups($ldapConn, $baseDn, $username) {
 }
 function set_delegated_userstats_orgs(string $owner, array $orgs){
     global $resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort;
-    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, dashboardNormalizeMysqlPort($resourcesconsumptionPort ?? null));
     $csv = implode(',', $orgs);
     $sql = "UPDATE `users` 
             SET `delegated_orgs` = ? 
@@ -403,7 +404,7 @@ function get_delegated_userstats_orgs(string $owner, bool $encrypted){
     if(!$encrypted){
         $owner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
     }
-    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, $resourcesconsumptionPort);
+    $link2 = mysqli_connect($resourcesconsumptionHost, $resourcesconsumptionUser, $resourcesconsumptionPassword, $resourcesconsumptionDb, dashboardNormalizeMysqlPort($resourcesconsumptionPort ?? null));
     $sql = "SELECT delegated_orgs
             FROM `users`
             WHERE `owner` = ?";

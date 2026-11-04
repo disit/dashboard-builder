@@ -6,6 +6,7 @@ extra: $_SESSION['loggedOrganization'] (it's not used by the api by default.... 
 would be nice to change: cdn.jsdelivr to static files (bootstrap.min.css, chart.js)
 */
 include('../config.php');
+require_once __DIR__.'/userStatsCompatibility.php';
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -41,6 +42,10 @@ if ($response === false) {
 curl_close($ch);
 
 $data = json_decode($response, true);
+$usageTable = [];
+$usageReportInvalid = false;
+try { $usageTable = userStatsUsageTable($data); }
+catch (UnexpectedValueException $e) { $usageReportInvalid = true; if ($http_code === 200) error_log('User Stats usage report invalid'); }
 if ($http_code === 401) {
     $response = "Your session has expired, please log in again.";
 }
@@ -135,7 +140,7 @@ $isUserRoute = strpos($path, 'user/') === 0;
     <div id="top_dashboards_container"></div>
   </div>
 
-  <?php if ($http_code === 200 && is_array($data) && count($data) > 0): ?>
+  <?php if ($http_code === 200 && !$usageReportInvalid && count($usageTable) > 0): ?>
     <?php
       // Detect if this is the "all/usage" response (has top-level org keys and "all_organizations")
       $isAllUsage = isset($data['all_organizations']);
@@ -419,7 +424,7 @@ $isUserRoute = strpos($path, 'user/') === 0;
       <strong>
         <?= $http_code !== 200
              ? "Error (HTTP $http_code):"
-             : "No data returned for that period." ?>
+             : ($usageReportInvalid ? "Usage data is temporarily unavailable." : "No data returned for that period.") ?>
       </strong><br>
       <?= htmlspecialchars($response) ?>
     </div>

@@ -9,6 +9,7 @@ would be nice to change: cdn.jsdelivr to static files (bootstrap.min.css), findi
 
 
 include('../config.php');
+require_once __DIR__.'/userStatsCompatibility.php';
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -23,6 +24,7 @@ $protocol = parse_url($appUrl, PHP_URL_SCHEME);
 $org_list_api_url = $protocol . "://" . $appHost . "/dashboardSmartCity/api/organizations.php";
 
 $organizations_list = [];
+$organizations_list_error = false;
 $ch = curl_init($org_list_api_url);
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
@@ -36,11 +38,9 @@ $response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 curl_close($ch);
 if ($httpCode === 200) {
-  $data = json_decode($response, true);
-  if (is_array($data)) {
-    $organizations_list = array_column($data, 'organizationName');
-  }
-}
+  try { $organizations_list = userStatsOrganizationNames($response); }
+  catch (UnexpectedValueException $e) { $organizations_list_error = true; error_log('User Stats organization list unavailable'); }
+} else { $organizations_list_error = true; }
 
 // fetch delegated orgs if AreaManager
 $delegatedOrgs = [];
@@ -50,7 +50,7 @@ if ($role === 'AreaManager') {
         $resourcesconsumptionUser,
         $resourcesconsumptionPassword,
         $resourcesconsumptionDb,
-        $resourcesconsumptionPort
+        dashboardNormalizeMysqlPort($resourcesconsumptionPort ?? null)
     );
     if ($link) {
         $encMe = encryptOSSL(
@@ -85,7 +85,7 @@ if ($canSeeAdmin) {
         $resourcesconsumptionUser,
         $resourcesconsumptionPassword,
         $resourcesconsumptionDb,
-        $resourcesconsumptionPort
+        dashboardNormalizeMysqlPort($resourcesconsumptionPort ?? null)
     );
     if ($link2) {
         $sqlU   = "SELECT owner FROM users";
@@ -140,6 +140,7 @@ if ($canSeeAdmin) {
     <h2 class="mb-4">📊 Resources Consumption Dashboard</h2>
     <h4>Organization: <?= htmlspecialchars($_SESSION['loggedOrganization'] ?? '', ENT_QUOTES) ?></h4>
 
+    <?php if ($organizations_list_error): ?><div class="alert alert-warning">Organization list is temporarily unavailable.</div><?php endif; ?>
     <?php if (!$canSeeAdmin): ?>
   <!-- Non-admin: choose day / month / range for SELF -->
   <form id="userForm" method="post" action="resourcesconsumptionFetch.php"
