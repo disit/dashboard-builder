@@ -1955,7 +1955,7 @@ require_once __DIR__.'/../phpCompatibility.php';
                             echo($newDivItem);
 
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
-                            $r = mysqli_query($link, $menuQuery);
+                            $r = $domainId !== null ? mysqli_query($link, $menuQuery) : false;
 
                             if($r)
                             {
@@ -2340,7 +2340,7 @@ require_once __DIR__.'/../phpCompatibility.php';
 
             
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
-                            $r = mysqli_query($link, $menuQuery);
+                            $r = $domainId !== null ? mysqli_query($link, $menuQuery) : false;
             
                             if ($r) {
                                 while ($row = mysqli_fetch_assoc($r)) {

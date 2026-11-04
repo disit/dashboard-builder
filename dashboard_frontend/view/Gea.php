@@ -2220,7 +2220,7 @@ require_once __DIR__.'/../phpCompatibility.php';
                             include "customLinks-side.php";
             
                             $menuQuery = "SELECT * FROM Dashboard.OrgMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
-                            $r = mysqli_query($link, $menuQuery);
+                            $r = $domainId !== null ? mysqli_query($link, $menuQuery) : false;
             
                             if ($r) {
                                 while ($row = mysqli_fetch_assoc($r)) {
