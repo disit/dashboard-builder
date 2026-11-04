@@ -1,6 +1,12 @@
 <?php
     include '../config.php';
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
+
     
+    require_once __DIR__.'/../phpCompatibility.php';
+    $lastUsedColors = [];
     $link = mysqli_connect($host, $username, $password);
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR | E_NOTICE);
@@ -13,7 +19,7 @@
     if($r) 
     {
         $row = mysqli_fetch_assoc($r);
-        $lastUsedColors = json_decode($row['lastUsedColors']);
+        $lastUsedColors = dashboardDecodeStringList($row['lastUsedColors'] ?? null) ?? [];
     } 
      * 
      * 
@@ -2293,3 +2299,15 @@
             }
 	});
 </script>
+<?php
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'html');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
+}
+?>

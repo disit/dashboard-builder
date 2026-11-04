@@ -2,38 +2,35 @@
 /* Dashboard Builder.
 Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License
-as published by the Free Software Foundation; either version 2
-of the License, or (at your option) any later version.
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-You should have received a copy of the GNU General Public License
-along with this program; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';//Escape
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
+
+
+function dashboardWidgetIconScan($directory) {
+    $files = @scandir($directory);
+    if ($files === false) throw new \DashboardWidgetIconDirectoryException('Icon directory unavailable');
+    return $files;
+}
 
 function array_merge_custom($htlEntity, $natureEntity, $subNatureEntity) {
-    $resArray = [];
-    if (sizeof($htlEntity) > 1) {
-        $resArray = $htlEntity;
-    } else {
-        array_push($resArray, $htlEntity);
-    }
-    if (sizeof($natureEntity) > 1) {
-        $resArray = array_merge($resArray, $natureEntity);
-    } else {
-        array_push($resArray, $natureEntity);
-    }
-    if (sizeof($subNatureEntity) > 1) {
-        $resArray = array_merge($resArray, $subNatureEntity);
-    } else {
-        array_push($resArray, $subNatureEntity);
-    }
-    return $resArray;
+    return array_merge(
+        is_array($htlEntity) ? $htlEntity : [$htlEntity],
+        is_array($natureEntity) ? $natureEntity : [$natureEntity],
+        is_array($subNatureEntity) ? $subNatureEntity : [$subNatureEntity]
+    );
 }
 
 $path = '../img/widgetSelectorIconsPool';
@@ -64,8 +61,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             }
         }*/
 
-        $filesHlt = scandir($path . "/hlt");
-        $filesHlt = array_diff(scandir($path . "/hlt"), array('.', '..'));
+        $filesHlt = dashboardWidgetIconScan($path . "/hlt");
+        $filesHlt = array_diff(dashboardWidgetIconScan($path . "/hlt"), array('.', '..'));
         $filesHlt = array_values($filesHlt);
         $origFilesHltLength = sizeof($filesHlt);
         for($i = 0; $i < $origFilesHltLength; $i++) {
@@ -78,8 +75,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             }
         }
 
-        $filesHltHeatmap = scandir($path . "/hlt/heatmap");
-        $filesHltHeatmap = array_diff(scandir($path . "/hlt/heatmap"), array('.', '..'));
+        $filesHltHeatmap = dashboardWidgetIconScan($path . "/hlt/heatmap");
+        $filesHltHeatmap = array_diff(dashboardWidgetIconScan($path . "/hlt/heatmap"), array('.', '..'));
         $filesHltHeatmap = array_values($filesHltHeatmap);
         $origFilesHltHeatmapLength = sizeof($filesHltHeatmap);
         for($i = 0; $i < $origFilesHltHeatmapLength; $i++) {
@@ -92,8 +89,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             }
         }
 
-        $filesSpecial = scandir($path . "/special");
-        $filesSpecial = array_diff(scandir($path . "/special"), array('.', '..'));
+        $filesSpecial = dashboardWidgetIconScan($path . "/special");
+        $filesSpecial = array_diff(dashboardWidgetIconScan($path . "/special"), array('.', '..'));
         $filesSpecial = array_values($filesSpecial);
         $origFilesHltHeatmapLength = sizeof($filesSpecial);
         for($i = 0; $i < $origFilesHltHeatmapLength; $i++) {
@@ -106,8 +103,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             }
         }
 
-        $filesNat = scandir($path . "/nature");
-        $filesNat = array_diff(scandir($path . "/nature"), array('.', '..'));
+        $filesNat = dashboardWidgetIconScan($path . "/nature");
+        $filesNat = array_diff(dashboardWidgetIconScan($path . "/nature"), array('.', '..'));
         $filesNat = array_values($filesNat);
         $origFilesNatLength = sizeof($filesNat);
         for($i = 0; $i < $origFilesNatLength; $i++) {
@@ -119,8 +116,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
             }
         }
 
-        $filesSubNat = scandir($path . "/subnature");
-        $filesSubNat = array_diff(scandir($path . "/subnature"), array('.', '..'));
+        $filesSubNat = dashboardWidgetIconScan($path . "/subnature");
+        $filesSubNat = array_diff(dashboardWidgetIconScan($path . "/subnature"), array('.', '..'));
         $filesSubNat = array_values($filesSubNat);
         $origFilesSubNatLength = sizeof($filesSubNat);
         for($i = 0; $i < $origFilesSubNatLength; $i++) {
@@ -150,8 +147,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
         if (isset($_GET['highLevelType']) && !empty($_GET['highLevelType'])) {
             $hlt = sanitizeGetString('highLevelType');
             if (strcasecmp($hlt, "heatmap") == 0) {
-                $filesHlt = scandir($path . "/hlt/" . strtolower($hlt));
-                $filesHlt = array_diff(scandir($path . "/hlt/" . strtolower($hlt)), array('.', '..'));
+                $filesHlt = dashboardWidgetIconScan($path . "/hlt/" . strtolower($hlt));
+                $filesHlt = array_diff(dashboardWidgetIconScan($path . "/hlt/" . strtolower($hlt)), array('.', '..'));
                 $filesHlt = array_values($filesHlt);
                 $origFilesHltLength = sizeof($filesHlt);
                 $origLengthArray = sizeof($filesHlt);
@@ -168,8 +165,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
                 $filesHlt = "/hlt/" . $hlt; // . ".svg";
             }
         } else {
-            $filesHlt = scandir($path . "/hlt");
-            $filesHlt = array_diff(scandir($path . "/hlt"), array('.', '..'));
+            $filesHlt = dashboardWidgetIconScan($path . "/hlt");
+            $filesHlt = array_diff(dashboardWidgetIconScan($path . "/hlt"), array('.', '..'));
         }
         if (isset($_GET['nature']) && !empty($_GET['nature'])) {
             $nat = sanitizeGetString('nature');
@@ -177,8 +174,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
          //   $filesNat = array_diff(scandir($path . $nat), array('.', '..'));
             $filesNat = "/nature/" . $nat; // . ".svg";
         } else {
-            $filesNat = scandir($path . "/nature");
-            $filesNat = array_diff(scandir($path . "/nature"), array('.', '..'));
+            $filesNat = dashboardWidgetIconScan($path . "/nature");
+            $filesNat = array_diff(dashboardWidgetIconScan($path . "/nature"), array('.', '..'));
         }
         if (isset($_GET['subNature']) && !empty($_GET['subNature'])) {
             $subNat = sanitizeGetString('subNature');
@@ -191,8 +188,8 @@ if(isset($_GET['action']) && !empty($_GET['action']))
 
             }
         } else  {
-            $filesSubNat = scandir($path . "/subnature");
-            $filesSubNat = array_diff(scandir($path . "/subnature"), array('.', '..'));
+            $filesSubNat = dashboardWidgetIconScan($path . "/subnature");
+            $filesSubNat = array_diff(dashboardWidgetIconScan($path . "/subnature"), array('.', '..'));
         }
         $suggestedItems = array_merge_custom($filesHlt, $filesNat, $filesSubNat);
         $origLengthArray = sizeof($suggestedItems);
@@ -205,4 +202,15 @@ if(isset($_GET['action']) && !empty($_GET['action']))
         $response['suggestedIconList'] = $suggestedItems;
     }
     echo json_encode($response);
+}
+
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'json');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
 }

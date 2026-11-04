@@ -162,9 +162,9 @@ class dashboardWizardControllerSSP {
 	 *    sql_exec() function
 	 *  @return string SQL where clause
 	 */
-	static function filter ( $request, $columns, &$bindings )
+	static function filter ( $request, $columns, &$bindings, $db = null )
 	{
-        $link = mysqli_connect($host, $username, $password);
+        $northEastPointLat = $northEastPointLng = $southWestPointLat = $southWestPointLng = null;
 		$globalSearch = array();
 		$columnSearch = array();
 		$dtColumns = self::pluck( $columns, 'dt' );
@@ -227,11 +227,18 @@ class dashboardWizardControllerSSP {
                 }
 			}
 		}
-                if(isset($_REQUEST['northEastPointLat'])){
-                    $northEastPointLat=escapeForSQL($_REQUEST['northEastPointLat'], $link);
-                    $northEastPointLng=escapeForSQL($_REQUEST['northEastPointLng'], $link);
-                    $southWestPointLat=escapeForSQL($_REQUEST['southWestPointLat'], $link);
-                    $southWestPointLng=escapeForSQL($_REQUEST['southWestPointLng'], $link);
+                if (isset($_REQUEST['northEastPointLat'])) {
+                    try {
+                        if (!is_object($db) || !is_callable([$db, 'quote'])) throw new \UnexpectedValueException('missing_filter_connection');
+                        $geoValues = [];
+                        foreach (['northEastPointLat', 'northEastPointLng', 'southWestPointLat', 'southWestPointLng'] as $field) {
+                            if (!isset($_REQUEST[$field]) || !is_scalar($_REQUEST[$field])) throw new \UnexpectedValueException('invalid_geographic_filter');
+                            $quoted = $db->quote((string)$_REQUEST[$field]);
+                            if (!is_string($quoted)) throw new \UnexpectedValueException('invalid_geographic_filter');
+                            $geoValues[$field] = substr($quoted, 1, -1);
+                        }
+                        extract($geoValues);
+                    } catch (\Throwable $e) { self::fatal('Unable to prepare geographic filter'); }
                 }
 
 		// Combine the filters into a single string
@@ -242,21 +249,21 @@ class dashboardWizardControllerSSP {
                             $hltString = "";
                             if ((!isset($_REQUEST['poiNature']) || $_REQUEST['poiNature'] == '') && (!isset($_REQUEST['poiSubNature']) || $_REQUEST['poiSubNature'] == '')) {
                                 $hltString = "(((high_level_type = ";
-                                for ($n = 0; $n < sizeof($_REQUEST['poiFlag']); $n++) {
-                                    if ($n == 0) {
-                                        if (sizeof($_REQUEST['poiFlag']) > 1) {
-                                            $hltString = $hltString . "'" . escapeForSQL($_REQUEST['poiFlag'][0], $link) . "'";
-                                        } else {
-                                            $hltString = $hltString . "'" . escapeForSQL($_REQUEST['poiFlag'], $link) . "'";
-                                        }
-                                    } else {
-                                        $hltString = $hltString . " OR high_level_type = '" . escapeForSQL($_REQUEST['poiFlag'][$n], $link) . "'";
-                                    }
+                                $poiFlags = is_array($_REQUEST['poiFlag']) ? array_values($_REQUEST['poiFlag']) : [$_REQUEST['poiFlag']];
+                                foreach ($poiFlags as $n => $poiFlag) {
+                                    if (!is_scalar($poiFlag)) self::fatal('Invalid geographic filter');
+                                    try { $quoted = $db->quote((string)$poiFlag); }
+                                    catch (\Throwable $e) { self::fatal('Unable to prepare geographic filter'); }
+                                    if (!is_string($quoted)) self::fatal('Unable to prepare geographic filter');
+                                    $hltString .= ($n === 0 ? '' : ' OR high_level_type = ') . $quoted;
                                 }
                                 $hltString = $hltString . ") AND ";
                             }
                             if (isset($_REQUEST['filterOrg'])) {
-                                $org = escapeForSQL($_REQUEST['filterOrg'], $link);
+                                try { $orgQuoted = $db->quote((string)$_REQUEST['filterOrg']); }
+                                catch (\Throwable $e) { self::fatal('Unable to prepare geographic filter'); }
+                                if (!is_string($orgQuoted)) self::fatal('Unable to prepare geographic filter');
+                                $org = substr($orgQuoted, 1, -1);
                                 if (isset($_REQUEST['poiNature'])) {
                                     if ($_REQUEST['poiNature'] != "") {
                                         // $nat = escapeForSQL($_REQUEST['poiNature'], $link);
@@ -351,7 +358,7 @@ class dashboardWizardControllerSSP {
 		// Build the SQL query string from the request
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
-		$where = self::filter( $request, $columns, $bindings );
+		$where = self::filter( $request, $columns, $bindings, $db );
 		if ($where != '') {
             $where = $where . ' AND oldEntry IS NULL';
         } else {
@@ -430,7 +437,7 @@ class dashboardWizardControllerSSP {
 		// Build the SQL query string from the request
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
-		$where = self::filter( $request, $columns, $bindings );
+		$where = self::filter( $request, $columns, $bindings, $db );
 
 		$whereResult = self::_flatten( $whereResult );
 		$whereAll = self::_flatten( $whereAll );

@@ -15,6 +15,10 @@
    along with this program; if not, write to the Free Software
    Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 include('../config.php');
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
+
 header("Cache-Control: private, max-age=$cacheControlMaxAge");
 
 if (isset($_COOKIE["device_table_rows_".$_REQUEST['name_w']])) {
@@ -1728,3 +1732,15 @@ window.addEventListener('resize', function () {
     </div>
 	<div id="<?= $_REQUEST['name_w'] ?>_code"></div>
 </div>
+<?php
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'html');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
+}
+?>

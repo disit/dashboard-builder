@@ -54,6 +54,38 @@ function returnManagedStringForDb($original)
     }
 }
 
+// INDRA patch (2026-10-15): build the INSERT from the JSON keys that exist as columns in the
+// target table, with every value escaped. The original concatenated every exported key and
+// most values unescaped, so a dashboard exported from another Snap4City version (extra column,
+// e.g. langSelectorVisible) or containing a quote (drawFlowEditor, subtitle_header) failed
+// with a bare "Error DB Insert.".
+function buildImportInsert($link, $table, $row)
+{
+    $columns = array();
+    $res = mysqli_query($link, "SHOW COLUMNS FROM " . $table);
+    while ($res && ($c = mysqli_fetch_assoc($res))) {
+        $columns[$c['Field']] = true;
+    }
+    $fields = array();
+    $values = array();
+    foreach ($row as $key => $value) {
+        if ($key === 'Id' || !isset($columns[$key])) {
+            eventLog('Import: skipped field ' . $key . ' (not a column of ' . $table . ')');
+            continue;
+        }
+        if (is_array($value)) {
+            $value = json_encode($value);
+        }
+        if (is_bool($value)) {
+            $value = $value ? '1' : '0';
+        }
+        $fields[] = "`" . $key . "`";
+        // same NULL rule as returnManagedStringForDb(): null and "" become NULL
+        $values[] = ($value === null || $value === '') ? "NULL" : "'" . mysqli_real_escape_string($link, (string) $value) . "'";
+    }
+    return "INSERT INTO " . $table . "(" . implode(", ", $fields) . ") VALUES(" . implode(", ", $values) . ")";
+}
+
 session_start();
 checkSession('Manager');
 
@@ -130,54 +162,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $link = mysqli_connect($host, $username, $password);
         mysqli_select_db($link, $dbname);
 
-        $query2 = "INSERT INTO Dashboard.Config_dashboard(";        
-        $newQueryFields = "";
-        $newQueryValues = "";
+        $query2 = buildImportInsert($link, "Dashboard.Config_dashboard", $dashboardData);
 
-        $count = 0;
-        foreach($dashboardData as $key => $value) 
-        {
-            if($count == 0)
-            {
-                $newQueryFields = $key;
-                if (strpos($value, '&#39;') !== false) {
-                    $value_aux = html_entity_decode($value, ENT_QUOTES|ENT_HTML5);
-                    $newQueryValues = returnManagedStringForDb(escapeForSQL($value_aux, $link));
-                } else {
-                    $newQueryValues = returnManagedStringForDb($value);
-                }
-            }
-            else
-            {
-                $newQueryFields = $newQueryFields . ", " . $key;
-                
-                if ($key == 'subtitle_header')
-                {
-                    $newQueryValues = $newQueryValues . ", '$value'";
-                } else if ($key == 'title_header') {
-                    if (strpos($value, '&#39;') !== false) {
-                        $value_aux = html_entity_decode($value, ENT_QUOTES|ENT_HTML5);
-                        $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value_aux, $link));
-                    } else {
-                        $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
-                    }
-                }
-                else
-                {
-                    $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
-                }
-                
-            }
-
-            $count++;
+        try {
+        if (!mysqli_begin_transaction($link)) {
+            echo "Ko";
+            exit();
         }
-
-        $query2 = $query2 . $newQueryFields;
-        $query2 = $query2 . ") VALUES(";
-        $query2 = $query2 . $newQueryValues;
-        $query2 = $query2 . ")";
-
-        mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);                
         $result2 = mysqli_query($link, $query2);
 
         if($result2)
@@ -186,6 +177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $newId = mysqli_insert_id($link);
 
             //Salvataggio su API ownership
+            $callResultArray = null;
             if(isset($_SESSION['refreshToken']))
             {
                 $oidc = new OpenIDConnectClient($ssoEndpoint, $ssoClientId, $ssoClientSecret);
@@ -225,7 +217,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             #mysqli_commit($link);
 
-            if($callResultArray['elementId']){
+            if(!empty($callResultArray['elementId'])){
                 $clonedDashId = mysqli_insert_id($link); // uguale alla variabile $newId? 
 
                 $query3 = "SELECT AUTO_INCREMENT AS MaxId FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
@@ -278,58 +270,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         $widgetsMap[$sourceWidgetName] = $clonedWidgetName; // ????
 
-                        $query5 = "INSERT INTO Dashboard.Config_widget_dashboard(";
-                        $newQueryFields = "";
-                        $newQueryValues = "";
-
-
-                        $count = 0;
-                        foreach ($row4 as $key => $value) {
-                            if ($count == 0) {
-                                 $newQueryFields = $key;
-                                 $newQueryValues = returnManagedStringForDb($value);
-                            } else {
-                                 $newQueryFields = $newQueryFields . ", " . $key;
-                                if (($key == "parameters" && $row4['type_w'] == "widgetMap") || ($key == "parameters" && $row4['type_w'] == "widget3DMapDeck") || ($key == "styleParameters" && $row4['type_w'] == "widgetTable"))  {
-                                 //    $newQueryFields = $newQueryFields . ", " . $key;
-                                     $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
-                                } else {
-                                 //    $newQueryFields = $newQueryFields . ", " . $key;
-                                    if ($key == "title_w") {
-                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
-                                    } else if ($key == "code") {
-                                        //in php one backslash is always eaten. So i duplicate before save it maintaing always one 
-                                        if($value !== null){
-                                            if(strpos($value, '\\') !== false){
-                                                $value = str_replace('\\', '\\\\', $value);
-                                            }
-                                        }
-                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(addcslashes($value, "'"));
-                                     }else {
-                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb($value);
-                                    }
-                                }
-                            }
-
-                            $count++;
-                        }
-                        $query5 = $query5 . $newQueryFields;
-                        $query5 = $query5 . ") VALUES(";
-                        $query5 = $query5 . $newQueryValues;
-                        $query5 = $query5 . ")";
+                        $query5 = buildImportInsert($link, "Dashboard.Config_widget_dashboard", $row4);
 
                         $result5 = mysqli_query($link, $query5);
                         if (!$result5) {
-                            eventLog('Error DB query.');
+                            $dbError = mysqli_error($link);
+                            eventLog('Error DB query: ' . $dbError);
                             mysqli_rollback($link);
-                            echo "Ko";
+                            echo "Error importing widget " . $sourceWidgetName . ": " . $dbError;
                             exit();
                         } else {
                             $maxId++;
                         }
                     }// foreach
 
-                    mysqli_commit($link);
 
                     //Aggiornamento dei campi dei parametri per interazioni cross widget
                     foreach ($widgetsMap as $originalW => $clonedW) {
@@ -338,15 +292,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             "WHERE id_dashboard = $clonedDashId";
 
                         $updParamsR = mysqli_query($link, $updParamsQ);
+                        if (!$updParamsR) {
+                            mysqli_rollback($link);
+                            echo "Ko";
+                            exit();
+                        }
 
                         $updCodeQ = "UPDATE Dashboard.Config_widget_dashboard " .
                              "SET code = REPLACE(code, '$originalW', '$clonedW') " .
                              "WHERE id_dashboard = $clonedDashId";
 
                          $updCodeR = mysqli_query($link, $updCodeQ);
+                         if (!$updCodeR) {
+                             mysqli_rollback($link);
+                             echo "Ko";
+                             exit();
+                         }
                     }
 
-                    mysqli_commit($link);
+                    if (!mysqli_commit($link)) {
+                        try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+                        echo "Ko";
+                        exit();
+                    }
 
                     //Copia logo della dashboard 
                     // 
@@ -396,14 +364,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo "Error DB auto-increment.";
                     exit();
                 }
+            } else {
+                eventLog('Import: ownership registration failed: ' . json_encode($callResultArray));
+                mysqli_rollback($link);
+                echo "Error registering the dashboard ownership" . (isset($callResultArray['error']) ? ": " . json_encode($callResultArray['error']) : (isset($_SESSION['refreshToken']) ? "." : ": no SSO session, log in again."));
+                exit();
             }
 
         } else {
-            eventLog('Error DB Insert.');
+            $dbError = mysqli_error($link);
+            eventLog('Error DB Insert: ' . $dbError);
             mysqli_rollback($link);
-            echo "Error DB Insert.";
+            echo "Error DB Insert: " . $dbError;
             exit();
         } 
 
+    } catch (\mysqli_sql_exception $exception) {
+        try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+        echo "Ko";
+        exit();
+    }
     }
 }

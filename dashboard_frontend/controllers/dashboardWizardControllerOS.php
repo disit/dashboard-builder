@@ -70,7 +70,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     //} else {
     //    $sql_where = "";
     //}
-    $freezeMap = $_REQUEST['freezeMap'];
+    $freezeMap = $_REQUEST['FreezeMap'] ?? ($_REQUEST['freezeMap'] ?? "false");
  //   $orgFilter = $_REQUEST['orgFilter'];
   //  $noneSelectedFlagWithGeoFilter = $_REQUEST['noneSelectedFlagWithGeoFilter'];
 
@@ -92,14 +92,23 @@ if (isset($_REQUEST["globalSqlFilter"])) {
         eventLog("Returned the following ERROR in dashboardWizardController.php: globalSqlFilter is not an array as expected. Exit from script.");
         exit();
     }
+    $excludeFilterIndex = isset($_REQUEST['excludeFilterIndex']) ? intval($_REQUEST['excludeFilterIndex']) : intval($n);
+    $distinctGlobalSqlFilter = $globalSqlFilter;
+    if (isset($distinctGlobalSqlFilter[$excludeFilterIndex])) {
+        $distinctGlobalSqlFilter[$excludeFilterIndex]['mode'] = 'all';
+        $distinctGlobalSqlFilter[$excludeFilterIndex]['allSelected'] = true;
+        $distinctGlobalSqlFilter[$excludeFilterIndex]['selectedVals'] = [];
+        $distinctGlobalSqlFilter[$excludeFilterIndex]['excludedVals'] = [];
+        $distinctGlobalSqlFilter[$excludeFilterIndex]['value'] = '';
+    }
     // CHECK IF $globalSqlFilter IS ARRAY ? OR OBJECT ?
     $orgFilter = resolveDashboardWizardOrganization($_SESSION['loggedOrganization'] ?? 'Other');
 
     // FARE QUI COMPOSIZIONE FILTRO GLOBALE STRINGA  GUARDANDO QUALE NON E' FIELD !
-    for ($k = 0; $k < sizeof($_REQUEST['globalSqlFilter']); $k++) {
+    for ($k = 0; $k < sizeof($distinctGlobalSqlFilter); $k++) {
         if ($k !== 4 && $k != 5) {
             if (($k != $n || $nActive > 1)) {
-                $str = $globalSqlFilter[$k]['value'];
+                $str = $distinctGlobalSqlFilter[$k]['value'] ?? "";
                 if(is_array($str) && sizeof($str) == 0) {
                     $str = "";
                 }
@@ -110,13 +119,13 @@ if (isset($_REQUEST["globalSqlFilter"])) {
                     if ($auxArray[$j] != '') {
                         if ($j != 0 && $auxFilterString != '') {
                             $auxFilterString['bool']['should'][] = ['term'=>[
-                                $globalSqlFilter[$k]['field'] => $valAuxArray
+                                $distinctGlobalSqlFilter[$k]['field'] => $valAuxArray
                             ]];
                             //$auxFilterString = $auxFilterString . " OR " . $globalSqlFilter[$k]['field'] . " = '" . $valAuxArray . "'";
                         } else {
                             $auxFilterString = ['bool'=>['must'=>[
                                 'term'=>[
-                                    $globalSqlFilter[$k]['field'] => $valAuxArray
+                                    $distinctGlobalSqlFilter[$k]['field'] => $valAuxArray
                                 ]
                             ]]];
                             //$auxFilterString = $globalSqlFilter[$k]['field'] . " = '" . $valAuxArray . "'";
@@ -175,6 +184,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
      'low_level_type', 'broker_name', 'value_name', 'value_type', 'unit', 'healthiness', 'ownership', 'value_unit');
 
     $dashLoggedUsername = $_SESSION['loggedUsername'];
+    $cryptedUsr = null;
     if ($_SESSION['loggedRole'] !== "RootAdmin") {
         $cryptedUsr = encryptOSSL($dashLoggedUsername, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
 
@@ -194,8 +204,8 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     $northEastPointLng = null;
     $southWestPointLat = null;
     $southWestPointLng = null;
-    if(isset($_REQUEST['northEastPointLat']) && isset($_REQUEST['FreezeMap'])){
-        if ($_REQUEST['FreezeMap'] === "true") {
+    if(isset($_REQUEST['northEastPointLat'])){
+        if ($freezeMap === "true" || $freezeMap === true) {
             //$northEastPointLat = escapeForSQL($_REQUEST['northEastPointLat'], $link);
             //$northEastPointLng = escapeForSQL($_REQUEST['northEastPointLng'], $link);
             //$southWestPointLat = escapeForSQL($_REQUEST['southWestPointLat'], $link);
@@ -238,9 +248,16 @@ if (isset($_REQUEST["globalSqlFilter"])) {
 
     $elements = [];
     $jump_over_no_selections = false;
-    foreach($_REQUEST['globalSqlFilter'] as $gsf){
+    foreach($distinctGlobalSqlFilter as $gsf){
+        $filterMode = $gsf['mode'] ?? null;
+        $allSelected = $gsf['allSelected'] ?? true;
 
-        if($gsf['allSelected'] == "false" && (!isset($gsf['selectedVals']))){
+        if ($filterMode === "exclude") {
+            continue;
+        }
+
+        if ($filterMode === "none" ||
+            (($allSelected === false || $allSelected === "false") && (!isset($gsf['selectedVals'])))) {
             $jump_over_no_selections = true;
             break;
         }
@@ -251,7 +268,7 @@ if (isset($_REQUEST["globalSqlFilter"])) {
     if($jump_over_no_selections == false){
         $elements = $open_search->getAllDistinctElementOfColumn($sql_distinct_field,$orgFilter,
         'public', $cryptedUsr, $cryptedUsr, ($_SESSION['loggedRole'] == "RootAdmin") ? true : false, $northEastPointLat,
-        $northEastPointLng, $southWestPointLat, $southWestPointLng, $_REQUEST['globalSqlFilter'] ?? null);
+        $northEastPointLng, $southWestPointLat, $southWestPointLng, $distinctGlobalSqlFilter);
     }
     //var_dump("elements",$elements);
 
@@ -1122,27 +1139,39 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
     }
 }
 if(isset($_REQUEST["doSynVarPresel"])) {
-	try {
+    $preselectionStatement = null;
+    try {
         $link = mysqli_connect($host, $username, $password);
-		$noautocommit = mysqli_autocommit($link, false);		
-		if($noautocommit) $transaction = mysqli_begin_transaction($link);
-		if($transaction) $stmt = mysqli_prepare($link, "delete from Dashboard.SynopticVarPresel where usr = ?");
-		if($stmt) $bind = mysqli_stmt_bind_param($stmt, "s", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod));
-		if($bind) $exec = mysqli_stmt_execute($stmt);
-		if($exec) mysqli_stmt_close($stmt);
-		else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
-		
-        foreach( explode(",",$_REQUEST["sel"]) as $sel ) {
-			$stmt = mysqli_prepare($link, "insert into Dashboard.SynopticVarPresel(usr,sel) values (?,?)");
-			if($stmt) $bind = mysqli_stmt_bind_param($stmt, "ss", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod),$sel);
-			if($bind) $exec = mysqli_stmt_execute($stmt);
-			if($exec) mysqli_stmt_close($stmt);
-			else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
-		}
-		mysqli_commit($link); 
-		mysqli_close($link);
-	}
-	catch(Exception $e) {
-		mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die($e);
-	}	
+        if (!$link) throw new \RuntimeException('preselection_connection_failed');
+        if (!mysqli_autocommit($link, false) || !mysqli_begin_transaction($link))
+            throw new \RuntimeException('preselection_transaction_failed');
+        $preselectionUser = encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+        $preselectionStatement = mysqli_prepare($link, "delete from Dashboard.SynopticVarPresel where usr = ?");
+        if (!$preselectionStatement || !mysqli_stmt_bind_param($preselectionStatement, "s", $preselectionUser) ||
+            !mysqli_stmt_execute($preselectionStatement))
+            throw new \RuntimeException('preselection_delete_failed');
+        mysqli_stmt_close($preselectionStatement);
+        $preselectionStatement = null;
+        $preselectionChoices = $_REQUEST["sel"] === "" ? [] : explode(",", $_REQUEST["sel"]);
+        foreach ($preselectionChoices as $sel) {
+            $preselectionStatement = mysqli_prepare($link, "insert into Dashboard.SynopticVarPresel(usr,sel) values (?,?)");
+            if (!$preselectionStatement || !mysqli_stmt_bind_param($preselectionStatement, "ss", $preselectionUser, $sel) ||
+                !mysqli_stmt_execute($preselectionStatement))
+                throw new \RuntimeException('preselection_insert_failed');
+            mysqli_stmt_close($preselectionStatement);
+            $preselectionStatement = null;
+        }
+        if (!mysqli_commit($link)) throw new \RuntimeException('preselection_commit_failed');
+        mysqli_close($link);
+    } catch (\Throwable $exception) {
+        if ($preselectionStatement) {
+            try { mysqli_stmt_close($preselectionStatement); } catch (\Throwable $statementCloseError) {}
+        }
+        if (isset($link) && $link !== false) {
+            try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+            try { mysqli_close($link); } catch (\Throwable $closeError) {}
+        }
+        http_response_code(500);
+        error_log('Wizard preselection database operation failed ['.(int)$exception->getCode().']');
+    }
 }

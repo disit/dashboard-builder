@@ -330,7 +330,6 @@
             break;
 
         case "updateAdvancedProperties":
-            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
             $queryFail = false;
             $response = array();
 
@@ -338,6 +337,10 @@
             $dashboardEditor = $_REQUEST['dashboardEditor'];
             $dashboardTitle = $_REQUEST['currentDashboardTitle'];
 
+            try {
+                // Keep this form transaction open until its single final commit.
+                if (!mysqli_begin_transaction($link)) $queryFail = true;
+                if (!$queryFail) {
             $nCols = mysqli_real_escape_string($link, $_POST['inputWidthDashboard']);
 
             $filename = NULL;
@@ -416,7 +419,6 @@
                     $filename = $_FILES['dashboardLogoInput']['name'];
 
                     if (!move_uploaded_file($_FILES['dashboardLogoInput']['tmp_name'], $uploadFolder . $filename)) {
-                        mysqli_close($link);
                         $queryFail = true;
                     } else {
                         chmod($uploadFolder . $filename, 0666);
@@ -455,7 +457,6 @@
                                 $bckFilename = $_FILES['dashboardBckImg']['name'];
 
                                 if (!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder . $bckFilename)) {
-                                    mysqli_close($link);
                                     $queryFail = true;
                                 } else {
                                     // NEW P-TEST: mettere apici a $ncols
@@ -463,8 +464,6 @@
                                     $result = mysqli_query($link, $query);
 
                                     if (!$result) {
-                                        $rollbackResult = mysqli_rollback($link);
-                                        mysqli_close($link);
                                         $queryFail = true;
                                     } else {
                                         $response["newLogo"] = "YES";
@@ -481,8 +480,6 @@
                             $result = mysqli_query($link, $query);
 
                             if (!$result) {
-                                $rollbackResult = mysqli_rollback($link);
-                                mysqli_close($link);
                                 $queryFail = true;
                             } else {
                                 $response["newLogo"] = "YES";
@@ -532,15 +529,12 @@
                         $bckFilename = $_FILES['dashboardBckImg']['name'];
 
                         if (!move_uploaded_file($_FILES['dashboardBckImg']['tmp_name'], $bckFolder . $bckFilename)) {
-                            mysqli_close($link);
                             $queryFail = true;
                         } else {
                             $query = "UPDATE Dashboard.Config_dashboard SET width = $width, num_columns = $nCols, logoLink = '$logoLink', headerVisible = $headerVisible, viewMode='$viewMode', bckImgFilename = " . returnManagedStringForDb($bckFilename) . ", useBckImg = '$useBckImg', last_edit_date = CURRENT_TIMESTAMP WHERE Id = $dashboardId";
                             $result = mysqli_query($link, $query);
 
                             if (!$result) {
-                                $rollbackResult = mysqli_rollback($link);
-                                mysqli_close($link);
                                 $queryFail = true;
                             } else {
                                 $response["newLogo"] = "NO";
@@ -558,8 +552,6 @@
 
                     if(!$result)
                     {
-                       $rollbackResult = mysqli_rollback($link);
-                       mysqli_close($link);
                        $queryFail = true;
                     }
                     else
@@ -572,20 +564,30 @@
                 }
             }
 
-            if(!$queryFail) 
+                }
+                if (!$queryFail && !mysqli_commit($link)) $queryFail = true;
+            } catch (\mysqli_sql_exception $ex) {
+                $queryFail = true;
+                error_log('Dashboard advanced properties database failure ['.(int)$ex->getCode().']');
+            }
+
+            if ($queryFail) {
+                try { mysqli_rollback($link); }
+                catch (\mysqli_sql_exception $rollbackError) { /* A lost connection may also reject rollback. */ }
+            }
+            mysqli_close($link);
+
+            if(!$queryFail)
             {
-                mysqli_commit($link);
-                mysqli_close($link);
                 header("location: ../management/dashboard_configdash.php?dashboardId=" . $dashboardId . "&dashboardAuthorName=" . $dashboardAuthor . "&dashboardEditorName=" . $dashboardEditor . "&dashboardTitle=" . urlencode($dashboardTitle));
             }
             else
             {
-                mysqli_rollback($link);
-                mysqli_close($link);
                 header("location: ../management/dashboard_configdash.php?dashboardId=" . $dashboardId . "&dashboardAuthorName=" . $dashboardAuthor . "&dashboardEditorName=" . $dashboardEditor . "&dashboardTitle=" . urlencode($dashboardTitle) . "&updateFail=true");
             }
-            break;  
-            
+            // This action submits a form; do not enter the AJAX JSON/commit tail.
+            return;
+
         case "addSeparator":
             $selqDbtbMaxSel2 = "SELECT `AUTO_INCREMENT` FROM  INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME = 'Config_widget_dashboard'";
             $resultMaxSel2 = mysqli_query($link, $selqDbtbMaxSel2);

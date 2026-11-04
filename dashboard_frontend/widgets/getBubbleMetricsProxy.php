@@ -40,7 +40,9 @@ function get_string_between($string, $start, $end){
     $ini = strpos($string, $start);
     if ($ini == 0) return '';
     $ini += strlen($start);
-    $len = strpos($string, $end, $ini) - $ini;
+    $endPosition = strpos($string, $end, $ini);
+    if ($endPosition === false) return substr($string, $ini);
+    $len = $endPosition - $ini;
     return substr($string, $ini, $len);
 }
 
@@ -70,6 +72,78 @@ function getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenE
     return $accessToken;
 }
 
+
+// A valid empty feature list is distinct from a failed or malformed response.
+function bubbleMetricsServiceResponse($body, $headers, $origin) {
+    $status = null;
+    if (is_array($headers)) {
+        foreach ($headers as $header) {
+            if (is_string($header) && preg_match('/^HTTP\/\S+\s+(\d{3})\b/', $header, $match)) {
+                $status = (int)$match[1];
+            }
+        }
+    }
+    if ($status !== 200 || !is_string($body)) {
+        http_response_code(502);
+        return ['result' => 'Call to SM KO', 'error' => 'upstream_request_failed'];
+    }
+
+    $data = json_decode($body);
+    try {
+        if (json_last_error() !== JSON_ERROR_NONE || !is_object($data)) {
+            throw new UnexpectedValueException('invalid_payload');
+        }
+        foreach (['error', 'Error', 'errors'] as $errorKey) {
+            if (property_exists($data, $errorKey)) throw new UnexpectedValueException('invalid_payload');
+        }
+        if ($origin === 'Sensor') {
+            $roots = get_object_vars($data);
+            if (!$roots) throw new UnexpectedValueException('invalid_payload');
+            $node = reset($roots);
+        } else {
+            $node = $data;
+            foreach (['BusStop', 'Sensor', 'Service', 'Services', 'SensorSites'] as $key) {
+                if (property_exists($data, $key)) {
+                    $node = $data->$key;
+                    break;
+                }
+            }
+        }
+        if (!is_object($node) || !isset($node->features) || !is_array($node->features)) {
+            throw new UnexpectedValueException('invalid_payload');
+        }
+        $metrics = [];
+        if ($origin === 'Sensor') {
+            if ($node->features !== []) {
+                $feature = $node->features[0];
+                if (!is_object($feature) || !isset($feature->properties) || !is_object($feature->properties)
+                    || !isset($feature->properties->realtimeAttributes) || !is_object($feature->properties->realtimeAttributes)) {
+                    throw new UnexpectedValueException('invalid_payload');
+                }
+                $metrics = array_keys(get_object_vars($feature->properties->realtimeAttributes));
+            }
+        } else {
+            foreach ($node->features as $feature) {
+                if (!is_object($feature) || !isset($feature->properties) || !is_object($feature->properties)) {
+                    throw new UnexpectedValueException('invalid_payload');
+                }
+                // POIs without realtime values are valid and contribute no metrics.
+                if (!isset($feature->properties->values)) continue;
+                if (!is_object($feature->properties->values)) {
+                    throw new UnexpectedValueException('invalid_payload');
+                }
+                foreach ($feature->properties->values as $key => $value) {
+                    if (!in_array($key, $metrics, true)) $metrics[] = $key;
+                }
+            }
+        }
+        return ['result' => 'OK', 'metrics' => $metrics];
+    } catch (UnexpectedValueException $e) {
+        http_response_code(502);
+        return ['result' => 'Call to SM KO', 'error' => 'invalid_upstream_payload'];
+    }
+}
+
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
 
@@ -79,9 +153,18 @@ $metricType = null;
 $dataOrigin = null;
 $dataQuery = $_REQUEST['query'];
 $index = $_REQUEST['index'];
-if (strcmp($dataOrigin->metricHighLevelType, "Sensor" == 0) || strcmp($dataOrigin->metricHighLevelType, "MyKPI" == 0)) {
-    if(isset($_SESSION['refreshToken'])) {
+if (isset($_SESSION['refreshToken'])) {
+    try {
         $accessToken = getAccessToken($ssoEndpoint, $ssoClientId, $ssoClientSecret, $ssoTokenEndpoint);
+        if (!is_string($accessToken) || $accessToken === '') {
+            throw new UnexpectedValueException('invalid_access_token');
+        }
+    } catch (Throwable $e) {
+        session_write_close();
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['result' => 'KO', 'error' => 'authentication_failed']);
+        return;
     }
 }
 session_write_close();
@@ -117,38 +200,11 @@ switch($dataOrigin)
             }
 
             $context = stream_context_create($options);
-            $result = file_get_contents($urlToCall, false, $context);
+            $result = @file_get_contents($urlToCall, false, $context);
             header("Content-Type: application/json");
         }
 
-        //    $smPayload = file_get_contents($urlToCall);
-        if(strpos($http_response_header[0], '200') !== false)
-            //    if ($result)
-        {
-            $data = json_decode($result);
-
-            $response['result'] = "OK";
-          //  $response['metrics'] = $data;
-            $response['metrics'] = array();
-            $deviceKey = array_keys(get_object_vars($data))[0];
-            $realtimeAttributes = array_keys(get_object_vars($data->$deviceKey->features[0]->properties->realtimeAttributes));
-
-            if (!empty($realtimeAttributes)) {
-                for ($arrayCount = 0; $arrayCount < sizeof($realtimeAttributes); $arrayCount++) {
-                    if (!in_array($realtimeAttributes[$arrayCount], $response['metrics'])) {
-                        array_push($response['metrics'], $realtimeAttributes[$arrayCount]);
-                        //  $response['result'] = "OK";
-                        //  $response['metrics'] = $realtimeAttributes;
-                        //  break;
-                    }
-                }
-            }
-
-        }
-        else
-        {
-            $response['result'] = "Call to SM KO";
-        }
+        $response = bubbleMetricsServiceResponse($result, $http_response_header ?? [], 'Sensor');
 
         break;
 
@@ -194,98 +250,12 @@ switch($dataOrigin)
             }
 
             $context = stream_context_create($options);
-            $result = file_get_contents($urlToCall, false, $context);
+            $result = @file_get_contents($urlToCall, false, $context);
             header("Content-Type: application/json");
         }
 
-        //    $smPayload = file_get_contents($urlToCall);
-        if(strpos($http_response_header[0], '200') !== false)
-            //    if ($result)
-        {
-            $geoJsonData = json_decode($result);
-        //    $key = array_keys(get_object_vars($geoJsonData))[0];
-        //    $fatherGeoJsonNode = $geoJsonData->$key;
-            if ($geoJsonData->BusStop) {
-                $fatherGeoJsonNode = $geoJsonData->BusStop;
-            } else if ($geoJsonData->Sensor) {
-                $fatherGeoJsonNode = $geoJsonData->Sensor;
-            } else if ($geoJsonData->Service) {
-                $fatherGeoJsonNode = $geoJsonData->Service;
-            } else if ($geoJsonData->Services) {
-                $fatherGeoJsonNode = $geoJsonData->Services;
-            } else if ($geoJsonData->SensorSites) {
-                $fatherGeoJsonNode = $geoJsonData->SensorSites;
-            } else {
-                $fatherGeoJsonNode = $geoJsonData;
-            }
+        $response = bubbleMetricsServiceResponse($result, $http_response_header ?? [], 'POI');
 
-            $response['metrics'] = array();
-            for ($count = 0; $count < sizeof($fatherGeoJsonNode->features); $count++) {
-            /*    $singleServieUri = $fatherGeoJsonNode->features[$count]->properties->serviceUri;
-
-                $urlToCallSingleDevice = $superServiceMapUrlPrefix . "api/v1?serviceUri=" . rawurlencode($singleServieUri) . "&format=json";
-                //  $urlToCall = $dataQuery;
-
-                if (isset($urlToCallSingleDevice)) {
-                    $options = array(
-                        'http' => array(
-                            'method' => 'GET',
-                            'timeout' => 30,
-                            'ignore_errors' => true
-                        )
-                    );
-                    if (isset($accessToken)) {
-                        $options['http']['header'] = "Authorization: Bearer $accessToken\r\n";
-                    }
-
-                    $context = stream_context_create($options);
-                    $resultSingleDevice = file_get_contents($urlToCallSingleDevice, false, $context);
-                    header("Content-Type: application/json");
-                }
-
-                //    $smPayload = file_get_contents($urlToCall);
-                if (strpos($http_response_header[0], '200') !== false) //    if ($result)
-                {
-                    $singelDeviceData = json_decode($resultSingleDevice);
-                    $deviceKey = array_keys(get_object_vars($singelDeviceData))[0];
-                    $realtimeAttributes = array_keys(get_object_vars($singelDeviceData->$deviceKey->features[0]->properties->realtimeAttributes));
-
-                    if (!empty($realtimeAttributes)) {
-                        for ($arrayCount = 0; $arrayCount < sizeof($realtimeAttributes); $arrayCount++) {
-                            if (!in_array($realtimeAttributes[$arrayCount], $response['metrics'])) {
-                                array_push($response['metrics'], $realtimeAttributes[$arrayCount]);
-                                //  $response['result'] = "OK";
-                                //  $response['metrics'] = $realtimeAttributes;
-                                //  break;
-                            }
-                        }
-                    }
-
-                } else {
-                    $response['result'] = "Call to SM KO";
-                }   */
-
-                if (isset($fatherGeoJsonNode->features[$count]->properties->values)) {
-                    //for($n = 0; $n < $fatherGeoJsonNode->features[$count]->properties->values; $n++) {
-                    foreach($fatherGeoJsonNode->features[$count]->properties->values as $key => $value) {
-                        if (!in_array($key, $response['metrics'])) {
-                            array_push($response['metrics'], $key);
-                            //  $response['result'] = "OK";
-                            //  $response['metrics'] = $realtimeAttributes;
-                            //  break;
-                        }
-                    }
-                }
-
-            }
-
-        }
-        else
-        {
-            $response['result'] = "Call to SM KO";
-        }
-
-        $response['result'] = "OK";
         break;
 
     case "MyKPI":

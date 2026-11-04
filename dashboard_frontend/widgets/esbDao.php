@@ -2,19 +2,22 @@
     /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
    include '../config.php';
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
+
    
    session_start(); 
    error_reporting(E_ERROR | E_NOTICE);
@@ -118,6 +121,7 @@
             
          case "getEvacuationPlans":
             $plans = [];
+            $plansQueryFailed = false;
             
             $query = "SELECT * FROM resolute_events WHERE data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'DEFINITION' ORDER BY STR_TO_DATE(event_time,'%Y-%m-%d %H:%i:%s') DESC";
             $result = mysqli_query($esbLink, $query);
@@ -131,15 +135,26 @@
                   $planRow['event_time'] = $row['event_time'];
                   $planRow['originalPayload'] = $row['payload'];
                   
-                  $query2 = "SELECT JSON_EXTRACT(payload, '$.evacuation_plan_status') AS lastStatus FROM resolute_events WHERE data_id = '$dataId' AND data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'UPDATE' ORDER BY created DESC LIMIT 1";
+                  $query2 = "SELECT payload AS lastPayload FROM resolute_events WHERE data_id = '$dataId' AND data_type = 'org.resolute_eu.esb.model.evac.EvacuationPlan' AND type = 'UPDATE' ORDER BY created DESC LIMIT 1";
                   $result2 = mysqli_query($esbLink, $query2);
                   
                   if(mysqli_num_rows($result2) > 0)
                   {
                      while($row2 = mysqli_fetch_assoc($result2)) 
                      {
-                        $planRow['lastStatus'] = str_replace('"', '', $row2['lastStatus']);
+                        // MySQL 5.6 has no JSON_EXTRACT: decode the latest update in PHP.
+                        $lastPayload = $row2['lastPayload'];
+                        if ($lastPayload === null) { $planRow['lastStatus'] = ''; continue; }
+                        $statusPayload = json_decode($lastPayload);
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                           $plansQueryFailed = true;
+                           break;
+                        }
+                        $lastStatus = is_object($statusPayload) && property_exists($statusPayload, 'evacuation_plan_status')
+                           ? json_encode($statusPayload->evacuation_plan_status, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRESERVE_ZERO_FRACTION) : '';
+                        $planRow['lastStatus'] = str_replace('"', '', $lastStatus);
                      }
+                     if ($plansQueryFailed) break;
                   }
                   else
                   {
@@ -148,8 +163,13 @@
                   
                   $plans[$planRow['id']] = $planRow;
                }
-               $result = json_encode($plans);
-               echo $result;
+               if ($plansQueryFailed) {
+                  // Emit one legacy failure, never a partial list of plans.
+                  echo "queryKo";
+               } else {
+                  $result = json_encode($plans);
+                  echo $result;
+               }
             }
             else
             {
@@ -213,3 +233,14 @@
       }//Fine switch
    }
 
+
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'json');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
+}

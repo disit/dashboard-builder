@@ -122,7 +122,11 @@ if($result1)
     //$file = fopen("C:\dashboardLog.txt", "w");
     //fwrite($file, "Query2: " . $query2 . "\n");    
     
-    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);                
+    try {
+    if (!mysqli_begin_transaction($link)) {
+        echo "Ko";
+        exit();
+    }
 
      $result2 = mysqli_query($link, $query2);
 
@@ -275,7 +279,6 @@ if($result1)
                          }
                      }
 
-                     mysqli_commit($link);
 
                      //Aggiornamento dei campi dei parametri per interazioni cross widget
                      foreach ($widgetsMap as $originalW => $clonedW) {
@@ -284,15 +287,29 @@ if($result1)
                              "WHERE id_dashboard = $clonedDashId";
 
                          $updParamsR = mysqli_query($link, $updParamsQ);
+                         if (!$updParamsR) {
+                             mysqli_rollback($link);
+                             echo "Ko";
+                             exit();
+                         }
 
                          $updCodeQ = "UPDATE Dashboard.Config_widget_dashboard " .
                              "SET code = REPLACE(code, '$originalW', '$clonedW') " .
                              "WHERE id_dashboard = $clonedDashId";
 
                          $updCodeR = mysqli_query($link, $updCodeQ);
+                         if (!$updCodeR) {
+                             mysqli_rollback($link);
+                             echo "Ko";
+                             exit();
+                         }
                      }
 
-                     mysqli_commit($link);
+                     if (!mysqli_commit($link)) {
+                         try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+                         echo "Ko";
+                         exit();
+                     }
 
                      //Copia logo della dashboard
                      if (file_exists("../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename)) {
@@ -368,4 +385,9 @@ if($result1)
         echo "Ko";
         exit();
      }
+} catch (\mysqli_sql_exception $exception) {
+    try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+    echo "Ko";
+    exit();
+}
 }

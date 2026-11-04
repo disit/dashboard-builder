@@ -919,25 +919,37 @@ if(isset($_REQUEST["initWidgetWizard"]) || isset($_REQUEST["initSynVarPresel"]) 
     }
 }
 if(isset($_REQUEST["doSynVarPresel"])) {
-	try {
-		$noautocommit = mysqli_autocommit($link, false);		
-		if($noautocommit) $transaction = mysqli_begin_transaction($link);
-		if($transaction) $stmt = mysqli_prepare($link, "delete from Dashboard.SynopticVarPresel where usr = ?");
-		if($stmt) $bind = mysqli_stmt_bind_param($stmt, "s", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod));
-		if($bind) $exec = mysqli_stmt_execute($stmt);
-		if($exec) mysqli_stmt_close($stmt);
-		else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
-		foreach( explode(",",$_REQUEST["sel"]) as $sel ) {
-			$stmt = mysqli_prepare($link, "insert into Dashboard.SynopticVarPresel(usr,sel) values (?,?)");
-			if($stmt) $bind = mysqli_stmt_bind_param($stmt, "si", encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod),$sel);
-			if($bind) $exec = mysqli_stmt_execute($stmt);
-			if($exec) mysqli_stmt_close($stmt);
-			else { mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die(); }
-		}
-		mysqli_commit($link); 
-		mysqli_close($link);
-	}
-	catch(Exception $e) {
-		mysqli_rollback($link); mysqli_close($link); header($_SERVER['SERVER_PROTOCOL'] . ' 500 Internal Server Error', true, 500); die($e);
-	}	
+    $preselectionStatement = null;
+    try {
+        if (!mysqli_autocommit($link, false) || !mysqli_begin_transaction($link))
+            throw new \RuntimeException('preselection_transaction_failed');
+        $preselectionUser = encryptOSSL($_SESSION['loggedUsername'], $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
+        $preselectionStatement = mysqli_prepare($link, "delete from Dashboard.SynopticVarPresel where usr = ?");
+        if (!$preselectionStatement || !mysqli_stmt_bind_param($preselectionStatement, "s", $preselectionUser) ||
+            !mysqli_stmt_execute($preselectionStatement))
+            throw new \RuntimeException('preselection_delete_failed');
+        mysqli_stmt_close($preselectionStatement);
+        $preselectionStatement = null;
+        $preselectionChoices = $_REQUEST["sel"] === "" ? [] : explode(",", $_REQUEST["sel"]);
+        foreach ($preselectionChoices as $sel) {
+            $preselectionStatement = mysqli_prepare($link, "insert into Dashboard.SynopticVarPresel(usr,sel) values (?,?)");
+            if (!$preselectionStatement || !mysqli_stmt_bind_param($preselectionStatement, "si", $preselectionUser, $sel) ||
+                !mysqli_stmt_execute($preselectionStatement))
+                throw new \RuntimeException('preselection_insert_failed');
+            mysqli_stmt_close($preselectionStatement);
+            $preselectionStatement = null;
+        }
+        if (!mysqli_commit($link)) throw new \RuntimeException('preselection_commit_failed');
+        mysqli_close($link);
+    } catch (\Throwable $exception) {
+        if ($preselectionStatement) {
+            try { mysqli_stmt_close($preselectionStatement); } catch (\Throwable $statementCloseError) {}
+        }
+        if (isset($link) && $link !== false) {
+            try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+            try { mysqli_close($link); } catch (\Throwable $closeError) {}
+        }
+        http_response_code(500);
+        error_log('Wizard preselection database operation failed ['.(int)$exception->getCode().']');
+    }
 }

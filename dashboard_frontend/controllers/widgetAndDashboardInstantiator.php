@@ -1144,6 +1144,7 @@
                                             else
                                             {
                                                 echo "Ko";
+                                                return;
                                             }
                                         }
 
@@ -1265,6 +1266,7 @@
                                                     else
                                                     {
                                                         echo "Ko";
+                                                        return;
                                                     }
                                                 }
                                             }
@@ -1277,6 +1279,7 @@
                                                 else
                                                 {
                                                     echo "Ko";
+                                                    return;
                                                 }
                                             }
                                         }
@@ -1296,6 +1299,7 @@
                                             else
                                             {
                                                 echo "Ko";
+                                                return;
                                             }
                                         }
                                     }
@@ -1397,7 +1401,7 @@
 
                                 $creator = $_SESSION['loggedUsername'];
                                 
-                                $newWidgetDbRow = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParameters['color_w'], $defaultParameters['frequency_w'], $defaultParameters['temporal_range_w'], $defaultParameters['municipality_w'], $defaultParameters['infoMessage_w'], $defaultParameters['link_w'], $defaultParameters['parameters'], $defaultParameters['frame_color_w'], htmlentities($defaultParameters['udm'], ENT_QUOTES|ENT_HTML5), $defaultParameters['udmPos'], $defaultParameters['fontSize'], $defaultParameters['fontColor'], $defaultParameters['controlsPosition'], $defaultParameters['showTitle'], $defaultParameters['controlsVisibility'], $defaultParameters['zoomFactor'], $defaultParameters['defaultTab'], $defaultParameters['zoomControlsColor'], $defaultParameters['scaleX'], $defaultParameters['scaleY'], $defaultParameters['headerFontColor'], $defaultParameters['styleParameters'], $defaultParameters['infoJson'], $defaultParameters['serviceUri'], $defaultParameters['viewMode'], $defaultParameters['hospitalList'], $defaultParameters['notificatorRegistered'], $defaultParameters['notificatorEnabled'], $defaultParameters['enableFullscreenTab'], $defaultParameters['enableFullscreenModal'], $defaultParameters['fontFamily'], $defaultParameters['entityJson'], $defaultParameters['attributeName'], $creator, null, $defaultParameters['canceller'], $defaultParameters['lastEditDate'], $defaultParameters['cancelDate'], $defaultParameters['actuatorTarget'], $defaultParameters['actuatorEntity'], $defaultParameters['actuatorAttribute'], $defaultParameters['chartColor'], $defaultParameters['dataLabelsFontSize'], $defaultParameters['dataLabelsFontColor'], $defaultParameters['chartLabelsFontSize'], $defaultParameters['chartLabelsFontColor'], no, null, null, json_encode($widgetWizardSelectedRows), $newWidgetType);
+                                $newWidgetDbRow = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParameters['color_w'], $defaultParameters['frequency_w'], $defaultParameters['temporal_range_w'], $defaultParameters['municipality_w'], $defaultParameters['infoMessage_w'], $defaultParameters['link_w'], $defaultParameters['parameters'], $defaultParameters['frame_color_w'], htmlentities($defaultParameters['udm'], ENT_QUOTES|ENT_HTML5), $defaultParameters['udmPos'], $defaultParameters['fontSize'], $defaultParameters['fontColor'], $defaultParameters['controlsPosition'], $defaultParameters['showTitle'], $defaultParameters['controlsVisibility'], $defaultParameters['zoomFactor'], $defaultParameters['defaultTab'], $defaultParameters['zoomControlsColor'], $defaultParameters['scaleX'], $defaultParameters['scaleY'], $defaultParameters['headerFontColor'], $defaultParameters['styleParameters'], $defaultParameters['infoJson'], $defaultParameters['serviceUri'], $defaultParameters['viewMode'], $defaultParameters['hospitalList'], $defaultParameters['notificatorRegistered'], $defaultParameters['notificatorEnabled'], $defaultParameters['enableFullscreenTab'], $defaultParameters['enableFullscreenModal'], $defaultParameters['fontFamily'], $defaultParameters['entityJson'], $defaultParameters['attributeName'], $creator, null, $defaultParameters['canceller'], $defaultParameters['lastEditDate'], $defaultParameters['cancelDate'], $defaultParameters['actuatorTarget'], $defaultParameters['actuatorEntity'], $defaultParameters['actuatorAttribute'], $defaultParameters['chartColor'], $defaultParameters['dataLabelsFontSize'], $defaultParameters['dataLabelsFontColor'], $defaultParameters['chartLabelsFontSize'], $defaultParameters['chartLabelsFontColor'], 'no', null, null, json_encode($widgetWizardSelectedRows), $newWidgetType);
 
                                 if($widgetTypeDbRow['hasMainWidgetFactory'] == 'yes')
                                 {
@@ -1723,6 +1727,7 @@
                                                 else
                                                 {
                                                     echo "Ko";
+                                                    return;
                                                 }
                                             }
                                         }
@@ -1735,6 +1740,7 @@
                                             else
                                             {
                                                 echo "Ko";
+                                                return;
                                             }
                                         }
                                     }
@@ -1753,6 +1759,7 @@
                                             else
                                             {
                                                 echo "Ko";
+                                                return;
                                             }
                                         }
                                     }
@@ -1835,7 +1842,7 @@
         $actuatorTargetInstance = $_REQUEST['actuatorTargetInstance'];
         $actuatorEntityName = escapeForSQL($_REQUEST['actuatorEntityName'], $link);
         $actuatorValueType = escapeForSQL($_REQUEST['actuatorValueType'], $link);
-        $actuatorMinBaseValue = ecapeForSQL($_REQUEST['actuatorMinBaseValue'], $link);
+        $actuatorMinBaseValue = escapeForSQL($_REQUEST['actuatorMinBaseValue'], $link);
         $actuatorMaxImpulseValue = escapeForSQL($_REQUEST['actuatorMaxImpulseValue'], $link);
         $title_w = NULL;
         $n_row = NULL;
@@ -1956,6 +1963,15 @@
             {
                 $widgetTypeDbRow = mysqli_fetch_assoc($r3);
                 $widgetCategory = $widgetTypeDbRow['widgetCategory'];
+
+                // Legacy composite substitution has no mapping to the existing target widgets.
+                // Stop before writes rather than construct UPDATEs using new AUTO_INCREMENT names.
+                if (!empty($widgetTypeDbRow['targetWidget'])) {
+                    eventLog('Composite widget metric substitution is unsupported: existing target mapping is unavailable.');
+                    if ($addDashboard) return false;
+                    echo "Ko";
+                    return;
+                }
 
                 try
                 {
@@ -3094,7 +3110,7 @@
 
                             $creator = $_SESSION['loggedUsername'];
 
-                            $newWidgetDbRow = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParameters['color_w'], $defaultParameters['frequency_w'], $defaultParameters['temporal_range_w'], $defaultParameters['municipality_w'], $defaultParameters['infoMessage_w'], $defaultParameters['link_w'], $defaultParameters['parameters'], $defaultParameters['frame_color_w'], htmlentities($defaultParameters['udm'], ENT_QUOTES|ENT_HTML5), $defaultParameters['udmPos'], $defaultParameters['fontSize'], $defaultParameters['fontColor'], $defaultParameters['controlsPosition'], $defaultParameters['showTitle'], $defaultParameters['controlsVisibility'], $defaultParameters['zoomFactor'], $defaultParameters['defaultTab'], $defaultParameters['zoomControlsColor'], $defaultParameters['scaleX'], $defaultParameters['scaleY'], $defaultParameters['headerFontColor'], $defaultParameters['styleParameters'], $defaultParameters['infoJson'], $defaultParameters['serviceUri'], $defaultParameters['viewMode'], $defaultParameters['hospitalList'], $defaultParameters['notificatorRegistered'], $defaultParameters['notificatorEnabled'], $defaultParameters['enableFullscreenTab'], $defaultParameters['enableFullscreenModal'], $defaultParameters['fontFamily'], $defaultParameters['entityJson'], $defaultParameters['attributeName'], $creator, null, $defaultParameters['canceller'], $defaultParameters['lastEditDate'], $defaultParameters['cancelDate'], $defaultParameters['actuatorTarget'], $defaultParameters['actuatorEntity'], $defaultParameters['actuatorAttribute'], $defaultParameters['chartColor'], $defaultParameters['dataLabelsFontSize'], $defaultParameters['dataLabelsFontColor'], $defaultParameters['chartLabelsFontSize'], $defaultParameters['chartLabelsFontColor'], no, null, null, json_encode($widgetWizardSelectedRows), $newWidgetType);
+                            $newWidgetDbRow = new WidgetDbRow($name_w, $id_dashboard, $id_metric, $type_w, $n_row, $n_column, $size_rows, $size_columns, $title_w, $defaultParameters['color_w'], $defaultParameters['frequency_w'], $defaultParameters['temporal_range_w'], $defaultParameters['municipality_w'], $defaultParameters['infoMessage_w'], $defaultParameters['link_w'], $defaultParameters['parameters'], $defaultParameters['frame_color_w'], htmlentities($defaultParameters['udm'], ENT_QUOTES|ENT_HTML5), $defaultParameters['udmPos'], $defaultParameters['fontSize'], $defaultParameters['fontColor'], $defaultParameters['controlsPosition'], $defaultParameters['showTitle'], $defaultParameters['controlsVisibility'], $defaultParameters['zoomFactor'], $defaultParameters['defaultTab'], $defaultParameters['zoomControlsColor'], $defaultParameters['scaleX'], $defaultParameters['scaleY'], $defaultParameters['headerFontColor'], $defaultParameters['styleParameters'], $defaultParameters['infoJson'], $defaultParameters['serviceUri'], $defaultParameters['viewMode'], $defaultParameters['hospitalList'], $defaultParameters['notificatorRegistered'], $defaultParameters['notificatorEnabled'], $defaultParameters['enableFullscreenTab'], $defaultParameters['enableFullscreenModal'], $defaultParameters['fontFamily'], $defaultParameters['entityJson'], $defaultParameters['attributeName'], $creator, null, $defaultParameters['canceller'], $defaultParameters['lastEditDate'], $defaultParameters['cancelDate'], $defaultParameters['actuatorTarget'], $defaultParameters['actuatorEntity'], $defaultParameters['actuatorAttribute'], $defaultParameters['chartColor'], $defaultParameters['dataLabelsFontSize'], $defaultParameters['dataLabelsFontColor'], $defaultParameters['chartLabelsFontSize'], $defaultParameters['chartLabelsFontColor'], 'no', null, null, json_encode($widgetWizardSelectedRows), $newWidgetType);
 
                             if($widgetTypeDbRow['hasMainWidgetFactory'] == 'yes')
                             {

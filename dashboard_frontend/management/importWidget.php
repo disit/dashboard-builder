@@ -68,13 +68,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     if ($_FILES["jsonFile"]["error"] == UPLOAD_ERR_OK) {
         $jsonData = file_get_contents($_FILES["jsonFile"]["tmp_name"]);
         $data = json_decode($jsonData, true);
-        if (is_null($data)) {
+        if (!is_array($data)) {
             eventLog('Import Error not VALID JSON.');
             //mysqli_rollback($link);
             echo "Import Error: not valid JSON.";
             exit();
         } else {
-            if (is_null($data['Widget']) || sizeof($data['Widget'])>1) {
+            // The export contains exactly one widget record, never scalar metadata.
+            if (!isset($data['Widget']) || !is_array($data['Widget']) || count($data['Widget']) !== 1
+                || !isset($data['Widget'][0]) || !is_array($data['Widget'][0])
+                || !isset($data['Widget'][0]['name_w'], $data['Widget'][0]['type_w'])
+                || !is_string($data['Widget'][0]['name_w']) || !is_string($data['Widget'][0]['type_w'])) {
                 eventLog('Import Error not VALID Widget JSON.');
                 //mysqli_rollback($link);
                 echo "Import Error: not valid Widget JSON.";
@@ -124,7 +128,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         
         //$dashboardData['name_dashboard'] = $newDashboardTitle;
         //$dashboardData['title_header'] = $newDashboardTitle;
-        $widgetData['creator'] = $userLog;
+        // creator is assigned to the individual widget below, not to this list.
         //$widgetData['organizations'] = $org;
 
         // connessione al db

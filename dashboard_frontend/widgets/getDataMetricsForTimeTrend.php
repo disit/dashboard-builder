@@ -3,21 +3,43 @@
 /* Dashboard Builder.
   Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-  This program is free software; you can redistribute it and/or
-  modify it under the terms of the GNU General Public License
-  as published by the Free Software Foundation; either version 2
-  of the License, or (at your option) any later version.
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  You should have received a copy of the GNU General Public License
-  along with this program; if not, write to the Free Software
-  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+  This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include '../config.php';
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
+
 
 $link = new mysqli($host, $username, $password, $dbname);
-$id = $_GET['IdMisura'];
+$id = $_GET['IdMisura'] ?? [];
+$metricType = null;
+if (!is_array($id) || count($id) === 0) {
+    http_response_code(400);
+    echo json_encode(['detail'=>'Ko','error'=>'invalid_metric_list']);
+    return;
+}
+foreach ($id as $metricId) {
+    if (!is_string($metricId) || trim($metricId) === '') {
+        http_response_code(400);
+        echo json_encode(['detail'=>'Ko','error'=>'invalid_metric_list']);
+        return;
+    }
+}
+if ((isset($_GET['time']) && (!is_string($_GET['time']) || !preg_match('/\A[1-9][0-9]{0,5}\/(?:SECOND|MINUTE|HOUR|DAY|WEEK|MONTH|QUARTER|YEAR)\z/', $_GET['time']))) ||
+    (isset($_GET['timeCount']) && (!is_scalar($_GET['timeCount']) || !preg_match('/\A-?[0-9]{1,6}\z/', (string)$_GET['timeCount'])))) {
+    http_response_code(400);
+    echo json_encode(['detail'=>'Ko','error'=>'invalid_time_range']);
+    return;
+}
 
 
 if ($link->connect_error) {
@@ -248,8 +270,10 @@ if ($link->connect_error) {
         //eventLog($where);
         $rows = array();
         $i = -1;
+        $data = array('data' => [], 'metricType' => $metricType);
 
         foreach ($id as $idValue) {
+            if ($metricType === null) continue;
             $idValue = mysqli_real_escape_string($link, $idValue);
             foreach ($rangedays as $rangedaysValue) {
                 $rangedaysValue[0] = mysqli_real_escape_string($link, $rangedaysValue[0]);
@@ -295,6 +319,16 @@ if ($link->connect_error) {
     }
 }
 
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'json');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
+}
 function findMonday($d = "", $format = "Y-m-d") {
     if ($d == "")
         $d = date("Y-m-d");

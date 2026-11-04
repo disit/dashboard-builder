@@ -13,18 +13,33 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+use Jumbojett\OpenIDConnectClient;
+require_once __DIR__.'/../databaseException.php';
+$deleteWidgetBufferLevel = ob_get_level();
+ob_start();
+$link = null;
+try {
 include '../config.php'; 
 error_reporting(E_ERROR | E_NOTICE);
 date_default_timezone_set('Europe/Rome');
 
 require '../sso/autoload.php';
-use Jumbojett\OpenIDConnectClient;
 
 session_start(); 
 checkSession('Manager');
 
 $link = mysqli_connect($host, $username, $password);
-mysqli_select_db($link, $dbname);
+if (!$link) {
+    http_response_code(500);
+    echo "delWidgetKo";
+    return;
+}
+if (!mysqli_select_db($link, $dbname)) {
+    mysqli_close($link);
+    http_response_code(500);
+    echo "delWidgetKo";
+    return;
+}
 
 $response = NULL;
 
@@ -59,10 +74,21 @@ try
 {
     $lastEditDateQuery = "UPDATE Dashboard.Config_dashboard SET last_edit_date = CURRENT_TIMESTAMP WHERE Id = '$dashboardId'";
     $lastEditDateResult = mysqli_query($link, $lastEditDateQuery);
+    if (!$lastEditDateResult) {
+        mysqli_close($link);
+        echo "updateDashboardEditTimeKo";
+        return;
+    }
 } 
+catch (mysqli_sql_exception $ex)
+{
+    throw $ex;
+}
 catch (Exception $ex) 
 {
     $response = "updateDashboardEditTimeKo";
+    echo $response;
+    return;
 }
 
 $widgetDataQuery = "SELECT * FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
@@ -71,6 +97,11 @@ $result0 = mysqli_query($link, $widgetDataQuery);
 if($result0)
 {
   $row0 = mysqli_fetch_assoc($result0);
+  if (!$row0) {
+      mysqli_close($link);
+      echo "delWidgetKo";
+      return;
+  }
   $generatorOriginalName = $row0['title_w'];
   $generatorOriginalType = $row0['id_metric'];
   $widgetType = $row0['type_w'];
@@ -78,8 +109,9 @@ if($result0)
 }
 else
 {
-  $generatorOriginalName = null;
-  $generatorOriginalType = null;
+  mysqli_close($link);
+  echo "delWidgetKo";
+  return;
 }
 
 
@@ -202,7 +234,11 @@ else
 {
      //Cancellazione widget dataviewer
      mysqli_autocommit($link, false);
-     mysqli_begin_transaction(MYSQLI_TRANS_START_READ_WRITE); 
+     if (!mysqli_begin_transaction($link)) {
+         mysqli_close($link);
+         echo "delWidgetKo";
+         return;
+     }
 
      $query1 = "DELETE FROM Dashboard.Config_widget_dashboard WHERE name_w = '$widgetName' AND id_dashboard = '$dashboardId'";
      $result1 = mysqli_query($link, $query1);
@@ -220,17 +256,17 @@ else
              {
                 while($row2 = mysqli_fetch_array($result2)) 
                 {
-                   $targetList = json_decode($row2['parameters'], false);
+                   $targetList = json_decode($row2['parameters'], true);
                    $widgetId = $row2['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       $index = array_search($widgetName, $targetList);
 
                       if($index !== false)
                       {
                          array_splice($targetList, $index, 1);
-                         $updatedTargetList = json_encode($targetList);
+                         $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
                          $query3 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
                          $result3 = mysqli_query($link, $query3);
 
@@ -240,6 +276,8 @@ else
                             mysqli_close($link);
                             
                             $response = "updateWidgetPropertiesKo";
+                            echo $response;
+                            return;
                          }
                       }
                    }
@@ -251,6 +289,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget events della stessa dashboard
@@ -264,10 +304,10 @@ else
                    $targetList = json_decode($row4['parameters'], true);
                    $widgetId = $row4['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       unset($targetList[$widgetName]);
-                      $updatedTargetList = json_encode($targetList);
+                      $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
                       $query5 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
                       $result5 = mysqli_query($link, $query5);
 
@@ -277,6 +317,8 @@ else
                          mysqli_close($link);
                          
                          $response = "updateWidgetPropertiesKo";
+                         echo $response;
+                         return;
                       }
                    }
                 }
@@ -287,6 +329,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget traffic events della stessa dashboard
@@ -300,10 +344,10 @@ else
                    $targetList = json_decode($row6['parameters'], true);
                    $widgetId = $row6['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       unset($targetList[$widgetName]);
-                      $updatedTargetList = json_encode($targetList);
+                      $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                       //Workaround per riportarlo nella forma giusta quando la lista dei parametri viene svuotata completamente
                       if($updatedTargetList == "[]")
@@ -320,6 +364,8 @@ else
                          mysqli_close($link);
                          
                          $response = "updateWidgetPropertiesKo";
+                         echo $response;
+                         return;
                       }
                    }
                 }
@@ -330,6 +376,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget alarm events della stessa dashboard
@@ -343,10 +391,10 @@ else
                    $targetList = json_decode($row8['parameters'], true);
                    $widgetId = $row8['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       unset($targetList[$widgetName]);
-                      $updatedTargetList = json_encode($targetList);
+                      $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                       //Workaround per riportarlo nella forma giusta quando la lista dei parametri viene svuotata completamente
                       if($updatedTargetList == "[]")
@@ -363,6 +411,8 @@ else
                          mysqli_close($link);
                          
                          $response = "delWidgetEventProducersKo";
+                         echo $response;
+                         return;
                       }
                    }
                 }
@@ -373,6 +423,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget evacuation plans della stessa dashboard
@@ -386,10 +438,10 @@ else
                    $targetList = json_decode($row10['parameters'], true);
                    $widgetId = $row10['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       unset($targetList[$widgetName]);
-                      $updatedTargetList = json_encode($targetList);
+                      $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                       //Workaround per riportarlo nella forma giusta quando la lista dei parametri viene svuotata completamente
                       if($updatedTargetList == "[]")
@@ -406,6 +458,8 @@ else
                          mysqli_close($link);
                          
                          $response = "updateWidgetPropertiesKo";
+                         echo $response;
+                         return;
                       }
                    }
                 }
@@ -416,6 +470,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget network analysis della stessa dashboard
@@ -429,14 +485,14 @@ else
                    $targetList = json_decode($row12['parameters'], true);
                    $widgetId = $row12['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       $index = array_search($widgetName, $targetList);
 
                       if($index !== false)
                       {
                           array_splice($targetList, $index, 1);
-                          $updatedTargetList = json_encode($targetList);
+                          $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                           $query13 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
                           $result13 = mysqli_query($link, $query13);
@@ -446,6 +502,8 @@ else
                              $rollbackResult = mysqli_rollback($link);
                              mysqli_close($link);
                              $response = "updateWidgetPropertiesKo";
+                             echo $response;
+                             return;
                           }
                       }
                    }
@@ -457,6 +515,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
              //Cancellazione dai target dei widget resources della stessa dashboard
@@ -470,14 +530,14 @@ else
                    $targetList = json_decode($row14['parameters'], true);
                    $widgetId = $row14['Id'];
 
-                   if(count($targetList) > 0)
+                   if(is_array($targetList) && count($targetList) > 0)
                    {
                       $index = array_search($widgetName, $targetList);
 
                       if($index !== false)
                       {
                           array_splice($targetList, $index, 1);
-                          $updatedTargetList = json_encode($targetList);
+                          $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                           $query15 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
                           $result15 = mysqli_query($link, $query15);
@@ -488,6 +548,8 @@ else
                              mysqli_close($link);
                              
                              $response = "updateWidgetPropertiesKo";
+                             echo $response;
+                             return;
                           }
                       }
                    }
@@ -499,6 +561,8 @@ else
                 mysqli_close($link);
                 
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
 
@@ -513,14 +577,14 @@ else
                    $targetList = json_decode($row20['parameters'], true);
                    $widgetId = $row20['Id'];
 
-                   if(count($targetList["targets"]) > 0)
+                   if(is_array($targetList) && isset($targetList["targets"]) && is_array($targetList["targets"]) && count($targetList["targets"]) > 0)
                    {
                       $index = array_search($widgetName, $targetList["targets"]);
 
                       if($index !== false)
                       {
                           array_splice($targetList["targets"], $index, 1);
-                          $updatedTargetList = json_encode($targetList);
+                          $updatedTargetList = mysqli_real_escape_string($link, json_encode($targetList));
 
                           $query21 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedTargetList' WHERE Id = '$widgetId'";
                           $result21 = mysqli_query($link, $query21);
@@ -531,12 +595,19 @@ else
                              mysqli_close($link);
                              
                              $response = "updateWidgetPropertiesKo";
+                             echo $response;
+                             return;
                           }
                       }
                    }
                 }
 
-                mysqli_commit($link);
+                if (!mysqli_commit($link)) {
+                    mysqli_rollback($link);
+                    mysqli_close($link);
+                    echo "delWidgetKo";
+                    return;
+                }
                 mysqli_close($link);
                 
                 $response = "Ok";
@@ -578,6 +649,8 @@ else
                 mysqli_rollback($link);
                 mysqli_close($link);
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
           }//Tutti gli altri widget diversi dall'external content
           else
@@ -595,7 +668,7 @@ else
                      $buttonWidgetId = $row2['Id']; 
                      $parameters = json_decode($row2['parameters'], false);
                      unset($parameters->changeMetricTargetsJson->$widgetName);
-                     $updatedParameters = json_encode($parameters);
+                     $updatedParameters = mysqli_real_escape_string($link, json_encode($parameters));
 
                      $query3 = "UPDATE Dashboard.Config_widget_dashboard SET parameters = '$updatedParameters' WHERE Id = '$buttonWidgetId'";
                      $result3 = mysqli_query($link, $query3);
@@ -605,6 +678,8 @@ else
                         mysqli_rollback($link);
                         mysqli_close($link);
                         $response = "updateWidgetPropertiesKo";
+                        echo $response;
+                        return;
                      }
                   }  
                 }
@@ -614,9 +689,16 @@ else
                 mysqli_rollback($link);
                 mysqli_close($link);
                 $response = "delWidgetEventProducersKo";
+                echo $response;
+                return;
              }
 
-             mysqli_commit($link);
+             if (!mysqli_commit($link)) {
+                 mysqli_rollback($link);
+                 mysqli_close($link);
+                 echo "delWidgetKo";
+                 return;
+             }
 
              if(($widgetType == "widgetButton")&&(file_exists("../img/widgetButtonImages/" . $widgetName)))
              {
@@ -686,3 +768,11 @@ else
 
 echo $response;
 
+
+} catch (mysqli_sql_exception $exception) {
+    dashboardDatabaseFailure($exception, $link, $deleteWidgetBufferLevel);
+} finally {
+    while (ob_get_level() > $deleteWidgetBufferLevel) {
+        ob_end_flush();
+    }
+}

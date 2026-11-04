@@ -3341,6 +3341,8 @@ var WidgetDateTimePopover = (function ($) {
     'use strict';
 
     var instanceDataKey = 'widgetDateTimePopoverInstance';
+    // Keep Bootstrap's plugin before a dynamically loaded widget replaces the shared name.
+    var bootstrapDateTimePicker = $.fn.datetimepicker;
 
     function normalizeMoment(value) {
         if (value === null || typeof value === 'undefined') {
@@ -3384,6 +3386,7 @@ var WidgetDateTimePopover = (function ($) {
         var control;
         var actions;
         var picker;
+        var initializePicker = bootstrapDateTimePicker || $.fn.datetimepicker;
         var suppressChange = false;
         var instance;
 
@@ -3392,7 +3395,7 @@ var WidgetDateTimePopover = (function ($) {
         }
 
         if (!settings.enabled || !host.length || !button.length ||
-            typeof $.fn.datetimepicker !== 'function' || typeof moment !== 'function') {
+            typeof initializePicker !== 'function' || typeof moment !== 'function') {
             host.hide();
             return null;
         }
@@ -3456,12 +3459,20 @@ var WidgetDateTimePopover = (function ($) {
             panel.append(actions);
         }
 
-        control.datetimepicker($.extend(true, {
-            inline: true,
-            useCurrent: false,
-            showTodayButton: true,
-            toolbarPlacement: 'bottom'
-        }, settings.pickerOptions));
+        // Bootstrap also reads $.fn.datetimepicker.defaults while constructing an instance.
+        // Restore the current plugin even if construction throws.
+        var currentPickerPlugin = $.fn.datetimepicker;
+        try {
+            $.fn.datetimepicker = initializePicker;
+            initializePicker.call(control, $.extend(true, {
+                inline: true,
+                useCurrent: false,
+                showTodayButton: true,
+                toolbarPlacement: 'bottom'
+            }, settings.pickerOptions));
+        } finally {
+            $.fn.datetimepicker = currentPickerPlugin;
+        }
         picker = control.data('DateTimePicker');
 
         function positionPanel() {

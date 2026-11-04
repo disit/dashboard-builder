@@ -13,6 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    
+   require_once __DIR__ . '/../phpCompatibility.php';
    include('process-form.php');
    include('../config.php');
   include '../locale.php';
@@ -32,7 +33,7 @@
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR);
 
-    $lastUsedColors = null;
+    $lastUsedColors = [];
     $dashId = escapeForSQL($_REQUEST['dashboardId'], $link);
     if (checkVarType($dashId, "integer") === false) {
         eventLog("Returned the following ERROR in dashboard_configdash.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
@@ -88,7 +89,7 @@
         }
         else
         {
-            $lastUsedColors = json_decode($row['lastUsedColors']);
+            $lastUsedColors = dashboardDecodeStringList($row['lastUsedColors'] ?? null) ?? [];
             $dashboardAuthorName = $row['user']; //$_REQUEST['dashboardAuthorName'];
             $dashboardTitle = $row['title_header']; //$_REQUEST['dashboardTitle'];
             $dashboardEditorName = $_SESSION['loggedUsername'];
@@ -13880,7 +13881,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['langSelectorVisible']
                                     var currentParams, i, k, currentFieldIndex, currentSeriesIndex = null;
                                     var metricId = $('#select-metric').val();
                                     var metricData = getMetricData(metricId);
-                                    if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                    if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                         var seriesString = metricData.data[0].commit.author.series;
                                         var series = jQuery.parseJSON(seriesString);
                                     } else {
@@ -19039,7 +19040,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
 
                     //Listener cancellazione widget
                     //$(document).on('click', '.icon-remove-widget', function () {
-					$(document).on('click', '.delWidgetRow', function () {	
+					$(document).off('click.dashboardDelete', '.delWidgetRow').on('click.dashboardDelete', '.delWidgetRow', function () {
                         //var widget = $(this).parents('li');
                         //var widgetTile = $(this).parents('li').find('div.titleDiv').text();
 						var name_widget_m = $(this).parents('div.widgetCtxMenu').attr('data-widgetName');
@@ -19050,6 +19051,9 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                         
                         $('#widgetToDelNameHidden').val(widgetName);
                         $('#widgetToDelName').html(widgetTile);
+                        $('#delWidgetRunningMsg, #delWidgetOkMsg, #delWidgetKoMsg').hide();
+                        $('#delWidgetNameMsg').parents('div.row').show();
+                        $('#delWidgetCancelBtn, #delWidgetConfirmBtn').show();
                         $('#modalDelWidget').modal('show');
                     });
                     
@@ -19089,7 +19093,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                         });
                     });
                     
-                    $('#delWidgetConfirmBtn').click(function(){
+                    $('#delWidgetConfirmBtn').off('click.dashboardDelete').on('click.dashboardDelete', function(){
                         $('#delWidgetNameMsg').parents('div.row').hide();
                         $('#delWidgetCancelBtn').hide();
                         $('#delWidgetConfirmBtn').hide();
@@ -19113,7 +19117,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                 
                                 if(successData !== 'Ok')
                                 {
-                                    $('#delWidgetRunningIcon').hide();
+                                    $('#delWidgetRunningMsg').hide();
                                     $('#delWidgetKoMsg').show();
                                     console.log("Del widget ko: " + successData);
                                     setTimeout(function(){
@@ -19130,7 +19134,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                 }
                                 else
                                 {
-                                    $('#delWidgetRunningIcon').hide();
+                                    $('#delWidgetRunningMsg').hide();
                                     $('#delWidgetOkMsg').show();
                                     $('#' + widgetName + '_widgetCtxMenu').remove();
                                     gridster.remove_widget($('li[id=' + $('#widgetToDelNameHidden').val() + ']'));
@@ -19192,7 +19196,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                             },
                             error: function(errorData)
                             {
-                                $('#delWidgetRunningIcon').hide();
+                                $('#delWidgetRunningMsg').hide();
                                 $('#delWidgetKoMsg').show();
                                 setTimeout(function(){
                                     $('#modalDelWidget').modal('hide');
@@ -19282,6 +19286,8 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                 var entityJson = JSON.parse(data.entityJson);
                                 var attributeName = data.attributeName;
                                 var widgetTypeM = data.type_widget;
+                                // Reset inline width when reusing this dialog for another widget type.
+                                $("#specificParamsM").css("width", "");
                                 if (widgetTypeM == "widgetSelector" || widgetTypeM == "widgetSelectorNew" || widgetTypeM == "widgetSelectorWeb" || widgetTypeM == "widgetSelectorTech" || widgetTypeM == "widgetCurvedLineSeries" || widgetTypeM == "widgetCalendar" || widgetTypeM == "widgetDataCube" || widgetTypeM == "widgetBarSeries") {
                                     $("#specificParamsM").css("width", "100%");
                                 }
@@ -27978,7 +27984,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                      //   var seriesString = metricData.data[0].commit.author.series;
                                      //   var series = jQuery.parseJSON(seriesString);
 
-                                       if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                       if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                            var seriesString = metricData.data[0].commit.author.series;
                                            var series = jQuery.parseJSON(seriesString);
                                        } else {
@@ -28912,7 +28918,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                         var colorsArray = new Array();
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                        if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -29385,7 +29391,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                         var colorsArray = new Array();    
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                        if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -30695,7 +30701,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                             var colorsArray = new Array();
                                             var metricId = $('#metricWidgetM').val();
                                             var metricData = getMetricData(metricId);
-                                            if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                            if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                                 var seriesString = metricData.data[0].commit.author.series;
                                                 var series = jQuery.parseJSON(seriesString);
                                             } else {
@@ -31330,7 +31336,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                     case "widgetBarSeries":
                                         var metricId = $('#metricWidgetM').val();
                                         var metricData = getMetricData(metricId);
-                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                        if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -32146,7 +32152,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                      //   var seriesString = metricData.data[0].commit.author.series;
                                      //   var series = jQuery.parseJSON(seriesString);
 
-                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                        if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -33912,7 +33918,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                         $('#inputUdmPositionM').attr("disabled", true);
                                         $('#inputUdmPositionM').val(-1);
 
-                                        if (metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
+                                        if (metricData && Array.isArray(metricData.data) && metricData.data.length != 0 && (serviceUri == null || serviceUri == "")) {
                                             var seriesString = metricData.data[0].commit.author.series;
                                             var series = jQuery.parseJSON(seriesString);
                                         } else {
@@ -39878,7 +39884,22 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                     //dataType: 'json',
                     success: function (data) {
                      //   if (data === 'Ok') {
-                        if (data) {
+                        var updatedMetricFields = data;
+                        if (typeof data === 'string' && data !== 'Ok') {
+                            try { updatedMetricFields = JSON.parse(data); }
+                            catch (metricResponseError) { updatedMetricFields = null; }
+                        }
+                        var metricFieldNames = ['id_metric', 'title_w', 'rowParameters', 'sm_field', 'wizardRowIds'];
+                        var metricUpdateSucceeded = data === 'Ok' || (updatedMetricFields &&
+                            typeof updatedMetricFields === 'object' && !Array.isArray(updatedMetricFields) &&
+                            Object.keys(updatedMetricFields).length === metricFieldNames.length &&
+                            metricFieldNames.every(function (field) {
+                                var value = updatedMetricFields[field];
+                                return Object.prototype.hasOwnProperty.call(updatedMetricFields, field) &&
+                                    (value === null || typeof value === 'string' || typeof value === 'number');
+                            }) && typeof updatedMetricFields.title_w === 'string' &&
+                            typeof updatedMetricFields.wizardRowIds === 'string');
+                        if (metricUpdateSucceeded) {
                         //    location.reload();
                     //        $("#" + widgetIdOk + "_countdownDiv").text("5s");
                     //    //    $("#" + data.name_w).trigger({
@@ -40020,7 +40041,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                             console.log(data);
                         }
                     },
-                    dataType:"json",
+                    dataType:"text",
                     error: function (errorData) {
                         alert('<?= _("Error during widget update, please try again") ?>');
                         console.log(errorData);
@@ -40184,7 +40205,7 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                 },
                 error: function(errorData)
                 {
-                    $('#delWidgetRunningIcon').hide();
+                    $('#delWidgetRunningMsg').hide();
                     $('#delWidgetKoMsg').show();
                     setTimeout(function(){
                         $('#modalDelWidget').modal('hide');

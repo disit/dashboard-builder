@@ -15,7 +15,15 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 include '../config.php';
+require_once __DIR__.'/widgetDatabase.php';
+$widgetDatabaseGuard = dashboardWidgetDatabaseBegin();
+try {
 
+
+if (!class_exists('PDO') || !in_array('pgsql', PDO::getAvailableDrivers(), true)) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'database_driver_missing','PostgreSQL PDO driver is not available.');
+    return;
+}
 $link = new PDO("pgsql:host=" . $od_ip . ";dbname=" . $od_pgsql_dbname, $od_pgsql_user, $od_pgsql_passw);
 $link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
@@ -98,5 +106,18 @@ if ($action === "dates") {
     echo json_encode($process_list);
 } else {
     echo('ERROR');
+}
+?>
+
+<?php
+} catch (\mysqli_sql_exception $widgetDatabaseError) {
+    dashboardWidgetDatabaseFailure($widgetDatabaseError,isset($link)?$link:(isset($esbLink)?$esbLink:null),$widgetDatabaseGuard,'json');
+} catch (\DashboardWidgetIconDirectoryException $widgetDirectoryError) {
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,503,'icon_directory_unavailable','Widget icon directory is unavailable.');
+} catch (\PDOException $widgetPdoError) {
+    error_log('Widget PostgreSQL operation failed at '.basename($widgetPdoError->getFile()).':'.$widgetPdoError->getLine());
+    dashboardWidgetDatabaseHttpFailure($widgetDatabaseGuard,500,'database_error','PostgreSQL database operation failed.');
+} finally {
+    dashboardWidgetDatabaseEnd($widgetDatabaseGuard);
 }
 ?>
