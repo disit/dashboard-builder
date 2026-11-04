@@ -6292,9 +6292,6 @@ try {
             $id = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["id"]), FILTER_SANITIZE_STRING));
             $isSub = strip_tags(filter_var(mysqli_real_escape_string($link, $_REQUEST["isSub"]), FILTER_SANITIZE_STRING));
             $link_type = ($isSub == "true")?"DashboardLinkMenuSubmenus":"DashboardLinkMenu";
-            if($link_type == "DashboardLinkMenuSubmenus"){
-                array_push($var_arr, "menuId");
-            }
             $sql = "DELETE FROM Dashboard.$link_type WHERE id = $id";
             // echo $sql;
             if (! $stmt = mysqli_prepare($link, $sql)) {
@@ -6336,7 +6333,7 @@ try {
             // $vars = ['id', 'linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder'];
             // $type = "DashboardLinkMenu";
             // $vars = $variables[$type];
-            $rows = [];
+            $rows = ["DashboardLinkMenu" => [], "DashboardLinkMenuSubmenus" => []];
             $sqls = [];
             $mainIds = [];
             foreach($variables as $type => $vars){
@@ -6344,7 +6341,9 @@ try {
                 if($type == "DashboardLinkMenu"){
                     $whereCondition = " WHERE dashboardId = $dashboardId";
                 }elseif(count($mainIds) > 0){
-                    $whereCondition = " WHERE menuId in (".join(", ", $mainIds).")";
+                    $whereCondition = " WHERE dashboardId = $dashboardId AND menuId in (".join(", ", $mainIds).")";
+                }else{
+                    continue;
                 }
                 $sql = "SELECT ".join(",", $vars)." FROM $type$whereCondition ORDER BY menuOrder ASC";
                 $sqls[$type] = $sql;
@@ -6424,117 +6423,130 @@ try {
             }
         }
     }else if(isset($_REQUEST['importCustomLink'])){
-        if(isset($_REQUEST["importLinkJson"]) && isset($_REQUEST["importSubLinkJson"])){
-            $import_link_obj = json_decode($_REQUEST["importLinkJson"], true);
-            $import_sublink_obj = json_decode($_REQUEST["importSubLinkJson"], true);
-            $father_new_id = [];
-            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'ignoreDelegation'];
-            $values_arr = [];
-            $out_link = [];
-            if(count($import_link_obj) > 0){
-                $dashboardIds = implode(",", array_unique(array_column($import_link_obj, 'dashboardId')));
-                $sql = "DELETE FROM Dashboard.DashboardLinkMenu WHERE dashboardId in ($dashboardIds)";
-                if($stmt = mysqli_prepare($link, $sql)){
-                    if(! mysqli_stmt_execute($stmt)){
+        $menuImportTransaction = false;
+        try {
+            $readMenuList = function ($name) {
+                if (!isset($_REQUEST[$name]) || !is_string($_REQUEST[$name])) {
+                    throw new \InvalidArgumentException('Missing custom links JSON');
+                }
+                $rows = json_decode($_REQUEST[$name]);
+                if (json_last_error() !== JSON_ERROR_NONE || !is_array($rows)) {
+                    throw new \InvalidArgumentException('Custom links must be JSON arrays');
+                }
+                foreach ($rows as &$row) {
+                    if (!is_object($row)) throw new \InvalidArgumentException('Invalid custom link');
+                    $row = (array) $row;
+                }
+                unset($row);
+                return $rows;
+            };
+            $readMenuInteger = function ($value, $field, $default = null) {
+                if ($value === null || $value === '') {
+                    if ($default !== null) return $default;
+                    throw new \InvalidArgumentException('Missing '.$field);
+                }
+                if ($field === 'ignoreDelegation' && is_bool($value)) return (int) $value;
+                if ((!is_int($value) && !is_string($value)) || !preg_match('/^[0-9]+$/D', (string) $value)) {
+                    throw new \InvalidArgumentException('Invalid '.$field);
+                }
+                $digits = ltrim((string) $value, '0');
+                $number = filter_var($digits === '' ? '0' : $digits, FILTER_VALIDATE_INT);
+                if ($number === false || ($field === 'ignoreDelegation' && $number > 1)) {
+                    throw new \InvalidArgumentException('Invalid '.$field);
+                }
+                if (($field === 'dashboardId' || $field === 'id' || $field === 'menuId') && $number < 1) {
+                    throw new \InvalidArgumentException('Invalid '.$field);
+                }
+                return $number;
+            };
+            $normalizeMenuRow = function ($row) use ($readMenuInteger) {
+                foreach (['linkUrl', 'icon', 'text', 'openMode', 'iconColor'] as $field) {
+                    $value = $row[$field] ?? '';
+                    if (!is_scalar($value)) throw new \InvalidArgumentException('Invalid '.$field);
+                    $row[$field] = strip_tags(filter_var((string) $value, FILTER_SANITIZE_STRING));
+                }
+                $row['dashboardId'] = $readMenuInteger($row['dashboardId'] ?? null, 'dashboardId');
+                $row['menuOrder'] = $readMenuInteger($row['menuOrder'] ?? null, 'menuOrder', 0);
+                $row['ignoreDelegation'] = $readMenuInteger($row['ignoreDelegation'] ?? null, 'ignoreDelegation', 0);
+                return $row;
+            };
+            $importLinks = $readMenuList('importLinkJson');
+            $importSubLinks = $readMenuList('importSubLinkJson');
+            $oldParents = [];
+            $dashboardIds = [];
+            foreach ($importLinks as &$row) {
+                $row = $normalizeMenuRow($row);
+                $dashboardIds[$row['dashboardId']] = $row['dashboardId'];
+                if (isset($row['id'])) {
+                    $row['id'] = $readMenuInteger($row['id'], 'id');
+                    $key = $row['dashboardId'].':'.$row['id'];
+                    if (isset($oldParents[$key])) throw new \InvalidArgumentException('Duplicate custom link id');
+                    $oldParents[$key] = true;
+                }
+            }
+            unset($row);
+            foreach ($importSubLinks as &$row) {
+                $row = $normalizeMenuRow($row);
+                $row['menuId'] = $readMenuInteger($row['menuId'] ?? null, 'menuId');
+                if (!isset($oldParents[$row['dashboardId'].':'.$row['menuId']])) {
+                    throw new \InvalidArgumentException('Submenu parent not present in imported links');
+                }
+            }
+            unset($row);
+            if ($importLinks) {
+                // Both tables must support rollback before replacing existing links.
+                $engines = mysqli_query($link, "SELECT TABLE_NAME, ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = 'Dashboard' AND TABLE_NAME IN ('DashboardLinkMenu', 'DashboardLinkMenuSubmenus')");
+                $transactionalTables = [];
+                while ($engine = mysqli_fetch_assoc($engines)) {
+                    if (strtoupper((string) $engine['ENGINE']) === 'INNODB') $transactionalTables[$engine['TABLE_NAME']] = true;
+                }
+                mysqli_free_result($engines);
+                if (!isset($transactionalTables['DashboardLinkMenu'], $transactionalTables['DashboardLinkMenuSubmenus'])) {
+                    throw new \UnexpectedValueException('Safe custom link import requires both menu tables to use InnoDB');
+                }
+                if (!mysqli_begin_transaction($link)) throw new \mysqli_sql_exception('Unable to start custom link import');
+                $menuImportTransaction = true;
+                foreach ($dashboardIds as $targetDashboardId) {
+                    foreach (['DashboardLinkMenuSubmenus', 'DashboardLinkMenu'] as $table) {
+                        $stmt = mysqli_prepare($link, 'DELETE FROM Dashboard.'.$table.' WHERE dashboardId = ?');
+                        mysqli_stmt_bind_param($stmt, 'i', $targetDashboardId);
+                        mysqli_stmt_execute($stmt);
                         mysqli_stmt_close($stmt);
-                    }else{
-                        $sql = "DELETE FROM Dashboard.DashboardLinkMenuSubmenus WHERE dashboardId in ($dashboardIds)";
-                        if($stmt = mysqli_prepare($link, $sql)){
-                            if(! mysqli_stmt_execute($stmt)){
-                                mysqli_stmt_close($stmt);
-                            }
-                        }
                     }
                 }
-            }
-            foreach($import_link_obj as $newLink){
-                
-                $var_strings = [];
-                foreach($var_arr as $variable){
-                    $val = $newLink[$variable];
-                    if(isset($val)){
-                        $clean_var = strip_tags(filter_var(mysqli_real_escape_string($link, $val), FILTER_SANITIZE_STRING));
-                        array_push($var_strings, "'$clean_var'");
-                    }else{
-                        array_push($var_strings, "''");
-                    }
+                $newParentIds = [];
+                foreach ($importLinks as $row) {
+                    $stmt = mysqli_prepare($link, 'INSERT INTO Dashboard.DashboardLinkMenu (linkUrl,icon,text,openMode,iconColor,menuOrder,dashboardId,ignoreDelegation) VALUES (?,?,?,?,?,?,?,?)');
+                    mysqli_stmt_bind_param($stmt, 'sssssiii', $row['linkUrl'], $row['icon'], $row['text'], $row['openMode'], $row['iconColor'], $row['menuOrder'], $row['dashboardId'], $row['ignoreDelegation']);
+                    mysqli_stmt_execute($stmt);
+                    if (isset($row['id'])) $newParentIds[$row['dashboardId'].':'.$row['id']] = mysqli_stmt_insert_id($stmt);
+                    mysqli_stmt_close($stmt);
                 }
-                $isFather = count(array_filter($import_sublink_obj, function ($sublink) use ($newLink){
-                    $is_equal = (int)$sublink["menuId"] == (int)$newLink["id"];
-                    return $is_equal;
-                }));
-                echo json_encode(["isFather" => $isFather]);
-                if($isFather){
-                    $old_id = $newLink["id"];
-                    echo json_encode(["var strings" => $var_strings]);
-                    $sql = "INSERT INTO Dashboard.DashboardLinkMenu (".join(",", $var_arr).") VALUES (".join(",", $var_strings).");";
-                    if (! $stmt = mysqli_prepare($link, $sql)) {
-                        echo json_encode(['error' => mysqli_error($link), "sql" => $sql]);
-                    }else if (! mysqli_stmt_execute($stmt)) {
-                        mysqli_stmt_close($stmt);
-                        echo json_encode(['error' => mysqli_error($link), "sql" => $sql]);
-                    }else{
-                        echo json_encode(['response' => "Ok", "sql" => $sql]);
-                        $new_id = mysqli_insert_id($link);
-                        echo json_encode(['new_id' => $new_id]);
-                        $father_new_id[$old_id] = $new_id;
-                    }
-                }else{
-                    array_push($values_arr, '('.join(',', $var_strings).')');
+                foreach ($importSubLinks as $row) {
+                    $parentId = $newParentIds[$row['dashboardId'].':'.$row['menuId']];
+                    $stmt = mysqli_prepare($link, 'INSERT INTO Dashboard.DashboardLinkMenuSubmenus (linkUrl,icon,text,openMode,iconColor,menuOrder,dashboardId,menuId,ignoreDelegation) VALUES (?,?,?,?,?,?,?,?,?)');
+                    mysqli_stmt_bind_param($stmt, 'sssssiiii', $row['linkUrl'], $row['icon'], $row['text'], $row['openMode'], $row['iconColor'], $row['menuOrder'], $row['dashboardId'], $parentId, $row['ignoreDelegation']);
+                    mysqli_stmt_execute($stmt);
+                    mysqli_stmt_close($stmt);
                 }
+                if (!mysqli_commit($link)) throw new \mysqli_sql_exception('Unable to commit custom link import');
+                $menuImportTransaction = false;
             }
-            // $sql = "INSERT INTO Dashboard.$link_type (".join(",", $var_arr).") VALUES(".join(",", $var_strings).")";
-            $sql = "INSERT INTO Dashboard.DashboardLinkMenu (".join(",", $var_arr).") VALUES ".join(",", $values_arr).";";
-            
-            if (! $stmt = mysqli_prepare($link, $sql)) {
-                echo json_encode(['error' => mysqli_error($link), "sql" => $sql]);
-            }else if (! mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_close($stmt);
-                echo json_encode(['error' => mysqli_error($link), "sql" => $sql]);
-            }else{
-                echo json_encode(['response' => "Ok", "sql" => $sql]);
+            header('Content-Type: application/json');
+            echo json_encode(['CustomLink'=>['response'=>'Ok', 'imported'=>count($importLinks)], 'SubCustomLink'=>['response'=>'Ok', 'imported'=>count($importSubLinks)]]);
+        } catch (\InvalidArgumentException $exception) {
+            http_response_code(400);
+            header('Content-Type: application/json');
+            echo json_encode(['error'=>'invalid_custom_links', 'message'=>$exception->getMessage()]);
+        } catch (\UnexpectedValueException $exception) {
+            http_response_code(503);
+            header('Content-Type: application/json');
+            echo json_encode(['error'=>'custom_links_unavailable', 'message'=>$exception->getMessage()]);
+        } catch (\Throwable $exception) {
+            if ($menuImportTransaction) {
+                try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
             }
-
-            $var_arr = ['linkUrl', 'icon', 'text', 'openMode', 'iconColor', 'menuOrder', 'dashboardId', 'menuId', 'ignoreDelegation'];
-            $values_arr = [];
-            foreach($import_sublink_obj as $newLink){
-                $var_strings = [];
-                foreach($var_arr as $variable){
-                    // echo $newLink."\n";
-                    $val = $newLink[$variable];
-                    if(isset($val)){
-                        if($variable == "menuId"){
-                            $clean_var = $father_new_id[$val];
-                        }else{
-                            $clean_var = strip_tags(filter_var(mysqli_real_escape_string($link, $val), FILTER_SANITIZE_STRING));
-                        }
-                        array_push($var_strings, "'$clean_var'");
-                    }else{
-                        array_push($var_strings, "''");
-                    }
-                }
-                array_push($values_arr, '('.join(',', $var_strings).')');
-            }
-            // $sql = "INSERT INTO Dashboard.$link_type (".join(",", $var_arr).") VALUES(".join(",", $var_strings).")";
-            $sql = "INSERT INTO Dashboard.DashboardLinkMenuSubmenus (".join(",", $var_arr).") VALUES ".join(",", $values_arr).";";
-            $out_sublink = [];
-            if (! $stmt = mysqli_prepare($link, $sql)) {
-                echo json_encode(['error' => mysqli_error($link), "sql" => $sql, "values_arr" => $values_arr]);
-            }else if (! mysqli_stmt_execute($stmt)) {
-                mysqli_stmt_close($stmt);
-                echo json_encode(['error' => mysqli_error($link), "sql" => $sql, "values_arr" => $values_arr]);
-            }else{
-                echo json_encode(['response' => "Ok", "sql" => $sql]);
-            }
-            if($out_link["error"] || $out_sublink["error"]){
-                http_response_code(500);
-            }else{
-                http_response_code(200);
-            }
-            echo json_encode(["CustomLink" => $out_link, "SubCustomLink" => $out_sublink]);
-        }else{
-            http_response_code(404);
-            echo "No CustomLink to import";
+            throw $exception;
         }
     }
 } catch (\mysqli_sql_exception $exception) {

@@ -3115,54 +3115,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['langSelectorVisible']
                 })
 
                 $('#importCustomLinkConfirmBtn').click(async function () {
-                    try{
-                        $("#importCustomLinkRunningMsg").show()
-                        let fileInput = $('#customLinkJsonFile')[0];
-                        let file = fileInput.files[0];
-                        let importJson = await parseJsonFile(file)
-                        let importLinkJson = importJson.CustomLinks
-                        let importSubLinkJson = importJson.SubCustomLinks
-                        if(importLinkJson.error) throw new Error(JSON.stringify(importLinkJson))
-                        if(importSubLinkJson.error) throw new Error(JSON.stringify(importSubLinkJson))
-                        let maxLinkOrder = (linkList.length > 0)?Math.max(...linkList.map(x => x.menuOrder))+1:0
-                        
-                        importLinkJson.forEach(x =>{
-                            x.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
-                            x.menuOrder += maxLinkOrder
-                        })
-                        importSubLinkJson.forEach(x =>{
-                            x.dashboardId = <?= escapeForJS($_REQUEST['dashboardId']) ?>;
-                        })
+                    const showImportError = function (error) {
+                        let payload = error && error.responseJSON;
+                        if (!payload && error && typeof error.responseText === 'string') {
+                            try { payload = JSON.parse(error.responseText); } catch (ignored) {}
+                        }
+                        const message = (payload && (payload.message || payload.error)) ||
+                            (error && error.message) || 'Error importing custom links, please try again';
+                        $('#importCustomLinkErrorText').text(typeof message === 'string' ? message : 'Error importing custom links, please try again');
+                        $('#importCustomLinkRunningMsg').hide();
+                        $('#importCustomLinkOkMsg').hide();
+                        $('#importCustomLinkKoMsg').show();
+                        $('#importCustomLinkConfirmBtn').prop('disabled', false);
+                    };
+                    try {
+                        $('#importCustomLinkKoMsg').hide();
+                        $('#importCustomLinkOkMsg').hide();
+                        $('#importCustomLinkRunningMsg').show();
+                        $('#importCustomLinkConfirmBtn').prop('disabled', true);
+                        const file = $('#customLinkJsonFile')[0].files[0];
+                        if (!file) throw new Error('Choose the JSON file to import');
+                        const importJson = await parseJsonFile(file);
+                        if (importJson && importJson.error) throw new Error(importJson.error.responseText || 'Invalid JSON file');
+                        if (!importJson || !Array.isArray(importJson.CustomLinks) || !Array.isArray(importJson.SubCustomLinks)) {
+                            throw new Error('CustomLinks and SubCustomLinks must be arrays');
+                        }
+                        const maxLinkOrder = linkList.length > 0 ? Math.max(...linkList.map(x => Number(x.menuOrder) || 0)) + 1 : 0;
+                        const importLinkJson = importJson.CustomLinks.map(x => {
+                            if (!x || typeof x !== 'object' || Array.isArray(x)) throw new Error('Invalid custom link');
+                            const order = Number(x.menuOrder == null ? 0 : x.menuOrder);
+                            if (!Number.isInteger(order) || order < 0) throw new Error('Invalid menuOrder');
+                            return Object.assign({}, x, {dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>, menuOrder: order + maxLinkOrder});
+                        });
+                        const importSubLinkJson = importJson.SubCustomLinks.map(x => {
+                            if (!x || typeof x !== 'object' || Array.isArray(x)) throw new Error('Invalid submenu link');
+                            return Object.assign({}, x, {dashboardId: <?= escapeForJS($_REQUEST['dashboardId']) ?>});
+                        });
                         $.ajax({
                             url: 'process-form.php',
                             type: 'POST',
+                            dataType: 'json',
                             data: {
                                 importCustomLink: true,
                                 importLinkJson: JSON.stringify(importLinkJson),
                                 importSubLinkJson: JSON.stringify(importSubLinkJson)
                             },
-                            success: function (response) {
-                                getCustomLinks()
+                            success: function () {
+                                getCustomLinks();
                                 $('#importCustomLinkKoMsg').hide();
                                 $('#importCustomLinkOkMsg').show();
-                                setTimeout(function () {
-                                    $('#modalImportCustomLink').modal('hide');
-                                }, 1000);
+                                setTimeout(function () { $('#modalImportCustomLink').modal('hide'); }, 1000);
                             },
-                            error: function (err) {
-                                throw new Error(err)
-                            },
+                            error: showImportError,
+                            complete: function () {
+                                $('#importCustomLinkRunningMsg').hide();
+                                $('#importCustomLinkConfirmBtn').prop('disabled', false);
+                            }
                         });
-                    }catch(e){
-                        var err = JSON.parse(e.message)
-                        var errMessage = err.error.responseText
-                        if(errMessage.includes("is not valid JSON")) errMessage = "JSON file not valid"
-                        console.log('err:>> ', err);
-                        setTimeout(() => {
-                            $("#importCustomLinkErrorText").text(errMessage)
-                            $("#importCustomLinkRunningMsg").hide()
-                            $("#importCustomLinkKoMsg").show()
-                        }, 500);
+                    } catch (error) {
+                        showImportError(error);
                     }
                 });
 
