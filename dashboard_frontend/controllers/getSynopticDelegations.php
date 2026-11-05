@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
@@ -57,8 +58,9 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 			  )
 		);
 		$context  = stream_context_create($options);
-		$callResult = file_get_contents($apiUrl, false, $context);	
-		$ownership = json_decode($callResult,true);	
+		$http_response_header = [];
+		$callResult = @file_get_contents($apiUrl, false, $context);
+		$ownership = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['elementId', 'username'], true);
 		foreach($ownership as $ownElmt) {
 			if($dashboardId == $ownElmt["elementId"]) $dashboardAuthor = $ownElmt["username"];
 		}
@@ -81,9 +83,10 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
 		);
 
 		$context  = stream_context_create($options);
-		$delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+		$http_response_header = [];
+		$delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-		$delegatedDashboards = json_decode($delegatedDashboardsJson);
+		$delegatedDashboards = dashboardControllerRequireDelegations($delegatedDashboardsJson, $http_response_header ?? []);
 
 		for($i = 0; $i < count($delegatedDashboards); $i++) 
 		{
@@ -124,8 +127,9 @@ function checkSynopticId($link, $id, $accessToken, $ownershipApiBaseUrl, $synOwn
 	$r = mysqli_query($link, "SELECT id FROM DashboardWizard WHERE high_level_type = 'Synoptic' and id = '$id'");
   	if($r && mysqli_num_rows($r)>0) {
 		$apiUrl = $ownershipApiBaseUrl . "/v1/list/?type=$synOwnElmtType&accessToken=$accessToken";
-		$callResult = file_get_contents($apiUrl);
-		$ownership = json_decode($callResult,true);
+		$http_response_header = [];
+		$callResult = @file_get_contents($apiUrl);
+		$ownership = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['elementId', 'username'], true);
 		foreach($ownership as $ownElmt) {
 			if($id == $ownElmt["elementId"] && $user && $user == $ownElmt["username"]) {
 				return true;

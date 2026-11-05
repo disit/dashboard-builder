@@ -35,6 +35,7 @@
     mysqli_select_db($link, $dbname);
 
     $response = [];
+    $queryFail = false;
 
     if (sanitizePostString('edit') == null) {      
         $edit = mysqli_real_escape_string($link, sanitizeGetString('edit'));
@@ -312,7 +313,8 @@
 			$response["id"] = mysqli_insert_id($link);
 			$response["url"] = $synopticTemplateFileURL;
 			$response["inSync"] = $us;
-			$response['result'] = "Ok";
+			$response['result'] = $queryFail ? "Ko" : "Ok";
+            if ($queryFail) $response['detail'] = "The template file or icon could not be saved.";
 		}
 			
 	}
@@ -374,10 +376,18 @@
 			// Use the template itself as the default icon
 			
 			if($insDefaultIcon) {
-				copy("../img/synopticTemplates/svg/$synopticTemplateFile", "../img/synopticTemplates/$synopticTemplateFile");
+				if (!copy("../img/synopticTemplates/svg/$synopticTemplateFile", "../img/synopticTemplates/$synopticTemplateFile")) $queryFail = true;
 				if(file_exists("../img/synopticTemplates/$synopticTemplateFile")) chmod("../img/synopticTemplates/$synopticTemplateFile", 0777);
 			}
 			
+            if ($queryFail) {
+                mysqli_close($link);
+                $response['result'] = "Ko";
+                $response['detail'] = "The template file or icon could not be saved.";
+                echo json_encode($response);
+                return;
+            }
+
 			// Ownership
 			
 			$apiUrl = $ownershipApiBaseUrl . "/v1/register/?accessToken=$accessToken";
@@ -402,12 +412,14 @@
 			$context  = stream_context_create($options);
 			$callResult = file_get_contents($apiUrl, false, $context);	
 			
-			if(!json_decode($callResult,true)["error"]) {
+			$registration = json_decode($callResult, true);
+            if (is_array($registration) && !empty($registration["elementId"]) && empty($registration["error"])) {
 				$response['result'] = "Ok";
 			}
 			else {
 				$response['result'] = "Ko"; 
-				$response['detail'] = json_decode($callResult,true)["error"];
+				$response['detail'] = is_array($registration) && !empty($registration["error"])
+                    ? $registration["error"] : "Invalid response from the ownership service.";
 			}				
 			
 			mysqli_close($link);

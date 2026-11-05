@@ -13,7 +13,8 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-    include '../config.php'; 
+    include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 	require '../sso/autoload.php';
 	use Jumbojett\OpenIDConnectClient;
 	
@@ -46,8 +47,9 @@
 	   )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	$ownership = json_decode($callResult,true);
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$ownership = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['elementId'], true);
 	$authorized = false;
 	foreach($ownership as $ownElmt) {
 		if($synopticId == $ownElmt["elementId"]) {
@@ -70,8 +72,9 @@
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	$privateMyKPI = json_decode($callResult);
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$privateMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 	for($i = 0; $i < count($privateMyKPI); $i++) $privateMyKPI[$i]->isMyOwn = true;
 	
 	$apiUrl = "$personalDataApiBaseUrl/v1/kpidata/delegated/?sourceRequest=$synMgtSrcReq&highLevelType=MyKPI";
@@ -84,8 +87,9 @@
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	$delegatedMyKPI = json_decode($callResult);
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$delegatedMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 	for($i = 0; $i < count($delegatedMyKPI); $i++) $delegatedMyKPI[$i]->isDelegated = true;
 	
 	$myKPIs = array_merge($privateMyKPI, $delegatedMyKPI);
@@ -93,7 +97,11 @@
 	$response = [];
 	$response["variables"] = [];
 	$mq = "SELECT tpl_var_name, usr_var_name, GROUP_CONCAT(tpl_var_role SEPARATOR '/') tpl_var_role FROM SynopticMappings WHERE synoptic_id = $synopticId GROUP BY tpl_var_name, usr_var_name";
-	$m = mysqli_query($link, $mq);
+	try {
+        $m = mysqli_query($link, $mq);
+    } catch (\mysqli_sql_exception $exception) {
+        $m = false;
+    }
 	if($m) {
 		while($rowm = mysqli_fetch_assoc($m)) {
 			$thename = "";
@@ -120,7 +128,7 @@
 			);
 		}
 	}
-	$response["detail"] = "Ok";
+	$response["detail"] = $m ? "Ok" : "Ko";
 	
 	echo(json_encode($response,JSON_PRETTY_PRINT));
 	

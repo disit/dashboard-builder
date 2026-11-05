@@ -13,7 +13,8 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-    include '../config.php'; 
+    include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 	require '../sso/autoload.php';
 	use Jumbojett\OpenIDConnectClient;
     error_reporting(E_ERROR | E_NOTICE);
@@ -41,8 +42,9 @@
 			  )
 		);
 		$context  = stream_context_create($options);
-		$callResult = file_get_contents($apiUrl, false, $context);
-		$privateMyKPI = json_decode($callResult);
+		$http_response_header = [];
+		$callResult = @file_get_contents($apiUrl, false, $context);
+		$privateMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 		for($i = 0; $i < count($privateMyKPI); $i++) { $privateMyKPI[$i]->sk = "MyKPI ".$privateMyKPI[$i]->id; $privateMyKPI[$i]->isMyOwn = true; }
 		
 		$publicMyKPI = []; 
@@ -64,8 +66,9 @@
 				  )
 			);
 			$context  = stream_context_create($options);
-			$callResult = file_get_contents($apiUrl, false, $context);
-			$publicMyKPI = json_decode($callResult);	
+			$http_response_header = [];
+			$callResult = @file_get_contents($apiUrl, false, $context);
+			$publicMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 			for($i = 0; $i < count($publicMyKPI); $i++) {
 				$publicMyKPI[$i]->isPublic = true;
 				for($j = 0; $j < count($privateMyKPI); $j++) {
@@ -86,8 +89,9 @@
 				  )
 			);
 			$context  = stream_context_create($options);
-			$callResult = file_get_contents($apiUrl, false, $context);
-			$orgMyKPI = json_decode($callResult);
+			$http_response_header = [];
+			$callResult = @file_get_contents($apiUrl, false, $context);
+			$orgMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 			for($i = 0; $i < count($orgMyKPI); $i++) {
 				$orgMyKPI[$i]->isPublic = true;
 				for($j = 0; $j < count($privateMyKPI); $j++) {
@@ -110,8 +114,9 @@
 				  )
 			);
 			$context  = stream_context_create($options);
-			$callResult = file_get_contents($apiUrl, false, $context);
-			$delegatedMyKPI = json_decode($callResult);
+			$http_response_header = [];
+			$callResult = @file_get_contents($apiUrl, false, $context);
+			$delegatedMyKPI = dashboardControllerRequireList($callResult, $http_response_header ?? [], ['id']);
 			for($i = 0; $i < count($delegatedMyKPI); $i++) {
 				$delegatedMyKPI[$i]->isDelegated = true;
 				for($j = 0; $j < count($privateMyKPI); $j++) {
@@ -223,14 +228,16 @@
 		
 		$myKPI = array_merge($favourites, $privateMyKPI, $publicMyKPI, $delegatedMyKPI, $sensors, $shared);		
 		
-		$myKPI = array_filter($myKPI, function($item){ return !$item->isDuplicated; });
+		$myKPI = array_filter($myKPI, function($item){ return is_array($item) ? empty($item['isDuplicated']) : empty($item->isDuplicated); });
 		
-		asort($myKPI, function($a, $b) {
-			return strcmp($b["sk"], $a["sk"]);
+		uasort($myKPI, function($a, $b) {
+            $aKey = is_array($a) ? $a["sk"] : $a->sk;
+            $bKey = is_array($b) ? $b["sk"] : $b->sk;
+			return strcmp($bKey, $aKey);
 		});
 		
 		echo(json_encode($myKPI,JSON_PRETTY_PRINT));	
 	}
 	catch(Exception $e) {
-		echo("[]");
+        dashboardControllerServiceError();
 	}
