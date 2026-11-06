@@ -413,7 +413,7 @@ function checkLdapOrganization($connection, $userDn, $baseDn)
 {
     $orgsArray = checkLdapOrganizations($connection, $userDn, $baseDn);
     if (sizeof($orgsArray) == 0) {
-        return "None"; 
+        return "None";
     } else if (sizeof($orgsArray) > 1) {
         if(isset($_SESSION['loggedOrganization']))
             return $_SESSION['loggedOrganization'];
@@ -924,7 +924,10 @@ function get_access_token($token_endpoint, $username, $password, $client_id, $cl
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $curl_response = curl_exec($ch);
-    curl_close($ch);
+    // PHP 7 uses a resource; PHP 8 releases the CurlHandle object automatically.
+    if (is_resource($ch)) {
+        curl_close($ch);
+    }
     return json_decode($curl_response)->access_token;
 
 }

@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
@@ -57,7 +58,7 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             $_SESSION['refreshToken'] = $tkn->refresh_token;
 
             // ENCODIZZARE username per username con SPAZI !!!
-            $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . rawurlencode($dashboardAuthor) . "/delegator?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
+            $apiUrl = $personalDataApiBaseUrl . "/v2/username/" . rawurlencode($dashboardAuthor) . "/delegator?elementType=DashboardID&accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
           //  $apiUrl = $personalDataApiBaseUrl . "/v1/username/" . $_SESSION['loggedUsername'] . "/delegated?accessToken=" . $accessToken. "&sourceRequest=dashboardmanager";
                         
             $options = array(
@@ -70,9 +71,10 @@ if(isset($_SESSION['loggedUsername']) && $_SESSION['loggedUsername'])
             );
 
             $context  = stream_context_create($options);
-            $delegatedDashboardsJson = file_get_contents($apiUrl, false, $context);
+            $http_response_header = [];
+            $delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-            $delegatedDashboards = json_decode($delegatedDashboardsJson);
+            $delegatedDashboards = dashboardControllerRequireDelegations($delegatedDashboardsJson, $http_response_header ?? []);
 
             for($i = 0; $i < count($delegatedDashboards); $i++) 
             {
