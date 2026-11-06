@@ -16,6 +16,7 @@
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
 
 include('../config.php');
+require_once __DIR__.'/ldapPagination.php';
 if (!isset($_SESSION)) {
   session_start();
 }
@@ -50,6 +51,7 @@ if ($ldapAdminDN) {
 } else {
   $bind = ldap_bind($dss);
 }
+unset($defaultOrganization);
 
 //Iterate all users on ldap
 $pageSize = 100;
@@ -57,23 +59,8 @@ $pageSize = 100;
 $i = 1;
 $n = 1;
 $cookie = '';
-do {
-  if (!ldap_control_paged_result($ds, $pageSize, true, $cookie)) {
-    echo "FAIL ldap_control_paged_result<br>";
-    break;
-  }
-
-  //$result = ldap_search($ds, $ldapBaseDN, '(&(objectClass=inetOrgPerson)(!(ou=*)))');
-  $result = ldap_search($ds, $ldapBaseDN, 'objectClass=inetOrgPerson');
-  if (!result) {
-    echo "FAIL ldap_search<br>";
-    break;
-  }
-  $entries = ldap_get_entries($ds, $result);
-  if (!$entries) {
-    echo "FAIL ldap_get_entries<br>";
-    break;
-  }
+try {
+foreach (\Dashboard\Ldap\searchPages($ds, $ldapBaseDN, 'objectClass=inetOrgPerson', $pageSize) as $entries) {
 
   foreach ($entries as $key => $value) {
     if (isset($value['dn'])) {
@@ -82,7 +69,12 @@ do {
       if(isset($value['ou'])) {
         $curr_org = $value['ou'][0];
       }
-      $org = checkLdapOrganization($dss, $userDn, $ldapBaseDN);
+      $orgs = checkLdapOrganizations($dss, $userDn, $ldapBaseDN);
+      if(count($orgs)==1)
+       $org=$orgs[0];
+      else
+       $org=json_encode($orgs);
+
       $username = $value['cn'][0];
       $cryptedUsername = encryptOSSL($username, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);
       if($org!=$curr_org) {
@@ -100,6 +92,10 @@ do {
       }
     }
   }
-  ldap_control_paged_result_response($ds, $result, $cookie);
-} while ($cookie !== null && $cookie != '');
+}
+} catch (\RuntimeException $exception) {
+  http_response_code(502);
+  error_log('LDAP user synchronization: '.$exception->getMessage());
+  echo "FAIL LDAP paged search<br>";
+}
 

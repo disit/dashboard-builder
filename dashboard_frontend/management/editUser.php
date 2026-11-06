@@ -3,19 +3,21 @@
 /*Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
    include '../config.php';
+$dashboardDbBufferLevel = ob_get_level();
+ob_start();
+try {
    
    //Altrimenti restituisce in output le warning
    error_reporting(E_ERROR | E_NOTICE);
@@ -50,7 +52,7 @@
                          "ON pools.poolId = rels.poolId " .
                          "ORDER BY pools.poolId";
                 
-                $result = mysqli_query($link, $query) or die(mysqli_error($link));
+                $result = mysqli_query($link, $query);
 
                 if($result)
                 {
@@ -112,7 +114,8 @@
                            }
                            else
                            {
-                               $beginTransactionResult = mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+                               $beginTransactionResult = mysqli_begin_transaction($link);
+                               if (!$beginTransactionResult) throw new \mysqli_sql_exception('Transaction start failed');
 
                                //Aggiornamento record utente
                                $query1 = "UPDATE Dashboard.Users SET name='$firstName', surname='$lastName', organization='$organization', email='$email', status='$userStatus', admin='$userType' WHERE username='$username'";
@@ -150,6 +153,7 @@
                                           if(!$queryFail)
                                           {
                                              $commit = mysqli_commit($link);
+                                             if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                              //fwrite($file, "Query2 OK: " . $query2 . "\n");
                                              echo 1;
                                              die();
@@ -188,6 +192,7 @@
                                            if(!$queryFail)
                                            {
                                                $commit = mysqli_commit($link);
+                                               if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                                //fwrite($file, "Query2 OK: " . $query2 . "\n");
                                                echo 1;
                                                die();
@@ -196,6 +201,7 @@
 
                                        default:
                                           $commit = mysqli_commit($link);
+                                          if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                           //fwrite($file, "Query2 OK: " . $query2 . "\n");
                                           echo 1;
                                           die();
@@ -258,3 +264,14 @@
       }
       
    }
+} catch (\mysqli_sql_exception $exception) {
+    if (isset($link)) {
+        try { mysqli_rollback($link); } catch (\Throwable $rollbackError) { /* Preserve the numeric failure if cleanup also fails. */ }
+        try { mysqli_close($link); } catch (\Throwable $closeError) { /* The connection may already be unavailable. */ }
+    }
+    while (ob_get_level()>$dashboardDbBufferLevel) ob_end_clean();
+    error_log('Legacy user/pool database failure ['.(int)$exception->getCode().'] at '.basename(__FILE__).':'.$exception->getLine());
+    http_response_code(500);
+    echo 0;
+}
+if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();

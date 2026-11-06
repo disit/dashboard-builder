@@ -3,17 +3,16 @@
 /*Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
    include '../config.php';
    require '../phpmailer/PHPMailerAutoload.php';
@@ -54,6 +53,10 @@
    }
 
    //Corpo dell'API
+$dashboardDbBufferLevel = ob_get_level();
+ob_start();
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
    session_start(); 
    checkSession('RootAdmin');
    
@@ -82,13 +85,14 @@
            
            //Controllo presenza username
            $query = "SELECT username FROM Dashboard.Users WHERE username = '$username'";
-           $result = mysqli_query($link, $query) or die(mysqli_error($link));
+           $result = mysqli_query($link, $query);
            
            if($result)
            {
-              mysqli_free_result($result);
+               $existingUserCount = mysqli_num_rows($result);
+               mysqli_free_result($result);
                
-               if(mysqli_num_rows($result) > 0) 
+               if($existingUserCount > 0)
                {
                    echo 3;
                    mysqli_close($link);
@@ -113,7 +117,8 @@
                       else
                       {
                          $activationHash = md5(rand(0,1000));
-                         $beginTransactionResult = mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+                         $beginTransactionResult = mysqli_begin_transaction($link);
+                         if (!$beginTransactionResult) throw new \mysqli_sql_exception('Transaction start failed');
 
                           //Inserimento utente
                           $query1 = "INSERT INTO Dashboard.Users(username, name, surname, organization, email, reg_data, status, admin, activationHash) VALUES ('$username', '$firstName', '$lastName', '$organization', '$email', now(), 0, '$userType', '$activationHash')";
@@ -145,6 +150,7 @@
                                     if(!$queryFail)
                                     {
                                        $commit = mysqli_commit($link);
+                                       if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                        sendActivationEmail($username, $email, $activationHash, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl);
                                        echo 1;
                                        die();
@@ -172,6 +178,7 @@
                                     if(!$queryFail)
                                     {
                                        $commit = mysqli_commit($link);
+                                       if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                        sendActivationEmail($username, $email, $activationHash, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl);
                                        echo 1;
                                        die();
@@ -209,6 +216,7 @@
                                      if(!$queryFail)
                                      {
                                          $commit = mysqli_commit($link);
+                                         if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                          sendActivationEmail($username, $email, $activationHash, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl);
                                          echo 1;
                                          die();
@@ -217,6 +225,7 @@
 
                                  default:
                                     $commit = mysqli_commit($link);
+                                    if (!$commit) throw new \mysqli_sql_exception('Transaction commit failed');
                                     sendActivationEmail($username, $email, $activationHash, $smtpHost, $smtpAuth, $emailFromAddress, $emailFromName, $appUrl);
                                     echo 1;
                                     die();
@@ -241,4 +250,15 @@
            }
        }
    }
+} catch (\mysqli_sql_exception $exception) {
+    if (isset($link)) {
+        try { mysqli_rollback($link); } catch (\Throwable $rollbackError) { /* Preserve the numeric failure if cleanup also fails. */ }
+        try { mysqli_close($link); } catch (\Throwable $closeError) { /* The connection may already be unavailable. */ }
+    }
+    while (ob_get_level()>$dashboardDbBufferLevel) ob_end_clean();
+    error_log('Legacy user/pool database failure ['.(int)$exception->getCode().'] at '.basename(__FILE__).':'.$exception->getLine());
+    http_response_code(500);
+    echo 0;
+}
+if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();
 

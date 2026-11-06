@@ -44,7 +44,10 @@ if ($httpCode === 200) {
 
 // fetch delegated orgs if AreaManager
 $delegatedOrgs = [];
+try {
 if ($role === 'AreaManager') {
+    $link = null;
+    $stmt = null;
     $link = mysqli_connect(
         $resourcesconsumptionHost,
         $resourcesconsumptionUser,
@@ -62,6 +65,7 @@ if ($role === 'AreaManager') {
         if ($encMe) {
             $sql = "SELECT delegated_orgs FROM users WHERE owner = ?";
             $stmt = mysqli_prepare($link, $sql);
+            if ($stmt === false) throw new \mysqli_sql_exception('User Stats delegation query could not be prepared');
             mysqli_stmt_bind_param($stmt, "s", $encMe);
             mysqli_stmt_execute($stmt);
             mysqli_stmt_bind_result($stmt, $csv);
@@ -76,10 +80,20 @@ if ($role === 'AreaManager') {
         mysqli_close($link);
     }
 }
+} catch (\mysqli_sql_exception $exception) {
+    $delegatedOrgs = [];
+    $canSeeAdmin = false;
+    error_log('User Stats delegation lookup failed ['.(int)$exception->getCode().']');
+    if (isset($stmt) && $stmt) { try { mysqli_stmt_close($stmt); } catch (\Throwable $ignored) {} }
+    if (isset($link) && $link) { try { mysqli_close($link); } catch (\Throwable $ignored) {} }
+}
 
 // if admin, fetch & decrypt users
 $allUsers = [];
+try {
 if ($canSeeAdmin) {
+    $link2 = null;
+    $stmtU = null;
     $link2 = mysqli_connect(
         $resourcesconsumptionHost,
         $resourcesconsumptionUser,
@@ -126,6 +140,13 @@ if ($canSeeAdmin) {
         mysqli_close($link2);
     }
 }
+} catch (\mysqli_sql_exception $exception) {
+    $allUsers = [];
+    error_log('User Stats user suggestions unavailable ['.(int)$exception->getCode().']');
+    if (isset($stmtU) && $stmtU) { try { mysqli_stmt_close($stmtU); } catch (\Throwable $ignored) {} }
+    if (isset($link2) && $link2) { try { mysqli_close($link2); } catch (\Throwable $ignored) {} }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
