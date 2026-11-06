@@ -98,24 +98,13 @@
         
         <?php
         //    include 'config.php';
-            if(!$_SESSION['isPublic']) {
-              $ldapUsername = "cn=" . $_SESSION['loggedUsername'] . "," . $ldapBaseDN;
-              $ds = ldap_connect($ldapServer, $ldapPort);
-              ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-              if($ldapAdminDN)
-                  $bind = ldap_bind($ds, $ldapAdminDN, $ldapAdminPwd);
-              else
-                  $bind = ldap_bind($ds);
-              $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
-              if (is_null($organization)) {
-                  $organization = "None";
-                  $organizationSql = "Other";
-              } else if ($organization == "") {
-                  $organization = "None";
-                  $organizationSql = "Other";
-              } else {
-                  $organizationSql = $organization;
-              }
+            // Reuse the selected session organization; menu rendering must not query LDAP.
+            $organization = !empty($_SESSION['isPublic']) ? null : ($_SESSION['loggedOrganization'] ?? null);
+            if (is_string($organization) && $organization !== "") {
+                $organizationSql = $organization;
+            } else {
+                $organization = "None";
+                $organizationSql = "Other";
             }
 
             error_reporting(E_ERROR);
@@ -344,21 +333,13 @@
             error_reporting(E_ERROR);
             date_default_timezone_set('Europe/Rome');
 
-            if($_SESSION['loggedRole']!='Public') { //CHECK
-              $ldapUsername = "cn=" . $_SESSION['loggedUsername'] . "," . $ldapBaseDN;
-              $ds = ldap_connect($ldapServer, $ldapPort);
-              ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);
-              $bind = ldap_bind($ds);
-              $organization = checkLdapOrganization($ds, $ldapUsername, $ldapBaseDN);
-              if (is_null($organization)) {
-                  $organization = "None";
-                  $organizationSql = "Other";
-              } else if ($organization == "") {
-                  $organization = "None";
-                  $organizationSql = "Other";
-              } else {
-                  $organizationSql = $organization;
-              }
+            // Reuse the selected session organization; menu rendering must not query LDAP.
+            $organization = !empty($_SESSION['isPublic']) ? null : ($_SESSION['loggedOrganization'] ?? null);
+            if (is_string($organization) && $organization !== "") {
+                $organizationSql = $organization;
+            } else {
+                $organization = "None";
+                $organizationSql = "Other";
             }
 
             $link = mysqli_connect($host, $username, $password);
