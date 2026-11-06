@@ -3,6 +3,7 @@
 include '../config.php';
 require '../sso/autoload.php';
 include 'simpleXLSX.php';
+require_once __DIR__ . '/../controllers/translationRegistration.php';
 
 use Jumbojett\OpenIDConnectClient;
 
@@ -20,8 +21,10 @@ $_SESSION['refreshToken'] = $tkn->refresh_token;
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
+mysqli_set_charset($link, 'utf8mb4');
 if (isset($_SESSION['loggedRole'])) {
     $role_session_active = $_SESSION['loggedRole'];
+    session_write_close();
     if ($role_session_active == 'RootAdmin'){
     ////
     $action = $_REQUEST['action'];
@@ -38,20 +41,21 @@ if (isset($_SESSION['loggedRole'])) {
         $fileName = $_FILES['file']['name'];
         $fileType = $_FILES['file']['type'];
         $fileError = $_FILES['file']['error'];
-        $fileContent = file_get_contents($_FILES['file']['tmp_name']);
-///
-//XLS
-        if (strpos($fileName, '.xlsx') !== false) {
-            $json = xlsToJson($_FILES['file']['tmp_name']);
-            //echo($json);
+        try {
+            if (strpos($fileName, '.xlsx') !== false) {
+                $json = xlsToJson($_FILES['file']['tmp_name']);
+            } elseif (strpos($fileName, '.csv') !== false) {
+                $json = csvToJson($_FILES['file']['tmp_name']);
+            } else {
+                throw new \UnexpectedValueException('Unsupported file type');
+            }
+            $test_key = json_decode($json);
+        } catch (\UnexpectedValueException $error) {
+            // Keep the exact feedback tokens recognized by translationmanager.php.
+            error_log('Translation file import invalid: ' . $error->getMessage());
+            echo $error->getMessage() === 'Not valid keys' ? 'Not valid keys' : 'Error';
+            exit;
         }
-        ////
-        //
-        if (strpos($fileName, '.csv') !== false) {
-            $json = csvToJson($_FILES['file']['tmp_name']);
-            //echo($json);
-        }
-        $test_key = json_decode($json);
         //$keys = array_keys(json_decode($val1, true));
         $arr_ref = array();
         $arr_tr = array();
@@ -69,35 +73,23 @@ if (isset($_SESSION['loggedRole'])) {
                 $trans = ($test_key[$i]->{'Translated Text'});
                 //echo($ref.', '.$trans.'<br />');
                 //
-            $query = 'SELECT DISTINCT * FROM multilanguage WHERE menuText="' . $ref . '" AND  language="' . $lang . '";';
-
-                $result = mysqli_query($link, $query);
-                $response_errors = array();
-                $response_corrected = array();
-                //echo($query);
-                //$i = 0;
-                //if ($result) {
-                //  if (mysqli_num_rows($result) > 0) {
-                // print_r($result);
-                $ref = mysqli_real_escape_string($link, $ref);
+                // Short shared lock: cooperate with automatic translations and registration.
                 $ref = filter_var($ref, FILTER_SANITIZE_STRING);
-                //
-                $lang = mysqli_real_escape_string($link, $lang);
                 $lang = filter_var($lang, FILTER_SANITIZE_STRING);
-                //
-                $trans = mysqli_real_escape_string($link, $trans);
                 $trans = filter_var($trans, FILTER_SANITIZE_STRING);
-                //////////
-                $query0 = "UPDATE multilanguage
-                    SET 
-                        translatedText='" . $trans . "'
-                    WHERE menuText='" . $ref . "' AND  language='" . $lang . "';";
-                //echo($query0);
-                $result0 = mysqli_query($link, $query0);
-                $message = 'correct';
-                //
-                $response_corrected[$crr_ind] = $ref;
-                $crr_ind++;
+                try {
+                    withTranslationRegistrationLock($link, function () use ($link, $ref, $trans, $lang) {
+                        $statement = translationRegistrationStatement($link,
+                            'UPDATE multilanguage SET translatedText=? WHERE menuText=? AND language=?',
+                            [$trans, $ref, $lang]);
+                        mysqli_stmt_close($statement);
+                    });
+                    $message = 'correct';
+                } catch (\Throwable $error) {
+                    error_log('Translation file import write unavailable');
+                    $message = 'Error';
+                    break;
+                }
                 //array_push($response_errors, $ref);
                 //echo ($message);
                 ////////////
@@ -155,48 +147,61 @@ if (isset($_SESSION['loggedRole'])) {
 }
 
 function csvToJson($fname) {
-    // open csv file
-    if (!($fp = fopen($fname, 'r'))) {
-        die("Can't open file...");
+    if (!is_string($fname) || !is_file($fname) || !is_readable($fname) || !($fp = fopen($fname, 'r'))) {
+        throw new \UnexpectedValueException('Cannot read import file');
     }
-
-    //read csv headers
-    $key = fgetcsv($fp, "1024", ";");
-
-    // parse csv rows into array
-    $json = array();
-    while ($row = fgetcsv($fp, "1024", ";")) {
-        $json[] = array_combine($key, $row);
+    try {
+        $key = translationImportHeader(fgetcsv($fp, 0, ';', '"', '\\'));
+        $json = array();
+        $rowNumber = 1;
+        while (($row = fgetcsv($fp, 0, ';', '"', '\\')) !== false) {
+            $rowNumber++;
+            $entry = translationImportRow($key, $row, $rowNumber);
+            if ($entry !== null) $json[] = $entry;
+        }
+        return translationImportEncode($json);
+    } finally {
+        fclose($fp);
     }
-
-    // release file handle
-    fclose($fp);
-
-    // encode array to json
-    return json_encode($json);
 }
 
 function xlsToJson($fname) {
-    $fp = '';
-    if ($xlsx = SimpleXLSX::parse($fname)) {
-        $fp = ($xlsx->rows());
-    } else {
-        echo SimpleXLSX::parseError();
+    if (!is_string($fname) || !is_file($fname) || !is_readable($fname)) {
+        throw new \UnexpectedValueException('Cannot read import file');
     }
-    //
+    $xlsx = SimpleXLSX::parse($fname);
+    if (!$xlsx) throw new \UnexpectedValueException('Cannot parse XLSX file');
+    $rows = $xlsx->rows();
+    $key = translationImportHeader(is_array($rows) && isset($rows[0]) ? $rows[0] : null);
     $json = array();
-    $key = $fp[0];
-    $lung = count($fp);
-    for ($i = 1; $i < $lung; $i++) {
-        $row['Reference Text'] = $fp[$i][0];
-        $row['Translated Text'] = $fp[$i][1];
-        $json[] = array_combine($key, $row);
-
-        //$json[$i] = $row;
+    for ($i = 1; $i < count($rows); $i++) {
+        $entry = translationImportRow($key, $rows[$i], $i + 1);
+        if ($entry !== null) $json[] = $entry;
     }
+    return translationImportEncode($json);
+}
 
-    //print_r($fp);
-    return json_encode($json);
+function translationImportEncode($rows) {
+    $json = json_encode($rows);
+    if ($json === false) throw new \UnexpectedValueException('Invalid text encoding');
+    return $json;
+}
+
+function translationImportHeader($key) {
+    if (!is_array($key) || count($key) !== 2 ||
+        !in_array('Reference Text', $key, true) || !in_array('Translated Text', $key, true)) {
+        throw new \UnexpectedValueException('Not valid keys');
+    }
+    return $key;
+}
+
+function translationImportRow($key, $row, $rowNumber) {
+    // fgetcsv returns one null field for an empty line; it is not an import record.
+    if (is_array($row) && count($row) === 1 && ($row[0] === null || trim($row[0]) === '')) return null;
+    if (!is_array($row) || count($row) !== count($key)) {
+        throw new \UnexpectedValueException('Invalid row ' . $rowNumber . ': expected 2 columns');
+    }
+    return array_combine($key, $row);
 }
 
 ?>

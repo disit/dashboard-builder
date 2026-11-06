@@ -32,7 +32,7 @@ class TourRepository
 
     public function getTourSteps($tourName)
     {
-        $pdo = new PDO("mysql:host={$this->dbHost};dbname={$this->dbName};charset=utf8", $this->user, $this->pwd, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ]);
+        $pdo = new PDO("mysql:host={$this->dbHost};dbname={$this->dbName};charset=utf8", $this->user, $this->pwd, [PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_OBJ, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]);
         $stmt = $pdo->prepare("SELECT * FROM ToursSteps WHERE tourName = ?");
         $stmt->execute([$tourName]);
         return array_map([$this, "convertRawStep"], $stmt->fetchAll());

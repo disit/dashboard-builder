@@ -2,18 +2,32 @@
     /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
+    function dashboardLegacySaveFailure($link, $dashboardId)
+    {
+        if ($link) {
+            try { mysqli_rollback($link); } catch (Throwable $ignored) {}
+            try { mysqli_close($link); } catch (Throwable $ignored) {}
+        }
+        http_response_code(500);
+        echo '<script type="text/javascript">';
+        echo 'alert("Error during dashboard update: please repeat the procedure.");';
+        echo 'window.location.href = ' . json_encode('dashboard_configdash.php?dashboardId=' . rawurlencode((string) $dashboardId)) . ';';
+        echo '</script>';
+    }
+
+    $link = null;
+    try {
     include '../config.php';
     session_start(); 
     $link = mysqli_connect($host, $username, $password) or die("Failed to connect to server");
@@ -49,7 +63,10 @@
         exit();
     }
     
-    mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+    if (!mysqli_begin_transaction($link)) {
+        dashboardLegacySaveFailure($link, $_SESSION['dashboardId'] ?? '');
+        return;
+    }
     $queryFail = false;
     
     if(isset($_SESSION['loggedRole']))
@@ -160,7 +177,8 @@
                 }
                 else 
                 {
-                   chmod($uploadFolder.$filename, 0666); 
+                   chmod($uploadFolder.$filename, 0666);
+                    // NEW P-TEST: mettere apici a $ncols
                    $query = "UPDATE Dashboard.Config_dashboard SET name_dashboard = '$newDashboardName', title_header = '$newDashboardTitle', subtitle_header = '$newDashboardSubtitle', color_header = '$newDashboardColor', width = $width, num_columns = $nCols, color_background = '$newDashboardBckColor', external_frame_color = '$newDashboardExtColor', headerFontColor = '$headerFontColor', headerFontSize = $headerFontSize, logoFilename = '$filename', logoLink = '$logoLink', widgetsBorders = '$widgetsBorders', widgetsBordersColor = '$widgetsBordersColor', visibility = '$visibility', headerVisible = $headerVisible, embeddable = '$embeddable', authorizedPagesJson = '$authorizedPagesJson' WHERE Id = $dashboardId";
                    $result = mysqli_query($link, $query);  
 
@@ -233,6 +251,10 @@
                    {
                       $insertQuery = "INSERT INTO Dashboard.DashboardsViewPermissions VALUES($dashboardId, '$selectedUser')";
                       $result4 = mysqli_query($link, $insertQuery);
+                      if (!$result4) {
+                          dashboardLegacySaveFailure($link, $dashboardId);
+                          return;
+                      }
                    }
                 }
              }
@@ -240,6 +262,10 @@
             if(!$queryFail) 
             {
                 $commit = mysqli_commit($link);
+                if (!$commit) {
+                    dashboardLegacySaveFailure($link, $dashboardId);
+                    return;
+                }
                 mysqli_close($link);
                 echo json_encode($response);
             }
@@ -260,3 +286,8 @@
 
 
 
+
+    } catch (mysqli_sql_exception $exception) {
+        error_log('Legacy dashboard save database failure [' . (int) $exception->getCode() . ']');
+        dashboardLegacySaveFailure($link, $_SESSION['dashboardId'] ?? '');
+    }

@@ -16,6 +16,8 @@
 
     include('process-form.php');
     include('../config.php');
+   $dashboardLdapBufferLevel = ob_get_level();
+   ob_start();
     session_start();
     
     if(!isset($_SESSION['loggedRole']))
@@ -187,13 +189,11 @@
                                                         else
                                                            $bind = ldap_bind($ds);
 
-                                                        $result = ldap_search(
-                                                                $ds, $ldapBaseDN, 
-                                                                '(cn=Dashboard)'
-                                                        );
-                                                        $entries = ldap_get_entries($ds, $result);
+                                                        $entries = dashboardLdapSearchEntries($ds, $ldapBaseDN, '(cn=Dashboard)', $bind);
                                                         foreach ($entries as $key => $value) 
                                                         {
+                                                            // ldap_get_entries also returns metadata such as count, not an entry.
+                                                            if (!is_int($key) || !is_array($value) || !isset($value["memberuid"]) || !is_array($value["memberuid"])) continue;
                                                            for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
                                                            { 
                                                               $usr = $value["memberuid"][$index];
@@ -201,7 +201,7 @@
                                                            }
                                                         }
 
-                                                        ldap_close();
+                                                        ldap_close($ds);
 
                                                         $ds = ldap_connect($ldapServer, $ldapPort);
                                                         ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);

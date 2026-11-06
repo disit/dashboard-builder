@@ -723,7 +723,7 @@ function copy_table($link, $origin, $destination) {
     $result_t1 = mysqli_query($link, $query_t1) or die(mysqli_error($link));
     if ($result_t1) {
         //
-        $json_res['Truncate_table ' + $destination] = 'OK';
+        $json_res['Truncate_table ' . $destination] = 'OK';
         //
         $query_origin = "SELECT * FROM " . $origin;
         $result_origin = mysqli_query($link, $query_origin) or die(mysqli_error($link));
@@ -774,7 +774,7 @@ function copy_table($link, $origin, $destination) {
         //
     //
     } else {
-        $json_res['Truncate_table ' + $destination] = 'ERROR';
+        $json_res['Truncate_table ' . $destination] = 'ERROR';
         $count_rows = 0;
 
         for ($y = 0; $y < $lun; $y++) {

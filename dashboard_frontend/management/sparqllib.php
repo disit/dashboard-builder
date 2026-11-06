@@ -400,7 +400,7 @@ class xx_xml {
 	var $type;
 
 	// function with the default parameter value
-	function xx_xml($url='https://www.opocot.com', $type='url') {
+	function __construct($url='https://www.opocot.com', $type='url') {
 		$this->type = $type;
 		$this->url  = $url;
 		$this->parse();
@@ -449,6 +449,10 @@ class xx_xml {
 					return;
 				}
 			}
+		}
+		if (!xml_parse($this->parser, '', true)) {
+			$this->error = sprintf('XML error at line %d column %d', xml_get_current_line_number($this->parser), xml_get_current_column_number($this->parser));
+			return;
 		}
 		if( !$this->looks_legit ) 
 		{

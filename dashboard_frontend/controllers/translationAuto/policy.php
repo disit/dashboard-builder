@@ -20,6 +20,18 @@ function iniBoolean($value) {
     if(in_array($value,[false,0,'0','false','no','off',''],true))return false;
     throw new \RuntimeException('invalid_translation_boolean');
 }
+function automaticPhpBinary() {
+    if(PHP_SAPI==='cli' && is_file(PHP_BINARY))return PHP_BINARY;
+    if(PHP_OS_FAMILY==='Windows') {
+        $ini=php_ini_loaded_file();
+        $binary=($ini ? dirname($ini) : PHP_BINDIR).'/php.exe';
+        if(!is_file($binary))throw new \RuntimeException('worker_php_binary_unavailable');
+        return $binary;
+    }
+    $binary=PHP_BINDIR.'/php';
+    return is_file($binary)?$binary:'/usr/local/bin/php';
+}
+
 function settings(array $values=null) {
     $values=$values ?? dashboardConfig();
     $config=[
@@ -77,6 +89,7 @@ function settings(array $values=null) {
         throw new \RuntimeException('inconsistent_translation_limits');
     if(!is_string($config['api_url']) || !is_string($config['php_binary']))
         throw new \RuntimeException('invalid_translation_configuration');
+    if($config['php_binary']==='auto')$config['php_binary']=automaticPhpBinary();
     if(($config['enabled'] || $config['api_url']!=='') &&
         (parse_url($config['api_url'],PHP_URL_SCHEME)!=='https' || !parse_url($config['api_url'],PHP_URL_HOST)))
         throw new \RuntimeException('invalid_translation_configuration');

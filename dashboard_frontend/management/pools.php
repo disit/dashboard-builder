@@ -15,6 +15,8 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
    include('../config.php');
+   $dashboardLdapBufferLevel = ob_get_level();
+   ob_start();
 if (!isset($_SESSION)) {
     session_start();
 }
@@ -206,13 +208,11 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                                 else
                                                                    $bind = ldap_bind($ds);
 
-                                                                $result = ldap_search(
-                                                                        $ds, $ldapBaseDN, 
-                                                                        '(cn=Dashboard)'
-                                                                );
-                                                                $entries = ldap_get_entries($ds, $result);
+                                                                $entries = dashboardLdapSearchEntries($ds, $ldapBaseDN, '(cn=Dashboard)', $bind);
                                                                 foreach ($entries as $key => $value) 
                                                                 {
+                                                                    // ldap_get_entries also returns metadata such as count, not an entry.
+                                                                    if (!is_int($key) || !is_array($value) || !isset($value["memberuid"]) || !is_array($value["memberuid"])) continue;
                                                                    for($index = 0; $index < (count($value["memberuid"]) - 1); $index++)
                                                                    { 
                                                                       $usr = $value["memberuid"][$index];
@@ -220,7 +220,7 @@ if ((!$_SESSION['isPublic'] && isset($_SESSION['newLayout']) && $_SESSION['newLa
                                                                    }
                                                                 }
 
-                                                                ldap_close();
+                                                                ldap_close($ds);
 
                                                                 $ds = ldap_connect($ldapServer, $ldapPort);
                                                                 ldap_set_option($ds, LDAP_OPT_PROTOCOL_VERSION, 3);

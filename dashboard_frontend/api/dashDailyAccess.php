@@ -15,6 +15,11 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
+require_once __DIR__.'/../databaseException.php';
+$dashboardDbBufferLevel = ob_get_level();
+ob_start();
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+try {
 
 $link = mysqli_connect($host, $username, $password);
 mysqli_select_db($link, $dbname);
@@ -45,7 +50,7 @@ if(isset($_REQUEST['date']))
 
         if ($result == false) {
             $response['detail'] = "Response Ko";
-            $errmsg = mysql_errno() . ' ' . mysql_error();
+            $errmsg = 'Database operation failed';
             $response['message'] = "Errore: ".$errmsg;
         }
         else
@@ -71,7 +76,7 @@ if(isset($_REQUEST['date']))
 
         if ($result2 == false) {
             $response2[0]['detail'] = "Response Ko";
-            $errmsg2 = mysql_errno() . ' ' . mysql_error();
+            $errmsg2 = 'Database operation failed';
             $response2[0]['message'] = "Errore: " . $errmsg2;
         } else {
             if (mysqli_num_rows($result2) > 0) {
@@ -96,7 +101,7 @@ if(isset($_REQUEST['date']))
 
     if ($result3 == false) {
         $response3[0]['detail'] = "Response Ko";
-        $errmsg3 = mysql_errno() . ' ' . mysql_error();
+        $errmsg3 = 'Database operation failed';
         $response3[0]['message'] = "Errore: " . $errmsg3;
     } else {
         if (mysqli_num_rows($result3) > 0) {
@@ -115,3 +120,7 @@ if(isset($_REQUEST['date']))
 }
 
 mysqli_close($link);
+} catch (\mysqli_sql_exception $exception) {
+    dashboardDatabaseFailure($exception, isset($link) ? $link : null, $dashboardDbBufferLevel);
+}
+if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();

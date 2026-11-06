@@ -1,4 +1,8 @@
 <?php
+require_once __DIR__.'/../phpCompatibility.php';
+$dashboardOutputLevel = ob_get_level();
+ob_start();
+try {
 //include('process-form.php');
 include '../config.php';
 require '../sso/autoload.php';
@@ -48,15 +52,15 @@ if (isset($_REQUEST['toTime'])){
 $data_api = $base_url.$fromTime.''.$toTime.''.$valueName.''. $key;
 //echo($data_api);
 $result=file_get_contents($data_api);
-$data = json_decode($result, true);
+$data = dashboardDecodeServiceJson($result, true, [['realtime','head','vars'],['realtime','results','bindings']]);
 //print_r($data);
 // $result_data['data']['results']=$data['Sensor']['features'][0]['properties'];
 //
-$list_header = $data['realtime']['head']['vars'];
+$list_header = dashboardServiceList($data['realtime']['head'] ?? null, 'vars');
 //print_r($list_header);
 //
 
-$data_json = $data['realtime']['results']['bindings'];
+$data_json = dashboardServiceList($data['realtime']['results'] ?? null, 'bindings');
 
 $data_js2 = json_encode($data_json);
 
@@ -160,4 +164,8 @@ $output = json_encode($result_data);
 //echo($data_js2);
 echo($output);
 
+} catch (\UnexpectedValueException $exception) {
+    dashboardInvalidServiceResponse($dashboardOutputLevel);
+}
+if (ob_get_level()>$dashboardOutputLevel) ob_end_flush();
 ?>

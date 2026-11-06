@@ -246,7 +246,6 @@ if (isset($_SESSION['loggedRole'])) {
                     $baseout = $hourly_baseOutputFilename;
                     $recurrenceIntervalUnit = 'ALL';
                     //$date001 = date("Y-m-d", strtotime('01-' . date('m', strtotime('+1 month')) . '-' . date('Y') . ' 00:00:00'));
-                    date_default_timezone_get('UTC');
                     $init_date = date("Y-m-d H:i:s");
                     //adattare alla TIME ZONE//
                     
