@@ -36565,6 +36565,185 @@ $('#dashboardEditHeaderMenu').on('click', '.langSelectorVisibility', function ()
                                                 newFormRow.append(newInput);
                                             }
 
+                                            //BIM shape fixed labels
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="bimShapeLabelsEnabledM" class="col-md-2 control-label"><?php echo _("BIM shape labels"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="bimShapeLabelsEnabledM" name="bimShapeLabelsEnabled"></select>');
+                                            newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                            newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelsEnabled) {
+                                                newSelect.val(styleParameters.bimShapeLabelsEnabled);
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            var currentBimShapeLabelMinZoomM = 0;
+                                            if (typeof currentParams !== "undefined" && currentParams && currentParams.zoom != null && currentParams.zoom !== "") {
+                                                currentBimShapeLabelMinZoomM = parseInt(currentParams.zoom, 10);
+                                                if (isNaN(currentBimShapeLabelMinZoomM)) {
+                                                    currentBimShapeLabelMinZoomM = 0;
+                                                }
+                                                currentBimShapeLabelMinZoomM = Math.max(0, Math.min(currentBimShapeLabelMinZoomM, 22));
+                                            }
+
+                                            newLabel = $('<label for="bimShapeLabelFontSizeM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label font size"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newInput = $('<input type="number" min="6" max="72" id="bimShapeLabelFontSizeM" name="bimShapeLabelFontSize" class="form-control" value="12"/>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelFontSize) {
+                                                newInput.val(styleParameters.bimShapeLabelFontSize);
+                                            }
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label for="bimShapeLabelMinZoomM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label min zoom"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newInput = $('<input type="number" min="0" max="22" id="bimShapeLabelMinZoomM" name="bimShapeLabelMinZoom" class="form-control"/>');
+                                            newInput.val(currentBimShapeLabelMinZoomM);
+                                            if (styleParameters != null && styleParameters.bimShapeLabelMinZoom != null && styleParameters.bimShapeLabelMinZoom !== "") {
+                                                newInput.val(styleParameters.bimShapeLabelMinZoom);
+                                            }
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="bimShapeLabelBoxEnabledM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label box"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newSelect = $('<select class="form-control" id="bimShapeLabelBoxEnabledM" name="bimShapeLabelBoxEnabled"></select>');
+                                            newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                            newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelBoxEnabled) {
+                                                newSelect.val(styleParameters.bimShapeLabelBoxEnabled);
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label for="bimShapeLabelAvoidOverlapM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Avoid overlap"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newSelect = $('<select class="form-control" id="bimShapeLabelAvoidOverlapM" name="bimShapeLabelAvoidOverlap"></select>');
+                                            newSelect.append('<option value="yes"><?php echo _("Yes"); ?></option>');
+                                            newSelect.append('<option value="no"><?php echo _("No"); ?></option>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelAvoidOverlap) {
+                                                newSelect.val(styleParameters.bimShapeLabelAvoidOverlap);
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label for="bimShapeLabelContentModeM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label content"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newSelect = $('<select class="form-control" id="bimShapeLabelContentModeM" name="bimShapeLabelContentMode"></select>');
+                                            newSelect.append('<option value="name"><?php echo _("Metric name"); ?></option>');
+                                            newSelect.append('<option value="value"><?php echo _("Metric value"); ?></option>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelContentMode) {
+                                                newSelect.val(styleParameters.bimShapeLabelContentMode);
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="bimShapeLabelFontFamilyM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label font"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newInput = $('<select id="bimShapeLabelFontFamilyM" name="bimShapeLabelFontFamily" class="form-control"></select>');
+                                            newInput.append('<option value="Arial">Arial</option>');
+                                            newInput.append('<option value="Calibri">Calibri</option>');
+                                            newInput.append('<option value="Times New Roman">Times New Roman</option>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelFontFamily) {
+                                                newInput.val(styleParameters.bimShapeLabelFontFamily);
+                                            }
+                                            if (!newInput.val()) {
+                                                newInput.val("Arial");
+                                            }
+                                            newInnerDiv.append(newInput);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newLabel = $('<label for="bimShapeLabelFontColorM" class="col-md-2 control-label bim-shape-label-option-m"><?php echo _("Label font color"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2 bim-shape-label-option-m"></div>');
+                                            newInput = $('<input type="hidden" id="bimShapeLabelFontColorM" name="bimShapeLabelFontColor" value="#000000"/>');
+                                            var bimShapeLabelColorPicker = $('<input type="color" id="bimShapeLabelFontColorPickerM" class="form-control" value="#000000" title="<?php echo _("Open color palette"); ?>" style="height:34px;padding:2px;cursor:pointer;"/>');
+                                            if (styleParameters != null && styleParameters.bimShapeLabelFontColor) {
+                                                newInput.val(styleParameters.bimShapeLabelFontColor);
+                                            }
+                                            function bimShapeCssColorToHexM(colorValue) {
+                                                colorValue = (colorValue || "").trim();
+                                                if (/^#[0-9a-f]{6}$/i.test(colorValue)) {
+                                                    return colorValue;
+                                                }
+                                                if (/^#[0-9a-f]{3}$/i.test(colorValue)) {
+                                                    return "#" + colorValue.charAt(1) + colorValue.charAt(1) + colorValue.charAt(2) + colorValue.charAt(2) + colorValue.charAt(3) + colorValue.charAt(3);
+                                                }
+                                                return null;
+                                            }
+                                            function updateBimShapeLabelColorPickerM() {
+                                                var hexColor = bimShapeCssColorToHexM($("#bimShapeLabelFontColorM").val());
+                                                if (hexColor) {
+                                                    $("#bimShapeLabelFontColorPickerM").val(hexColor);
+                                                }
+                                            }
+                                            newInnerDiv.append(newInput);
+                                            newInnerDiv.append(bimShapeLabelColorPicker);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            newFormRow = $('<div class="row"></div>');
+                                            $("#specificParamsM").append(newFormRow);
+                                            newLabel = $('<label for="bimShapePatternZoomBehaviorM" class="col-md-2 control-label"><?php echo _("Pattern zoom"); ?></label>');
+                                            newInnerDiv = $('<div class="col-md-2"></div>');
+                                            newSelect = $('<select class="form-control" id="bimShapePatternZoomBehaviorM" name="bimShapePatternZoomBehavior"></select>');
+                                            newSelect.append('<option value="fixed"><?php echo _("Fixed screen size"); ?></option>');
+                                            newSelect.append('<option value="scaleWithMap"><?php echo _("Scale with map"); ?></option>');
+                                            var bimShapePatternZoomBehaviorValue = "scaleWithMap";
+                                            if (styleParameters != null && styleParameters.bimShapePatternZoomBehavior) {
+                                                bimShapePatternZoomBehaviorValue = styleParameters.bimShapePatternZoomBehavior;
+                                            }
+                                            newSelect.val(bimShapePatternZoomBehaviorValue);
+                                            if (newSelect.val() !== bimShapePatternZoomBehaviorValue) {
+                                                newSelect.val("scaleWithMap");
+                                            }
+                                            newInnerDiv.append(newSelect);
+                                            newFormRow.append(newLabel);
+                                            newFormRow.append(newInnerDiv);
+
+                                            if (styleParameters == null || typeof styleParameters !== "object") {
+                                                styleParameters = {};
+                                            }
+                                            function updateBimShapeLabelStyleParametersM() {
+                                                styleParameters.bimShapeLabelsEnabled = $("#bimShapeLabelsEnabledM").val() || "no";
+                                                styleParameters.bimShapeLabelBoxEnabled = $("#bimShapeLabelBoxEnabledM").val() || "no";
+                                                styleParameters.bimShapeLabelFontSize = $("#bimShapeLabelFontSizeM").val() || "12";
+                                                styleParameters.bimShapeLabelMinZoom = $("#bimShapeLabelMinZoomM").val() || String(currentBimShapeLabelMinZoomM);
+                                                styleParameters.bimShapeLabelAvoidOverlap = $("#bimShapeLabelAvoidOverlapM").val() || "yes";
+                                                styleParameters.bimShapeLabelContentMode = $("#bimShapeLabelContentModeM").val() || "name";
+                                                styleParameters.bimShapeLabelFontFamily = $("#bimShapeLabelFontFamilyM").val() || "Arial";
+                                                styleParameters.bimShapeLabelFontColor = $("#bimShapeLabelFontColorM").val() || "#000000";
+                                                styleParameters.bimShapePatternZoomBehavior = $("#bimShapePatternZoomBehaviorM").val() || "scaleWithMap";
+                                            }
+                                            function toggleBimShapeLabelOptionsM() {
+                                                $("#specificParamsM .bim-shape-label-option-m").toggle($("#bimShapeLabelsEnabledM").val() === "yes");
+                                            }
+                                            updateBimShapeLabelStyleParametersM();
+                                            updateBimShapeLabelColorPickerM();
+                                            toggleBimShapeLabelOptionsM();
+                                            $("#bimShapeLabelsEnabledM, #bimShapeLabelBoxEnabledM, #bimShapeLabelFontSizeM, #bimShapeLabelMinZoomM, #bimShapeLabelAvoidOverlapM, #bimShapeLabelContentModeM, #bimShapeLabelFontFamilyM, #bimShapeLabelFontColorPickerM, #bimShapePatternZoomBehaviorM").css("margin-left", "8px");
+                                            $("#bimShapeLabelsEnabledM, #bimShapeLabelBoxEnabledM, #bimShapeLabelFontSizeM, #bimShapeLabelMinZoomM, #bimShapeLabelAvoidOverlapM, #bimShapeLabelContentModeM, #bimShapeLabelFontFamilyM, #bimShapePatternZoomBehaviorM").off("change input", updateBimShapeLabelStyleParametersM);
+                                            $("#bimShapeLabelsEnabledM, #bimShapeLabelBoxEnabledM, #bimShapeLabelFontSizeM, #bimShapeLabelMinZoomM, #bimShapeLabelAvoidOverlapM, #bimShapeLabelContentModeM, #bimShapeLabelFontFamilyM, #bimShapePatternZoomBehaviorM").on("change input", updateBimShapeLabelStyleParametersM);
+                                            $("#bimShapeLabelsEnabledM").off("change input", toggleBimShapeLabelOptionsM);
+                                            $("#bimShapeLabelsEnabledM").on("change input", toggleBimShapeLabelOptionsM);
+                                            $("#bimShapeLabelFontColorPickerM").off("input change");
+                                            $("#bimShapeLabelFontColorPickerM").on("input change", function() {
+                                                $("#bimShapeLabelFontColorM").val($(this).val()).trigger("input");
+                                                updateBimShapeLabelStyleParametersM();
+                                            });
+
                                             gisTargetCenterParametersM = currentParams;
                                             $("#parametersM").val(JSON.stringify(gisTargetCenterParametersM));
                                             $("#widgetModeM").val(data.url);

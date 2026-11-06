@@ -18,5 +18,10 @@
     }],
   "DashboardLinkMenuSubmenus": [{
       "ignoreDelegation": {"type": "TINYINT", "extra": "NULL DEFAULT 0 AFTER `dashboardId`"}
-    }]
+    }],
+  "BimShapePatterns": [
+    {
+      "patternConfig": {"type": "TEXT", "extra": "NULL DEFAULT NULL AFTER `description`"}
+    }
+  ]
 }

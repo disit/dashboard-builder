@@ -306,5 +306,49 @@
       "value": "WidgetImport",
       "insert":  "INSERT INTO `Dashboard`.`AccessDefinitions` (`authname`, `org`, `menuID`) VALUES ('WidgetImport', 'NULL', NULL);"
     }
+  ],
+  "BimShapePatterns": [
+    {
+      "column": "patternCode",
+      "value": "0",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'none', `patternLabel` = 'No pattern', `description` = 'No pattern rendered on the BIM shape', `patternConfig` = '{\"type\":\"none\"}', `enabled` = 1, `sortOrder` = 0 WHERE `patternCode` = 0;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (0, 'none', 'No pattern', 'No pattern rendered on the BIM shape', '{\"type\":\"none\"}', 1, 0);"
+    },
+    {
+      "column": "patternCode",
+      "value": "1",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'diagonal_lines', `patternLabel` = 'Diagonal lines', `description` = 'Diagonal hatch pattern', `patternConfig` = '{\"type\":\"lines\",\"spacing\":8,\"angle\":45,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2}', `enabled` = 1, `sortOrder` = 10 WHERE `patternCode` = 1;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (1, 'diagonal_lines', 'Diagonal lines', 'Diagonal hatch pattern', '{\"type\":\"lines\",\"spacing\":8,\"angle\":45,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2}', 1, 10);"
+    },
+    {
+      "column": "patternCode",
+      "value": "2",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'dots', `patternLabel` = 'Dots', `description` = 'Dotted pattern', `patternConfig` = '{\"type\":\"dots\",\"spacing\":10,\"fillColor\":\"rgba(0,0,0,0.85)\",\"radius\":2}', `enabled` = 1, `sortOrder` = 20 WHERE `patternCode` = 2;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (2, 'dots', 'Dots', 'Dotted pattern', '{\"type\":\"dots\",\"spacing\":10,\"fillColor\":\"rgba(0,0,0,0.85)\",\"radius\":2}', 1, 20);"
+    },
+    {
+      "column": "patternCode",
+      "value": "3",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'trees', `patternLabel` = 'Trees', `description` = 'Small tree-like symbol pattern', `patternConfig` = '{\"type\":\"trees\",\"spacing\":16,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.3,\"size\":10}', `enabled` = 1, `sortOrder` = 30 WHERE `patternCode` = 3;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (3, 'trees', 'Trees', 'Small tree-like symbol pattern', '{\"type\":\"trees\",\"spacing\":16,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.3,\"size\":10}', 1, 30);"
+    },
+    {
+      "column": "patternCode",
+      "value": "4",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'horizontal_lines', `patternLabel` = 'Horizontal lines', `description` = 'Horizontal line hatch pattern', `patternConfig` = '{\"type\":\"lines\",\"spacing\":8,\"angle\":90,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2}', `enabled` = 1, `sortOrder` = 40 WHERE `patternCode` = 4;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (4, 'horizontal_lines', 'Horizontal lines', 'Horizontal line hatch pattern', '{\"type\":\"lines\",\"spacing\":8,\"angle\":90,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2}', 1, 40);"
+    },
+    {
+      "column": "patternCode",
+      "value": "5",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'triangles', `patternLabel` = 'Triangles', `description` = 'Small triangle pattern', `patternConfig` = '{\"type\":\"triangles\",\"spacing\":12,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.3,\"size\":8}', `enabled` = 1, `sortOrder` = 50 WHERE `patternCode` = 5;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (5, 'triangles', 'Triangles', 'Small triangle pattern', '{\"type\":\"triangles\",\"spacing\":12,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.3,\"size\":8}', 1, 50);"
+    },
+    {
+      "column": "patternCode",
+      "value": "6",
+      "update": "UPDATE `Dashboard`.`BimShapePatterns` SET `patternKey` = 'vertical_lines', `patternLabel` = 'Vertical lines', `description` = 'Vertical line hatch pattern', `patternConfig` = '{\"type\":\"lines\",\"spacing\":8,\"angle\":0,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.4}', `enabled` = 1, `sortOrder` = 60 WHERE `patternCode` = 6;",
+      "insert": "INSERT INTO `Dashboard`.`BimShapePatterns` (`patternCode`, `patternKey`, `patternLabel`, `description`, `patternConfig`, `enabled`, `sortOrder`) VALUES (6, 'vertical_lines', 'Vertical lines', 'Vertical line hatch pattern', '{\"type\":\"lines\",\"spacing\":8,\"angle\":0,\"strokeColor\":\"rgba(0,0,0,0.85)\",\"strokeWidth\":2.4}', 1, 60);"
+    }
   ]
 }

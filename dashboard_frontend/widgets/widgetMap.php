@@ -2797,33 +2797,260 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
         }
 
 
-        function onMapEntityClick(feature, marker, descBim) {
+        function getMapEntityHoverTooltipLatLng(event, layer) {
+            if (event && event.latlng) {
+                return event.latlng;
+            }
+            if (layer && layer.getBounds) {
+                return layer.getBounds().getCenter();
+            }
+            if (layer && layer.getLatLng) {
+                return layer.getLatLng();
+            }
+            return map.defaultMapRef ? map.defaultMapRef.getCenter() : null;
+        }
+
+        function openMapEntityHoverTooltip(layer, event, tooltipString) {
+            if (!map.defaultMapRef || tooltipString === "") {
+                return;
+            }
+            var tooltipLatLng = getMapEntityHoverTooltipLatLng(event, layer);
+            if (!tooltipLatLng) {
+                return;
+            }
+            if (!map.mapEntityHoverTooltip) {
+                map.mapEntityHoverTooltip = L.tooltip({
+                    direction: "top",
+                    opacity: 0.95,
+                    sticky: true
+                });
+            }
+            map.mapEntityHoverTooltip.setContent(tooltipString);
+            map.mapEntityHoverTooltip.setLatLng(tooltipLatLng);
+            if (!map.defaultMapRef.hasLayer(map.mapEntityHoverTooltip)) {
+                map.mapEntityHoverTooltip.addTo(map.defaultMapRef);
+            }
+        }
+
+        function moveMapEntityHoverTooltip(layer, event) {
+            if (!map.defaultMapRef || !map.mapEntityHoverTooltip || !map.defaultMapRef.hasLayer(map.mapEntityHoverTooltip)) {
+                return;
+            }
+            var tooltipLatLng = getMapEntityHoverTooltipLatLng(event, layer);
+            if (tooltipLatLng) {
+                map.mapEntityHoverTooltip.setLatLng(tooltipLatLng);
+            }
+        }
+
+        function closeMapEntityHoverTooltip() {
+            if (map.defaultMapRef && map.mapEntityHoverTooltip && map.defaultMapRef.hasLayer(map.mapEntityHoverTooltip)) {
+                map.defaultMapRef.removeLayer(map.mapEntityHoverTooltip);
+            }
+        }
+
+        function getBimShapePropertyValue(feature, propertyNames) {
+            var props = feature && feature.properties ? feature.properties : {};
+            var values = props.values || {};
+            for (var i = 0; i < propertyNames.length; i++) {
+                var propertyName = propertyNames[i];
+                var value = null;
+                if (props.hasOwnProperty(propertyName)) {
+                    value = props[propertyName];
+                } else if (values.hasOwnProperty(propertyName)) {
+                    value = values[propertyName];
+                }
+                if (value != null && typeof value === "object" && value.hasOwnProperty("value")) {
+                    value = value.value;
+                }
+                if (value != null && value !== "") {
+                    return String(value);
+                }
+            }
+            return "";
+        }
+
+        function getBimShapeFeatureStableId(feature) {
+            return getBimShapePropertyValue(feature, ["serviceUri", "serviceURI", "deviceName", "name", "id"]) || null;
+        }
+
+        function getBimShapeFeatureTitle(feature) {
+            if (!feature || !feature.properties) {
+                return "";
+            }
+            var deviceName = getBimShapePropertyValue(feature, ["deviceName"]);
+            if (deviceName !== "") {
+                if (deviceName.includes("building") || deviceName.includes("floor")) {
+                    if (deviceName.split("_").length > 2) {
+                        return "Floor " + deviceName.split("_")[1] + "_" + deviceName.split("_")[2];
+                    }
+                    return "Building " + deviceName.split("_")[1];
+                }
+                return deviceName;
+            }
+            var name = getBimShapePropertyValue(feature, ["name", "identifierName", "id"]);
+            if (name !== "") {
+                return name;
+            }
+            return "";
+        }
+
+        function getBimShapeFixedLabelRecordForFeature(feature) {
+            if (!feature || !map.bimShapeFixedLabels) {
+                return null;
+            }
+            if (feature.properties && feature.properties.bimShapeFixedLabelKey && map.bimShapeFixedLabels[feature.properties.bimShapeFixedLabelKey]) {
+                return map.bimShapeFixedLabels[feature.properties.bimShapeFixedLabelKey];
+            }
+            var stableId = getBimShapeFeatureStableId(feature);
+            for (var labelKey in map.bimShapeFixedLabels) {
+                if (!map.bimShapeFixedLabels.hasOwnProperty(labelKey)) {
+                    continue;
+                }
+                var labelRecord = map.bimShapeFixedLabels[labelKey];
+                if (labelRecord.feature === feature ||
+                    (stableId && labelRecord.featureStableId === stableId) ||
+                    (stableId && labelKey.slice(-1 * (String(stableId).length + 1)) === "_" + stableId)) {
+                    return labelRecord;
+                }
+            }
+            return null;
+        }
+
+        function isBimShapeFixedLabelVisibleForFeature(feature) {
+            var labelRecord = getBimShapeFixedLabelRecordForFeature(feature);
+            return !!(labelRecord && labelRecord.visible === true);
+        }
+
+        function formatBimShapeMetricValueForLabel(value) {
+            if (value != null && typeof value === "object" && value.hasOwnProperty("value")) {
+                value = value.value;
+            }
+            if (value == null || value === "") {
+                return "";
+            }
+            return String(value);
+        }
+
+        function getBimShapeFixedLabelMetricDisplay(labelRecord, metricName) {
+            if (!labelRecord || !metricName) {
+                return "";
+            }
+            if (labelRecord.options && (labelRecord.options.contentMode === "value" || labelRecord.options.contentMode === "deviceNameValue")) {
+                var metricValue = labelRecord.metricValues && labelRecord.metricValues.hasOwnProperty(metricName) ? labelRecord.metricValues[metricName] : null;
+                var formattedValue = formatBimShapeMetricValueForLabel(metricValue);
+                return formattedValue !== "" ? formattedValue : (labelRecord.options.contentMode === "value" ? metricName : "");
+            }
+            return metricName;
+        }
+
+        function getBimShapeFixedLabelParts(labelRecord) {
+            var parts = [];
+            var seen = {};
+            if (!labelRecord || !labelRecord.metricOrder || labelRecord.metricOrder.length === 0) {
+                return parts;
+            }
+            var contentMode = labelRecord.options ? labelRecord.options.contentMode : "name";
+            if (contentMode === "deviceName" || contentMode === "deviceNameValue") {
+                var deviceName = getBimShapePropertyValue(labelRecord.feature, ["deviceName", "name"]);
+                if (deviceName !== "") {
+                    parts.push(deviceName);
+                }
+                if (contentMode === "deviceName") {
+                    return parts;
+                }
+            }
+            if (contentMode === "value" || contentMode === "deviceNameValue") {
+                for (var valueIndex = labelRecord.metricOrder.length - 1; valueIndex >= 0; valueIndex--) {
+                    var valueMetricName = labelRecord.metricOrder[valueIndex];
+                    if (!labelRecord.metrics || !labelRecord.metrics.hasOwnProperty(valueMetricName)) {
+                        continue;
+                    }
+                    var valueDisplay = getBimShapeFixedLabelMetricDisplay(labelRecord, valueMetricName);
+                    if (valueDisplay !== "") {
+                        parts.push(valueDisplay);
+                    }
+                    break;
+                }
+                return parts;
+            }
+            for (var i = 0; i < labelRecord.metricOrder.length; i++) {
+                var metricName = labelRecord.metricOrder[i];
+                if (!labelRecord.metrics || !labelRecord.metrics.hasOwnProperty(metricName) || seen[metricName]) {
+                    continue;
+                }
+                var displayValue = getBimShapeFixedLabelMetricDisplay(labelRecord, metricName);
+                if (displayValue !== "") {
+                    parts.push(displayValue);
+                    seen[metricName] = true;
+                }
+            }
+            return parts;
+        }
+
+        function getBimShapeFixedLabelPartsForFeature(feature) {
+            return getBimShapeFixedLabelParts(getBimShapeFixedLabelRecordForFeature(feature));
+        }
+
+        function canShowBimShapeHoverTooltip(feature, hoverTooltipMode) {
+            if (hoverTooltipMode === "always") {
+                return false;
+            }
+            if (hoverTooltipMode === "labelAware" || map.bimShapeFixedLabels) {
+                var labelRecord = getBimShapeFixedLabelRecordForFeature(feature);
+                if (!labelRecord) {
+                    return true;
+                }
+                var currentZoom = map.defaultMapRef && map.defaultMapRef.getZoom ? map.defaultMapRef.getZoom() : 0;
+                var minZoom = labelRecord.options && labelRecord.options.minZoom != null ? labelRecord.options.minZoom : 0;
+                if (currentZoom < minZoom) {
+                    return true;
+                }
+                if (typeof updateBimShapeFixedLabelsVisibility === "function") {
+                    updateBimShapeFixedLabelsVisibility();
+                }
+                if (isBimShapeFixedLabelVisibleForFeature(feature)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function getBimShapeHoverTooltipText(feature, fallbackMetricText) {
+            var title = getBimShapeFeatureTitle(feature);
+            var labelParts = getBimShapeFixedLabelPartsForFeature(feature);
+            var suffix = labelParts.length > 0 ? labelParts.join(" - ") : (fallbackMetricText || "");
+            if (title !== "" && suffix !== "") {
+                return title + " - " + suffix;
+            }
+            if (title !== "") {
+                return title;
+            }
+            return suffix;
+        }
+
+        function onMapEntityClick(feature, marker, descBim, hoverTooltipMode) {
 
             marker.on('mouseover', function (event) {
-                if (feature.properties.deviceName != null) {
-                    let tooltipString = "";
-                    if (feature.properties.deviceName.includes("building") || feature.properties.deviceName.includes("floor")) {
-                        if (feature.properties.deviceName.split("_").length > 2) {
-                            tooltipString = "Floor " + feature.properties.deviceName.split("_")[1] + "_" + feature.properties.deviceName.split("_")[2];
-                        } else {
-                            tooltipString = "Building " + feature.properties.deviceName.split("_")[1];
-                        }
-                    } else {
-                        tooltipString = feature.properties.deviceName;
-                    }
-                    this.bindTooltip(tooltipString);
-                    event.target.openTooltip();
-                } else if (feature.properties.name != null) {
-                    let metric = descBim || "";
-                    let tooltipString = feature.properties.name + " - " + metric;
-                    this.bindTooltip(tooltipString);
-                    event.target.openTooltip();
+                if (!canShowBimShapeHoverTooltip(feature, hoverTooltipMode)) {
+                    closeMapEntityHoverTooltip();
+                    return;
                 }
+                let tooltipString = getBimShapeHoverTooltipText(feature, descBim);
+                openMapEntityHoverTooltip(this, event, tooltipString);
                 //$(".leaflet-popup-close-button").css("display", "none");
+            });
+
+            marker.on('mousemove', function (event) {
+                moveMapEntityHoverTooltip(this, event);
+            });
+
+            marker.on('mouseout', function () {
+                closeMapEntityHoverTooltip();
             });
 
             marker.on('click', function (event) {
                 //    map.defaultMapRef.off('moveend');
+                closeMapEntityHoverTooltip();
                 if (feature.properties.deviceName != null) {
                     this.unbindTooltip(feature.properties.deviceName);
                 } else if (feature.properties.name != null) {
@@ -7449,6 +7676,375 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 // console.log("Mouse Over");
             });
         }
+
+        function ensureBimShapeFixedLabelRegistry() {
+            if (!map.bimShapeFixedLabels) {
+                map.bimShapeFixedLabels = {};
+            }
+            return map.bimShapeFixedLabels;
+        }
+
+        function getBimShapeFixedLabelFeatureKey(shapeEntityId, feature, featureIndex) {
+            var stableId = getBimShapeFeatureStableId(feature);
+            if (stableId) {
+                return shapeEntityId + "_" + stableId;
+            }
+            var props = feature && feature.properties ? feature.properties : {};
+            var values = props.values || {};
+            if (values.identifierName || props.identifierName) {
+                return shapeEntityId + "_" + getBimShapePropertyValue(feature, ["identifierName"]) + "_" + featureIndex;
+            }
+            return shapeEntityId + "_" + featureIndex;
+        }
+
+        function unwrapBimShapeLabelMetricValue(value) {
+            if (value != null && typeof value === "object" && value.hasOwnProperty("value")) {
+                return value.value;
+            }
+            return value;
+        }
+
+        function getBimShapeFeatureMetricValueForLabel(feature, metricName) {
+            if (!feature || !feature.properties || !metricName) {
+                return null;
+            }
+            if (feature.properties.values && feature.properties.values.hasOwnProperty(metricName)) {
+                return unwrapBimShapeLabelMetricValue(feature.properties.values[metricName]);
+            }
+            if (feature.properties.lastValue && feature.properties.lastValue.hasOwnProperty(metricName)) {
+                return unwrapBimShapeLabelMetricValue(feature.properties.lastValue[metricName]);
+            }
+            if (feature.properties.hasOwnProperty(metricName)) {
+                return unwrapBimShapeLabelMetricValue(feature.properties[metricName]);
+            }
+            return null;
+        }
+
+        function escapeBimShapeLabelText(text) {
+            return String(text == null ? "" : text)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        function getBimShapeLabelColorComponent(component) {
+            component = String(component == null ? "" : component).trim();
+            if (component.indexOf("%") !== -1) {
+                return Math.max(0, Math.min(255, Math.round(parseFloat(component) * 2.55)));
+            }
+            return Math.max(0, Math.min(255, parseInt(component, 10)));
+        }
+
+        function parseBimShapeLabelRgbColor(colorValue) {
+            colorValue = String(colorValue == null ? "" : colorValue).trim();
+            var hexMatch = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(colorValue);
+            if (hexMatch) {
+                var hexValue = hexMatch[1];
+                if (hexValue.length === 3) {
+                    hexValue = hexValue.charAt(0) + hexValue.charAt(0) + hexValue.charAt(1) + hexValue.charAt(1) + hexValue.charAt(2) + hexValue.charAt(2);
+                }
+                return {
+                    r: parseInt(hexValue.substring(0, 2), 16),
+                    g: parseInt(hexValue.substring(2, 4), 16),
+                    b: parseInt(hexValue.substring(4, 6), 16)
+                };
+            }
+            var rgbMatch = /^rgba?\(\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)\s*,\s*(\d{1,3}%?)(?:\s*,\s*(0|1|0?\.\d+))?\s*\)$/i.exec(colorValue);
+            if (rgbMatch) {
+                return {
+                    r: getBimShapeLabelColorComponent(rgbMatch[1]),
+                    g: getBimShapeLabelColorComponent(rgbMatch[2]),
+                    b: getBimShapeLabelColorComponent(rgbMatch[3])
+                };
+            }
+            return null;
+        }
+
+        function getBimShapeLabelRgbColor(colorValue) {
+            var parsedColor = parseBimShapeLabelRgbColor(colorValue);
+            if (parsedColor || typeof document === "undefined" || !document.body || typeof window === "undefined" || !window.getComputedStyle) {
+                return parsedColor;
+            }
+            var probe = document.createElement("span");
+            probe.style.color = colorValue;
+            if (probe.style.color === "") {
+                return null;
+            }
+            probe.style.display = "none";
+            document.body.appendChild(probe);
+            var computedColor = window.getComputedStyle(probe).color;
+            document.body.removeChild(probe);
+            return parseBimShapeLabelRgbColor(computedColor);
+        }
+
+        function isBimShapeLabelColorDark(colorValue) {
+            var rgbColor = getBimShapeLabelRgbColor(colorValue);
+            if (!rgbColor) {
+                return true;
+            }
+            var luminance = (0.2126 * rgbColor.r + 0.7152 * rgbColor.g + 0.0722 * rgbColor.b) / 255;
+            return luminance < 0.5;
+        }
+
+        function buildBimShapeLabelTextOutlineStyle(labelOptions) {
+            if (labelOptions.boxEnabled) {
+                return "";
+            }
+            var outlineColor = isBimShapeLabelColorDark(labelOptions.fontColor) ? "#ffffff" : "#000000";
+            return "-webkit-text-stroke:0.35px " + outlineColor + ";paint-order:stroke fill;text-shadow:-1px -1px 0 " + outlineColor + ",1px -1px 0 " + outlineColor + ",-1px 1px 0 " + outlineColor + ",1px 1px 0 " + outlineColor + ",0 -1px 0 " + outlineColor + ",0 1px 0 " + outlineColor + ",-1px 0 0 " + outlineColor + ",1px 0 0 " + outlineColor + ";";
+        }
+
+        function buildBimShapeFixedLabelHtml(text, labelOptions) {
+            var boxStyle = labelOptions.boxEnabled
+                ? 'background:#ffffff;border:1px solid rgba(0,0,0,0.25);border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.25);padding:4px 8px;'
+                : 'background:transparent;border:0;box-shadow:none;padding:0;';
+            var textOutlineStyle = buildBimShapeLabelTextOutlineStyle(labelOptions);
+            return '<div class="bim-shape-fixed-label-box" style="position:absolute;transform:translate(-50%, -50%);white-space:nowrap;text-align:center;line-height:1.15;font-weight:600;' + boxStyle + 'color:' +
+                labelOptions.fontColor + ';' + textOutlineStyle + 'font-size:' + labelOptions.fontSize + 'px;font-family:' + labelOptions.fontFamily + ', Arial, sans-serif;pointer-events:none;">' +
+                escapeBimShapeLabelText(text) + '</div>';
+        }
+
+        function updateBimShapeFixedLabelMarker(labelRecord) {
+            var labelParts = getBimShapeFixedLabelParts(labelRecord);
+            if (labelParts.length === 0) {
+                if (labelRecord.marker) {
+                    map.defaultMapRef.removeLayer(labelRecord.marker);
+                }
+                return false;
+            }
+            var labelText = labelParts.join(" - ");
+            labelRecord.marker.setIcon(L.divIcon({
+                className: "bim-shape-fixed-label-marker",
+                iconSize: null,
+                iconAnchor: [0, 0],
+                html: buildBimShapeFixedLabelHtml(labelText, labelRecord.options)
+            }));
+            if (map.defaultMapRef && !map.defaultMapRef.hasLayer(labelRecord.marker)) {
+                labelRecord.marker.addTo(map.defaultMapRef);
+            }
+            if (labelRecord.marker.setZIndexOffset) {
+                labelRecord.marker.setZIndexOffset(1000);
+            }
+            scheduleBimShapeFixedLabelsVisibilityUpdate();
+            return true;
+        }
+
+        function getBimShapeLabelRect(labelRecord) {
+            if (!labelRecord || !labelRecord.marker || !labelRecord.marker._icon) {
+                return null;
+            }
+            var labelBox = labelRecord.marker._icon.querySelector ? labelRecord.marker._icon.querySelector(".bim-shape-fixed-label-box") : null;
+            return (labelBox || labelRecord.marker._icon).getBoundingClientRect();
+        }
+
+        function bimShapeLabelRectsOverlap(rectA, rectB) {
+            return !(rectA.right < rectB.left || rectA.left > rectB.right || rectA.bottom < rectB.top || rectA.top > rectB.bottom);
+        }
+
+        function setBimShapeFixedLabelVisible(labelRecord, visible) {
+            if (!labelRecord || !labelRecord.marker) {
+                return;
+            }
+            labelRecord.visible = visible;
+            if (labelRecord.marker._icon) {
+                labelRecord.marker._icon.style.display = visible ? "" : "none";
+            }
+        }
+
+        function updateBimShapeFixedLabelsVisibility() {
+            if (!map.bimShapeFixedLabels || !map.defaultMapRef) {
+                return;
+            }
+            var currentZoom = map.defaultMapRef.getZoom ? map.defaultMapRef.getZoom() : 0;
+            var acceptedRects = [];
+            var records = [];
+            for (var labelKey in map.bimShapeFixedLabels) {
+                if (map.bimShapeFixedLabels.hasOwnProperty(labelKey)) {
+                    map.bimShapeFixedLabels[labelKey].labelKey = labelKey;
+                    records.push(map.bimShapeFixedLabels[labelKey]);
+                }
+            }
+            records.sort(function(a, b) {
+                return String(a.labelKey).localeCompare(String(b.labelKey));
+            });
+            for (var i = 0; i < records.length; i++) {
+                var labelRecord = records[i];
+                var minZoom = labelRecord.options && labelRecord.options.minZoom != null ? labelRecord.options.minZoom : 0;
+                if (currentZoom < minZoom) {
+                    setBimShapeFixedLabelVisible(labelRecord, false);
+                    continue;
+                }
+                setBimShapeFixedLabelVisible(labelRecord, true);
+                if (!labelRecord.options || labelRecord.options.avoidOverlap !== true) {
+                    continue;
+                }
+                var rect = getBimShapeLabelRect(labelRecord);
+                if (!rect) {
+                    continue;
+                }
+                var overlaps = false;
+                for (var j = 0; j < acceptedRects.length; j++) {
+                    if (bimShapeLabelRectsOverlap(rect, acceptedRects[j])) {
+                        overlaps = true;
+                        break;
+                    }
+                }
+                if (overlaps) {
+                    setBimShapeFixedLabelVisible(labelRecord, false);
+                } else {
+                    acceptedRects.push(rect);
+                }
+            }
+        }
+
+        function scheduleBimShapeFixedLabelsVisibilityUpdate() {
+            if (map.bimShapeFixedLabelsVisibilityTimer) {
+                clearTimeout(map.bimShapeFixedLabelsVisibilityTimer);
+            }
+            map.bimShapeFixedLabelsVisibilityTimer = setTimeout(updateBimShapeFixedLabelsVisibility, 0);
+        }
+
+        function ensureBimShapeFixedLabelVisibilityHandlers() {
+            if (!map.defaultMapRef || map.bimShapeFixedLabelVisibilityHandlersEnabled) {
+                return;
+            }
+            map.bimShapeFixedLabelVisibilityHandlersEnabled = true;
+            map.defaultMapRef.on("zoomend", scheduleBimShapeFixedLabelsVisibilityUpdate);
+            map.defaultMapRef.on("moveend", scheduleBimShapeFixedLabelsVisibilityUpdate);
+        }
+
+        function addBimShapeFixedLabel(shapeEntityId, shapeKey, metricKey, feature, layer, labelOptions, featureIndex) {
+            if (!metricKey || !labelOptions.enabled || !layer || !layer.getBounds) {
+                return null;
+            }
+            ensureBimShapeFixedLabelVisibilityHandlers();
+            var labelKey = getBimShapeFixedLabelFeatureKey(shapeEntityId, feature, featureIndex);
+            var registry = ensureBimShapeFixedLabelRegistry();
+            if (!registry[labelKey]) {
+                registry[labelKey] = {
+                    marker: L.marker(layer.getBounds().getCenter(), {
+                        interactive: false,
+                        keyboard: false,
+                        icon: L.divIcon({
+                            className: "bim-shape-fixed-label-marker",
+                            iconSize: null,
+                            iconAnchor: [0, 0],
+                            html: ""
+                        }),
+                        zIndexOffset: 1000
+                    }).addTo(map.defaultMapRef),
+                    metrics: {},
+                    metricOrder: [],
+                    metricValues: {},
+                    shapeKeys: {},
+                    options: labelOptions,
+                    contentMode: labelOptions.contentMode,
+                    featureStableId: getBimShapeFeatureStableId(feature),
+                    visible: true
+                };
+            }
+            if (registry[labelKey].contentMode !== labelOptions.contentMode) {
+                registry[labelKey].metrics = {};
+                registry[labelKey].metricOrder = [];
+                registry[labelKey].metricValues = {};
+                registry[labelKey].shapeKeys = {};
+                registry[labelKey].contentMode = labelOptions.contentMode;
+            }
+            if (labelOptions.contentMode === "value" || labelOptions.contentMode === "deviceNameValue") {
+                registry[labelKey].metrics = {};
+                registry[labelKey].metricOrder = [];
+                registry[labelKey].metricValues = {};
+                for (var existingShapeKey in registry[labelKey].shapeKeys) {
+                    if (registry[labelKey].shapeKeys.hasOwnProperty(existingShapeKey)) {
+                        registry[labelKey].shapeKeys[existingShapeKey] = metricKey;
+                    }
+                }
+            }
+            registry[labelKey].options = labelOptions;
+            registry[labelKey].feature = feature;
+            registry[labelKey].featureStableId = getBimShapeFeatureStableId(feature);
+            if (registry[labelKey].metricOrder.indexOf(metricKey) === -1) {
+                registry[labelKey].metricOrder.push(metricKey);
+            }
+            registry[labelKey].metrics[metricKey] = true;
+            registry[labelKey].metricValues[metricKey] = getBimShapeFeatureMetricValueForLabel(feature, metricKey);
+            registry[labelKey].shapeKeys[shapeKey] = metricKey;
+            if (feature && feature.properties) {
+                feature.properties.bimShapeFixedLabelKey = labelKey;
+            }
+            updateBimShapeFixedLabelMarker(registry[labelKey]);
+            return labelKey;
+        }
+
+        function removeBimShapeFixedLabelsByShapeKey(shapeKey) {
+            if (!shapeKey || !map.bimShapeFixedLabels) {
+                return;
+            }
+            for (var labelKey in map.bimShapeFixedLabels) {
+                if (!map.bimShapeFixedLabels.hasOwnProperty(labelKey)) {
+                    continue;
+                }
+                var labelRecord = map.bimShapeFixedLabels[labelKey];
+                if (!labelRecord.shapeKeys || !labelRecord.shapeKeys.hasOwnProperty(shapeKey)) {
+                    continue;
+                }
+                var metricName = labelRecord.shapeKeys[shapeKey];
+                delete labelRecord.shapeKeys[shapeKey];
+                var metricStillUsed = false;
+                for (var remainingShapeKey in labelRecord.shapeKeys) {
+                    if (labelRecord.shapeKeys.hasOwnProperty(remainingShapeKey) && labelRecord.shapeKeys[remainingShapeKey] === metricName) {
+                        metricStillUsed = true;
+                        break;
+                    }
+                }
+                if (!metricStillUsed) {
+                    delete labelRecord.metrics[metricName];
+                    delete labelRecord.metricValues[metricName];
+                    if (labelRecord.metricOrder) {
+                        labelRecord.metricOrder = labelRecord.metricOrder.filter(function(item) {
+                            return item !== metricName;
+                        });
+                    }
+                }
+                if (!updateBimShapeFixedLabelMarker(labelRecord)) {
+                    delete map.bimShapeFixedLabels[labelKey];
+                }
+            }
+            scheduleBimShapeFixedLabelsVisibilityUpdate();
+        }
+
+        function removeAllBimShapeFixedLabels() {
+            if (!map.bimShapeFixedLabels) {
+                return;
+            }
+            for (var labelKey in map.bimShapeFixedLabels) {
+                if (map.bimShapeFixedLabels.hasOwnProperty(labelKey) && map.bimShapeFixedLabels[labelKey].marker) {
+                    map.defaultMapRef.removeLayer(map.bimShapeFixedLabels[labelKey].marker);
+                }
+            }
+            map.bimShapeFixedLabels = {};
+        }
+
+        function hasActiveBimShapePatternLayers() {
+            if (!map.bimShapesOnMap) {
+                return false;
+            }
+            for (var shapeKey in map.bimShapesOnMap) {
+                if (map.bimShapesOnMap.hasOwnProperty(shapeKey) && map.bimShapesOnMap[shapeKey] && map.bimShapesOnMap[shapeKey].bimPatternMetric) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function resetBimShapePatternReferenceZoomIfUnused() {
+            if (!hasActiveBimShapePatternLayers()) {
+                map.bimShapePatternReferenceZoom = null;
+            }
+        }
+
         //
         map.eventsOnMap = eventsOnMap;
 
@@ -26315,6 +26911,50 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         
+        // A BIM combination is scoped by resource/query, floor, colour metric and pattern metric.
+        function getBimShapeQueryIdentity(query) {
+            var text = String(query || '').trim();
+            try {
+                var url = new URL(text, location.href);
+                var resource = url.searchParams.get('serviceUri') || url.searchParams.get('serviceURI');
+                if (resource) return ['resource', resource];
+                if (/^https?:/.test(text) && !url.search) return ['resource', url.href];
+                var params = [];
+                url.searchParams.forEach(function(value, name) { params.push([name, value]); });
+                params.sort(function(a,b) { return JSON.stringify(a).localeCompare(JSON.stringify(b)); });
+                return ['query', url.origin + url.pathname, params];
+            } catch (ignored) { return ['query', text]; }
+        }
+        function getBimShapeLayerCenter(layer) {
+            if (!layer || typeof layer.getBounds !== 'function') return null;
+            var bounds = layer.getBounds();
+            return bounds && bounds.isValid() ? bounds.getCenter() : null;
+        }
+        function getBimShapeEventKey(data) {
+            return JSON.stringify([getBimShapeQueryIdentity(data.query),
+                data.floorNumber == null || data.floorNumber === '' ? null : String(data.floorNumber),
+                data.bubbleSelectedMetric || '', data.bimPatternMetric || '']);
+        }
+        function invalidateBimShapeRequest(key) {
+            if (!map.bimShapeRequests || !map.bimShapeRequests[key]) return;
+            var request = map.bimShapeRequests[key];
+            if (request.loadingDiv) request.loadingDiv.remove();
+            delete map.bimShapeRequests[key];
+        }
+        function startBimShapeRequest(key) {
+            if (!map.bimShapeRequests) map.bimShapeRequests = Object.create(null);
+            invalidateBimShapeRequest(key);
+            var request = {key:key, loadingDiv:null};
+            map.bimShapeRequests[key] = request;
+            return request;
+        }
+        function isBimShapeRequestCurrent(request) {
+            return !!map.bimShapeRequests && map.bimShapeRequests[request.key] === request;
+        }
+        function invalidateAllBimShapeRequests() {
+            Object.keys(map.bimShapeRequests || {}).forEach(invalidateBimShapeRequest);
+        }
+
     $(document).on('addBimShape', function (event) {
 
         console.log(event.passedData)
@@ -26342,6 +26982,553 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 }
             }
 
+            function getBimShapeLabelOptions(passedData) {
+                var labelOptions = {
+                    enabled: false,
+                    fontSize: 12,
+                    fontFamily: "Arial",
+                    fontColor: "#000000",
+                    boxEnabled: false,
+                    minZoom: 0,
+                    avoidOverlap: true,
+                    contentMode: "name"
+                };
+                var source = (typeof styleParameters !== "undefined" && styleParameters) ? styleParameters : {};
+
+                var contentModeValue = passedData.bimShapeLabelContentMode || source.bimShapeLabelContentMode;
+                labelOptions.contentMode = ["value", "deviceName", "deviceNameValue"].indexOf(contentModeValue) !== -1 ? contentModeValue : "name";
+
+                if (passedData.bimShapeLabelsEnabled === "yes") {
+                    labelOptions.enabled = true;
+                } else if (passedData.bimShapeLabelsEnabled === "no") {
+                    labelOptions.enabled = false;
+                } else if (source.bimShapeLabelsEnabled === "yes") {
+                    labelOptions.enabled = true;
+                }
+
+                var fontSizeValue = passedData.bimShapeLabelFontSize || source.bimShapeLabelFontSize;
+                fontSizeValue = parseInt(fontSizeValue, 10);
+                if (!isNaN(fontSizeValue)) {
+                    labelOptions.fontSize = Math.max(6, Math.min(fontSizeValue, 72));
+                }
+
+                var fontFamilyValue = passedData.bimShapeLabelFontFamily || source.bimShapeLabelFontFamily;
+                if (fontFamilyValue) {
+                    labelOptions.fontFamily = getSafeBimShapeLabelFont(fontFamilyValue);
+                }
+
+                var fontColorValue = passedData.bimShapeLabelFontColor || source.bimShapeLabelFontColor;
+                fontColorValue = getSafeBimShapeLabelColor(fontColorValue);
+                if (fontColorValue) {
+                    labelOptions.fontColor = fontColorValue;
+                }
+
+                var boxEnabledValue = passedData.bimShapeLabelBoxEnabled || source.bimShapeLabelBoxEnabled;
+                labelOptions.boxEnabled = boxEnabledValue === "yes";
+
+                var minZoomValue = passedData.bimShapeLabelMinZoom != null && passedData.bimShapeLabelMinZoom !== ""
+                    ? passedData.bimShapeLabelMinZoom : source.bimShapeLabelMinZoom;
+                minZoomValue = parseInt(minZoomValue, 10);
+                if (!isNaN(minZoomValue)) {
+                    labelOptions.minZoom = Math.max(0, Math.min(minZoomValue, 22));
+                }
+
+                var avoidOverlapValue = passedData.bimShapeLabelAvoidOverlap || source.bimShapeLabelAvoidOverlap;
+                labelOptions.avoidOverlap = avoidOverlapValue !== "no";
+
+                return labelOptions;
+            }
+
+            function getBimShapeFixedLabelMetricKey(passedData, labelOptions, metricKey, bimPatternMetric, queryMetricKey) {
+                if (labelOptions && labelOptions.contentMode === "deviceName") {
+                    return metricKey || bimPatternMetric || queryMetricKey || "";
+                }
+                var labelMetric = passedData.bimShapeLabelMetric || "";
+                if (labelMetric !== "") {
+                    return labelMetric;
+                }
+                if (labelOptions && (labelOptions.contentMode === "value" || labelOptions.contentMode === "deviceNameValue")) {
+                    var labelValueMetric = passedData.bimShapeLabelValueMetric || "";
+                    if (labelValueMetric !== "") {
+                        return labelValueMetric;
+                    }
+                    if (metricKey !== "") {
+                        return metricKey;
+                    }
+                    return queryMetricKey || "";
+                }
+                return metricKey || bimPatternMetric || "";
+            }
+
+            function getSafeBimShapeLabelFont(fontFamilyValue) {
+                var allowedFonts = {
+                    "Arial": "Arial",
+                    "Calibri": "Calibri",
+                    "Times New Roman": "Times New Roman"
+                };
+                fontFamilyValue = String(fontFamilyValue == null ? "" : fontFamilyValue).replace(/[^a-zA-Z0-9 ]/g, "").trim();
+                return allowedFonts[fontFamilyValue] || "Arial";
+            }
+
+            function getSafeBimShapeLabelColor(colorValue) {
+                colorValue = String(colorValue == null ? "" : colorValue).trim();
+                if (colorValue === "") {
+                    return null;
+                }
+                if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(colorValue)) {
+                    return colorValue;
+                }
+                if (/^rgba?\(\s*(\d{1,3}%?\s*,\s*){2}\d{1,3}%?(\s*,\s*(0|1|0?\.\d+))?\s*\)$/i.test(colorValue)) {
+                    return colorValue;
+                }
+                if (window.CSS && CSS.supports && CSS.supports("color", colorValue)) {
+                    return colorValue;
+                }
+                return null;
+            }
+
+            function getBimFeatureMetricValue(feature, metricName) {
+                if (!feature || !feature.properties || !metricName) {
+                    return null;
+                }
+                if (feature.properties.values && feature.properties.values.hasOwnProperty(metricName)) {
+                    return unwrapBimMetricValue(feature.properties.values[metricName]);
+                }
+                if (feature.properties.lastValue && feature.properties.lastValue.hasOwnProperty(metricName)) {
+                    return unwrapBimMetricValue(feature.properties.lastValue[metricName]);
+                }
+                if (feature.properties.hasOwnProperty(metricName)) {
+                    return unwrapBimMetricValue(feature.properties[metricName]);
+                }
+                return null;
+            }
+
+            function unwrapBimMetricValue(value) {
+                if (value != null && typeof value === "object" && value.hasOwnProperty("value")) {
+                    return value.value;
+                }
+                return value;
+            }
+
+            function replaceBimShapeQueryParam(url, name, value) {
+                var escapedValue = encodeURIComponent(value);
+                var re = new RegExp("([?&])" + name + "=[^&]*");
+                if (re.test(url)) {
+                    return url.replace(re, "$1" + name + "=" + escapedValue);
+                }
+                return url + (url.indexOf("?") === -1 ? "?" : "&") + name + "=" + escapedValue;
+            }
+
+            function getBimFeatureMergeKey(feature) {
+                if (!feature || !feature.properties) {
+                    return null;
+                }
+                var props = feature.properties;
+                var values = props.values || {};
+                return props.serviceUri || props.serviceURI || props.deviceName || props.name || props.id ||
+                    values.serviceUri || values.serviceURI || values.deviceName || values.name || values.identifierName || null;
+            }
+
+            function extractBimShapeFeatureCollection(jsonData, queryType) {
+                var result = { features: [] };
+                if (!jsonData) {
+                    return result;
+                }
+                if (queryType === "Default") {
+                    if (jsonData.features) {
+                        return jsonData;
+                    }
+                    Object.keys(jsonData).forEach(function (key) {
+                        if (jsonData[key] && jsonData[key].features) {
+                            result.features = result.features.concat(jsonData[key].features);
+                        }
+                    });
+                    return result;
+                }
+                if (jsonData.BusStop) return jsonData.BusStop;
+                if (jsonData.Sensor) return jsonData.Sensor;
+                if (jsonData.Service) return jsonData.Service;
+                if (jsonData.Services) return jsonData.Services;
+                return result;
+            }
+
+            function mergeBimMetricValues(fatherGeoJsonNode, metricGeoJsonData, queryType, metricName) {
+                if (!fatherGeoJsonNode || !fatherGeoJsonNode.features || !metricName || !metricGeoJsonData) {
+                    return;
+                }
+                var metricNode = extractBimShapeFeatureCollection(metricGeoJsonData, queryType);
+                var metricFeatures = metricNode.features || [];
+                var valuesByKey = {};
+                var realtimeValuesByIndex = [];
+                var realtimeBindings = [];
+
+                for (var i = 0; i < metricFeatures.length; i++) {
+                    var value = getBimFeatureMetricValue(metricFeatures[i], metricName);
+                    if (value == null) {
+                        continue;
+                    }
+                    var key = getBimFeatureMergeKey(metricFeatures[i]);
+                    if (key != null) {
+                        valuesByKey[key] = value;
+                    }
+                }
+
+                if (metricGeoJsonData.realtime
+                    && metricGeoJsonData.realtime.results
+                    && metricGeoJsonData.realtime.results.bindings) {
+                    realtimeBindings = metricGeoJsonData.realtime.results.bindings;
+                    for (var realtimeIndex = 0; realtimeIndex < realtimeBindings.length; realtimeIndex++) {
+                        var binding = realtimeBindings[realtimeIndex];
+                        var realtimeValue = binding && binding[metricName] != null ? unwrapBimMetricValue(binding[metricName]) : null;
+                        if (realtimeValue == null) {
+                            continue;
+                        }
+                        realtimeValuesByIndex[realtimeIndex] = realtimeValue;
+                        var realtimeKey = getBimRealtimeBindingMergeKey(binding);
+                        if (realtimeKey != null) {
+                            valuesByKey[realtimeKey] = realtimeValue;
+                        }
+                    }
+                }
+
+                for (var j = 0; j < fatherGeoJsonNode.features.length; j++) {
+                    var targetFeature = fatherGeoJsonNode.features[j];
+                    var targetKey = getBimFeatureMergeKey(targetFeature);
+                    var metricValue = targetKey != null && valuesByKey.hasOwnProperty(targetKey) ? valuesByKey[targetKey] : null;
+                    // Positional matching is only safe for aligned responses without
+                    // conflicting identities. Partial keyed responses must stay keyed.
+                    if (metricValue == null && metricFeatures.length === fatherGeoJsonNode.features.length
+                        && metricFeatures[j] && (targetKey == null || getBimFeatureMergeKey(metricFeatures[j]) == null)) {
+                        metricValue = getBimFeatureMetricValue(metricFeatures[j], metricName);
+                    }
+                    if (metricValue == null && realtimeBindings.length === fatherGeoJsonNode.features.length
+                        && realtimeValuesByIndex[j] != null
+                        && (targetKey == null || getBimRealtimeBindingMergeKey(realtimeBindings[j]) == null)) {
+                        metricValue = realtimeValuesByIndex[j];
+                    }
+                    if (metricValue != null) {
+                        if (targetFeature.properties.values) {
+                            targetFeature.properties.values[metricName] = metricValue;
+                        }
+                        targetFeature.properties[metricName] = metricValue;
+                    }
+                }
+            }
+
+            function mergeBimPatternMetricValues(fatherGeoJsonNode, patternGeoJsonData, queryType, bimPatternMetric) {
+                mergeBimMetricValues(fatherGeoJsonNode, patternGeoJsonData, queryType, bimPatternMetric);
+            }
+
+            function getBimRealtimeBindingMergeKey(binding) {
+                if (!binding) {
+                    return null;
+                }
+                var candidates = ["serviceUri", "serviceURI", "deviceUri", "deviceURI", "device", "deviceName", "name", "id", "s"];
+                for (var i = 0; i < candidates.length; i++) {
+                    var candidate = candidates[i];
+                    if (binding[candidate] != null) {
+                        var value = unwrapBimMetricValue(binding[candidate]);
+                        if (value != null && value !== "") {
+                            return value;
+                        }
+                    }
+                }
+                return null;
+            }
+
+            function getBimRealtimeBindingForFeature(geoJsonData, feature, featureIndex) {
+                if (!geoJsonData || !geoJsonData.realtime || !geoJsonData.realtime.results || !geoJsonData.realtime.results.bindings) {
+                    return null;
+                }
+                var bindings = geoJsonData.realtime.results.bindings;
+                var featureKey = getBimFeatureMergeKey(feature);
+                if (featureKey != null) {
+                    for (var i = 0; i < bindings.length; i++) {
+                        if (getBimRealtimeBindingMergeKey(bindings[i]) === featureKey) {
+                            return bindings[i];
+                        }
+                    }
+                }
+                if (bindings[featureIndex]
+                    && (featureKey == null || getBimRealtimeBindingMergeKey(bindings[featureIndex]) == null)) {
+                    return bindings[featureIndex];
+                }
+                if (bindings.length === 1 && (featureKey == null || getBimRealtimeBindingMergeKey(bindings[0]) == null)) {
+                    return bindings[0];
+                }
+                return null;
+            }
+
+            function getBimShapeJsonFromRealtime(geoJsonData, feature, featureIndex) {
+                var binding = getBimRealtimeBindingForFeature(geoJsonData, feature, featureIndex);
+                var shapeJsonString = binding && binding["geometry"] ? unwrapBimMetricValue(binding["geometry"]) : null;
+                if (!shapeJsonString) {
+                    return null;
+                }
+                return IsJsonString(shapeJsonString) ? JSON.parse(shapeJsonString) : shapeJsonString;
+            }
+
+            function getDefaultBimShapePatternConfigs() {
+                return {
+                    1: { type: "lines", spacing: 8, angle: 45, strokeColor: "rgba(0,0,0,0.85)", strokeWidth: 2 },
+                    2: { type: "dots", spacing: 10, fillColor: "rgba(0,0,0,0.85)", radius: 2 },
+                    3: { type: "trees", spacing: 16, strokeColor: "rgba(0,0,0,0.85)", strokeWidth: 2.3, size: 10 },
+                    4: { type: "lines", spacing: 8, angle: 90, strokeColor: "rgba(0,0,0,0.85)", strokeWidth: 2 },
+                    5: { type: "triangles", spacing: 12, strokeColor: "rgba(0,0,0,0.85)", strokeWidth: 2.3, size: 8 },
+                    6: { type: "lines", spacing: 8, angle: 0, strokeColor: "rgba(0,0,0,0.85)", strokeWidth: 2.4 }
+                };
+            }
+
+            function clampBimShapePatternNumber(value, min, max, fallback) {
+                value = parseFloat(value);
+                if (isNaN(value)) {
+                    return fallback;
+                }
+                return Math.max(min, Math.min(max, value));
+            }
+
+            function getSafeBimShapePatternColor(colorValue, fallback) {
+                colorValue = String(colorValue == null ? "" : colorValue).trim();
+                if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(colorValue)) {
+                    return colorValue;
+                }
+                if (/^rgba?\(\s*(\d{1,3}\s*,\s*){2}\d{1,3}(\s*,\s*(0|1|0?\.\d+))?\s*\)$/i.test(colorValue)) {
+                    return colorValue;
+                }
+                return fallback;
+            }
+
+            function normalizeBimShapePatternConfig(patternCode, config) {
+                var defaults = getDefaultBimShapePatternConfigs();
+                var fallback = defaults[patternCode];
+                if (!fallback || !config || typeof config !== "object") {
+                    return fallback || null;
+                }
+
+                var type = String(config.type || fallback.type || "").toLowerCase();
+                if (["lines", "dots", "triangles", "trees"].indexOf(type) === -1) {
+                    return fallback;
+                }
+
+                var normalized = {
+                    type: type,
+                    spacing: clampBimShapePatternNumber(config.spacing, 4, 64, fallback.spacing || 8)
+                };
+
+                if (type === "lines") {
+                    normalized.angle = clampBimShapePatternNumber(config.angle, -180, 180, fallback.angle || 0);
+                    normalized.strokeColor = getSafeBimShapePatternColor(config.strokeColor, fallback.strokeColor || "rgba(0,0,0,0.85)");
+                    normalized.strokeWidth = clampBimShapePatternNumber(config.strokeWidth, 0.5, 8, fallback.strokeWidth || 2);
+                } else if (type === "dots") {
+                    normalized.fillColor = getSafeBimShapePatternColor(config.fillColor, fallback.fillColor || "rgba(0,0,0,0.85)");
+                    normalized.radius = clampBimShapePatternNumber(config.radius, 0.5, 12, fallback.radius || 2);
+                } else {
+                    normalized.strokeColor = getSafeBimShapePatternColor(config.strokeColor, fallback.strokeColor || "rgba(0,0,0,0.85)");
+                    normalized.strokeWidth = clampBimShapePatternNumber(config.strokeWidth, 0.5, 8, fallback.strokeWidth || 2);
+                    normalized.size = clampBimShapePatternNumber(config.size, 4, 32, fallback.size || 8);
+                }
+                return normalized;
+            }
+
+            function getBimShapePatternConfigs() {
+                if (!map.bimShapePatternConfigs) {
+                    map.bimShapePatternConfigs = getDefaultBimShapePatternConfigs();
+                }
+                return map.bimShapePatternConfigs;
+            }
+
+            function getBimShapePatternZoomBehavior(passedData) {
+                var source = (typeof styleParameters !== "undefined" && styleParameters) ? styleParameters : {};
+                var behavior = passedData && passedData.bimShapePatternZoomBehavior ? passedData.bimShapePatternZoomBehavior : source.bimShapePatternZoomBehavior;
+                behavior = String(behavior || "scaleWithMap");
+                return behavior === "scaleWithMap" ? "scaleWithMap" : "fixed";
+            }
+
+            function getBimShapePatternCurrentZoom() {
+                if (map.defaultMapRef && map.defaultMapRef.getZoom) {
+                    return map.defaultMapRef.getZoom();
+                }
+                return 0;
+            }
+
+            function initializeBimShapePatternZoomState(zoomBehavior) {
+                map.bimShapePatternZoomBehavior = zoomBehavior || "scaleWithMap";
+                if (map.bimShapePatternZoomBehavior !== "scaleWithMap") {
+                    return;
+                }
+                if (map.bimShapePatternReferenceZoom == null && !hasActiveBimShapePatternLayers()) {
+                    map.bimShapePatternReferenceZoom = getBimShapePatternCurrentZoom();
+                }
+                ensureBimShapePatternZoomHandlers();
+            }
+
+            function ensureBimShapePatternZoomHandlers() {
+                if (!map.defaultMapRef || map.bimShapePatternZoomHandlersEnabled) {
+                    return;
+                }
+                map.bimShapePatternZoomHandlersEnabled = true;
+                map.defaultMapRef.on("zoomend", function() {
+                    if (map.bimShapePatternZoomBehavior === "scaleWithMap" && map.bimShapePatternRenderer) {
+                        if (hasActiveBimShapePatternLayers()) {
+                            ensureBimShapePatternDefs(map.bimShapePatternRenderer);
+                        } else {
+                            resetBimShapePatternReferenceZoomIfUnused();
+                        }
+                    }
+                });
+            }
+
+            function getBimShapePatternScaleFactor() {
+                if (map.bimShapePatternZoomBehavior !== "scaleWithMap") {
+                    return 1;
+                }
+                if (map.bimShapePatternReferenceZoom == null) {
+                    map.bimShapePatternReferenceZoom = getBimShapePatternCurrentZoom();
+                }
+                var scaleFactor = Math.pow(2, getBimShapePatternCurrentZoom() - map.bimShapePatternReferenceZoom);
+                return clampBimShapePatternNumber(scaleFactor, 0.5, 4, 1);
+            }
+
+            function scaleBimShapePatternDimension(value, scaleFactor, minValue, maxValue) {
+                return Math.round(clampBimShapePatternNumber(value * scaleFactor, minValue, maxValue, value) * 1000) / 1000;
+            }
+
+            function scaleBimShapePatternConfig(config, scaleFactor) {
+                if (scaleFactor === 1) {
+                    return config;
+                }
+                var scaledConfig = $.extend({}, config);
+                scaledConfig.spacing = scaleBimShapePatternDimension(config.spacing, scaleFactor, 2, 256);
+                if (config.type === "lines") {
+                    scaledConfig.strokeWidth = scaleBimShapePatternDimension(config.strokeWidth, scaleFactor, 0.5, 8);
+                } else if (config.type === "dots") {
+                    scaledConfig.radius = scaleBimShapePatternDimension(config.radius, scaleFactor, 0.5, 48);
+                } else {
+                    scaledConfig.strokeWidth = scaleBimShapePatternDimension(config.strokeWidth, scaleFactor, 0.5, 8);
+                    scaledConfig.size = scaleBimShapePatternDimension(config.size, scaleFactor, 2, 128);
+                }
+                return scaledConfig;
+            }
+
+            function buildBimShapePatternDefsKey(configs) {
+                var keys = Object.keys(configs).sort(function(a, b) {
+                    return parseInt(a, 10) - parseInt(b, 10);
+                });
+                var scaleFactor = getBimShapePatternScaleFactor();
+                return (map.bimShapePatternZoomBehavior || "scaleWithMap") + ":" + scaleFactor.toFixed(4) + ":" + keys.map(function(key) {
+                    return key + ":" + JSON.stringify(configs[key]);
+                }).join("|");
+            }
+
+            function loadBimShapePatternConfigs(callback) {
+                if (map.bimShapePatternConfigsLoaded) {
+                    callback();
+                    return;
+                }
+                map.bimShapePatternConfigCallbacks = map.bimShapePatternConfigCallbacks || [];
+                map.bimShapePatternConfigCallbacks.push(callback);
+                if (map.bimShapePatternConfigsLoading) {
+                    return;
+                }
+                map.bimShapePatternConfigsLoading = true;
+
+                function finishPatternConfigLoad(configs) {
+                    map.bimShapePatternConfigs = configs || getDefaultBimShapePatternConfigs();
+                    map.bimShapePatternConfigsLoaded = true;
+                    map.bimShapePatternConfigsLoading = false;
+                    var callbacks = map.bimShapePatternConfigCallbacks || [];
+                    map.bimShapePatternConfigCallbacks = [];
+                    callbacks.forEach(function(queuedCallback) {
+                        queuedCallback();
+                    });
+                }
+
+                var getPatternConfigData = fetchAjax("../controllers/getBimShapePatterns.php", null, "GET", "json", true, 5000);
+                getPatternConfigData.done(function(response) {
+                    var configs = getDefaultBimShapePatternConfigs();
+                    if (response && response.status === "ok" && $.isArray(response.patterns)) {
+                        response.patterns.forEach(function(pattern) {
+                            var code = parseInt(pattern.patternCode, 10);
+                            if (!isNaN(code) && code > 0) {
+                                var normalized = normalizeBimShapePatternConfig(code, pattern.config);
+                                if (normalized) {
+                                    configs[code] = normalized;
+                                }
+                            }
+                        });
+                    }
+                    finishPatternConfigLoad(configs);
+                });
+                getPatternConfigData.fail(function() {
+                    finishPatternConfigLoad(getDefaultBimShapePatternConfigs());
+                });
+            }
+
+            function getBimShapePatternId(patternCode) {
+                if (patternCode == null || patternCode === "" || patternCode === "null") {
+                    return null;
+                }
+                var code = parseInt(patternCode, 10);
+                if (isNaN(code) || code <= 0 || !getBimShapePatternConfigs()[code]) {
+                    return null;
+                }
+                var safeMapName = String(map.mapName || "map").replace(/[^a-zA-Z0-9_-]/g, "_");
+                return "bim_shape_pattern_" + safeMapName + "_" + code;
+            }
+
+            function buildBimShapePatternSvgMarkup(safeMapName, patternCode, config) {
+                var id = "bim_shape_pattern_" + safeMapName + "_" + patternCode;
+                var spacing = config.spacing;
+                if (config.type === "lines") {
+                    var x = spacing / 2;
+                    return '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="' + spacing + '" height="' + spacing + '" patternTransform="rotate(' + config.angle + ')"><path d="M' + x + ' ' + (-spacing) + ' V' + (spacing * 2) + '" fill="none" stroke="' + config.strokeColor + '" stroke-width="' + config.strokeWidth + '" stroke-linecap="butt"/></pattern>';
+                }
+                if (config.type === "dots") {
+                    return '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="' + spacing + '" height="' + spacing + '"><circle cx="' + (spacing / 2) + '" cy="' + (spacing / 2) + '" r="' + config.radius + '" fill="' + config.fillColor + '"/></pattern>';
+                }
+                if (config.type === "triangles") {
+                    var center = spacing / 2;
+                    var half = config.size / 2;
+                    return '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="' + spacing + '" height="' + spacing + '"><path d="M' + center + ' ' + (center - half) + ' L' + (center + half) + ' ' + (center + half) + ' L' + (center - half) + ' ' + (center + half) + ' Z" fill="none" stroke="' + config.strokeColor + '" stroke-width="' + config.strokeWidth + '" stroke-linejoin="round"/></pattern>';
+                }
+                if (config.type === "trees") {
+                    var c = spacing / 2;
+                    var s = config.size / 2;
+                    return '<pattern id="' + id + '" patternUnits="userSpaceOnUse" width="' + spacing + '" height="' + spacing + '"><path d="M' + c + ' ' + (c - s) + ' L' + (c + s) + ' ' + (c + s * 0.35) + ' H' + (c + s * 0.25) + ' V' + (c + s) + ' H' + (c - s * 0.25) + ' V' + (c + s * 0.35) + ' H' + (c - s) + ' Z" fill="none" stroke="' + config.strokeColor + '" stroke-width="' + config.strokeWidth + '" stroke-linejoin="round"/></pattern>';
+                }
+                return "";
+            }
+
+            function ensureBimShapePatternDefs(renderer) {
+                if (!renderer || !renderer._container) {
+                    return;
+                }
+                var svg = renderer._container;
+                var defs = svg.querySelector("defs.bim-shape-pattern-defs");
+                if (!defs) {
+                    defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+                    defs.setAttribute("class", "bim-shape-pattern-defs");
+                    svg.insertBefore(defs, svg.firstChild);
+                }
+                var configs = getBimShapePatternConfigs();
+                var defsKey = buildBimShapePatternDefsKey(configs);
+                if (defs.getAttribute("data-ready-key") === defsKey) {
+                    return;
+                }
+                var safeMapName = String(map.mapName || "map").replace(/[^a-zA-Z0-9_-]/g, "_");
+                var patterns = [];
+                Object.keys(configs).sort(function(a, b) {
+                    return parseInt(a, 10) - parseInt(b, 10);
+                }).forEach(function(patternCode) {
+                    var config = normalizeBimShapePatternConfig(parseInt(patternCode, 10), configs[patternCode]);
+                    if (config) {
+                        patterns.push(buildBimShapePatternSvgMarkup(safeMapName, patternCode, scaleBimShapePatternConfig(config, getBimShapePatternScaleFactor())));
+                    }
+                });
+                defs.innerHTML = patterns.join("");
+                defs.setAttribute("data-ready-key", defsKey);
+            }
+
         /*    function styleBimShape(feature) {
                 //var color = getBimColor(feature.properties.density[Object.keys(feature.properties.density)[0]]);
                 var color = "";
@@ -26350,7 +27537,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 } else if (feature.properties.lastValue) {
                     color = getBimColor(feature.properties.lastValue[bubbleSelectedMetric[descBim]]);
                 }
-                
+
                 var borderColor = darkenColor(color, 0.2);
 
                 return {
@@ -26403,8 +27590,13 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 var iconFilePath = passedData.iconFilePath;
                 selectedMetrics = passedData.selectedMetrics;
                 registerMapPopupDataTranslations(map.defaultMapRef, passedData);
-                var metricKey = passedData.bubbleSelectedMetric;
-                bubbleSelectedMetric[localDesc] = passedData.bubbleSelectedMetric;
+                var metricKey = passedData.bubbleSelectedMetric || "";
+                var bimPatternMetric = passedData.bimPatternMetric || "";
+                var queryMetricKey = metricKey !== "" ? metricKey : bimPatternMetric;
+                if (!localDesc || localDesc === "") {
+                    localDesc = queryMetricKey || passedData.query;
+                }
+                bubbleSelectedMetric[localDesc] = metricKey;
                 altViewMode = passedData.altViewMode;
                 bimShapeOnMap = true;
 
@@ -26423,8 +27615,25 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 } else {
                     shapeEntityId = passedData.query;
                 }
-                // combined key
-                var shapeKey = shapeEntityId + "_" + metricKey;
+                var shapeKey = getBimShapeEventKey(passedData);
+                var bimRequest = startBimShapeRequest(shapeKey);
+
+                if (shapeKey && map.bimShapesOnMap && map.bimShapesOnMap[shapeKey] && map.bimShapesOnMap[shapeKey].layer) {
+                    map.defaultMapRef.removeLayer(map.bimShapesOnMap[shapeKey].layer);
+                    removeBimShapeFixedLabelsByShapeKey(shapeKey);
+                    delete map.bimShapesOnMap[shapeKey];
+                    resetBimShapePatternReferenceZoomIfUnused();
+                    for (let existingShapeIndex = map.eventsOnMap.length - 1; existingShapeIndex >= 0; existingShapeIndex--) {
+                        if (map.eventsOnMap[existingShapeIndex]
+                            && map.eventsOnMap[existingShapeIndex].eventType === "bimShapeEvent"
+                            && getBimShapeEventKey({query:map.eventsOnMap[existingShapeIndex].query,
+                                floorNumber:map.eventsOnMap[existingShapeIndex].floorNumber,
+                                bubbleSelectedMetric:map.eventsOnMap[existingShapeIndex].descBim,
+                                bimPatternMetric:map.eventsOnMap[existingShapeIndex].bimPatternMetric}) === shapeKey) {
+                            map.eventsOnMap.splice(existingShapeIndex, 1);
+                        }
+                    }
+                }
 
 
                 var loadingDiv = $('<div class="gisMapLoadingDiv"></div>');
@@ -26449,6 +27658,16 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                     var loadKoText = $('<p class="gisMapLoadingDivTextPar">error adding <b>' + localDesc.toLowerCase() + '</b> to map<br><i class="fa fa-close" style="font-size: 30px"></i></p>');
                 }
 
+                function showBimShapeLoadError() {
+                    if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
+                    loadingDiv.empty();
+                    loadingDiv.append(loadKoText);
+                    setTimeout(function () {
+                        loadingDiv.css("opacity", 0);
+                        setTimeout(function () { loadingDiv.remove(); }, 350);
+                    }, 1000);
+                }
+
                 loadingDiv.css("background", color1);
                 loadingDiv.css("background", "-webkit-linear-gradient(left top, " + color1 + ", " + color2 + ")");
                 loadingDiv.css("background", "-o-linear-gradient(bottom right, " + color1 + ", " + color2 + ")");
@@ -26457,6 +27676,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
                 loadingDiv.show();
 
+                bimRequest.loadingDiv = loadingDiv;
                 loadingDiv.append(loadingText);
                 loadingDiv.css("opacity", 1);
 
@@ -26505,7 +27725,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                         }
                         if (altViewMode == "BimShape" || altViewMode == "BimShapePopup") {
                             queryShape = query + "&valueName=geometry";
-                            query = query + "&valueName=" + metricKey;
+                            query = query + "&valueName=" + queryMetricKey;
                         }
                         query = "<?= $superServiceMapProxy ?>api/v1/iot-search/?" + query.split('?')[1];
                         queryShape = "<?= $superServiceMapProxy ?>api/v1/iot-search/?" + queryShape.split('?')[1];
@@ -26550,6 +27770,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
                 //$.when(getSmartCityAPIData, getShapeSmartCityAPIData).done(function(jsonData, shapeData) {
                 getSmartCityAPIData.done(function (jsonData) {
+                    if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
                     let countNullGeometry = 0;
                     geoJsonData = jsonData;
                     registerMapPopupDataTranslations(map.defaultMapRef, geoJsonData);
@@ -26599,6 +27820,10 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                             realtimeDataJson = geoJsonData.realtime;
                         }
 
+                        if (queryMetricKey !== "") {
+                            mergeBimMetricValues(fatherGeoJsonNode, geoJsonData, queryType, queryMetricKey);
+                        }
+
                         for (var i = 0; i < fatherGeoJsonNode.features.length; i++) {
                             if (passedData.floorNumber == null || passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice" || (passedData.floorNumber != null && fatherGeoJsonNode.features[i].properties.values && fatherGeoJsonNode.features[i].properties.values.identifierName != null && (passedData.floorNumber == fatherGeoJsonNode.features[i].properties.values.identifierName || checkFloorNumber(passedData.floorNumber, fatherGeoJsonNode.features[i].properties.values.identifierName)))) {
                                 var shapeJsonString = null;
@@ -26630,10 +27855,16 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                                         }
                                             fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                         }
-                                    if (fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(metricKey)) {
-                                        fatherGeoJsonNode.features[i].properties[metricKey] = fatherGeoJsonNode.features[i].properties.values[metricKey];
+                                    if (shapeJson == null && geoJsonData.hasOwnProperty("realtime")) {
+                                        shapeJson = getBimShapeJsonFromRealtime(geoJsonData, fatherGeoJsonNode.features[i], i);
+                                        if (shapeJson != null) {
+                                            fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
+                                        }
+                                    }
+                                    if (queryMetricKey !== "" && fatherGeoJsonNode.features[i].properties.values.hasOwnProperty(queryMetricKey)) {
+                                        fatherGeoJsonNode.features[i].properties[queryMetricKey] = fatherGeoJsonNode.features[i].properties.values[queryMetricKey];
                                         //fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]] = fatherGeoJsonNode.features[i].properties[bubbleSelectedMetric[descBim]].replace(/"/g, "");
-                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[metricKey]))) {
+                                        if (isNaN(parseFloat(fatherGeoJsonNode.features[i].properties[queryMetricKey]))) {
                                             if (shapeJson != null) {
                                                 fatherGeoJsonNode.features[i].geometry.type = shapeJson.type;
                                             } else {
@@ -26644,40 +27875,39 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                                             }
                                             continue;
                                         } else {
-                                            if (fatherGeoJsonNode.features[i].properties[metricKey] > maxValue) {
-                                                maxValue = fatherGeoJsonNode.features[i].properties[metricKey];
+                                            if (fatherGeoJsonNode.features[i].properties[queryMetricKey] > maxValue) {
+                                                maxValue = fatherGeoJsonNode.features[i].properties[queryMetricKey];
                                             }
                                         }
                                     } else {
-                                        fatherGeoJsonNode.features[i].properties[metricKey] = 0;
+                                        if (queryMetricKey !== "") {
+                                            fatherGeoJsonNode.features[i].properties[queryMetricKey] = 0;
+                                        }
                                         //continue;
                                     }
                                 } else {
                                     if (fatherGeoJsonNode.features[i].properties.values == null && geoJsonData.hasOwnProperty("realtime")) {
+                                        var featureRealtimeBinding = getBimRealtimeBindingForFeature(geoJsonData, fatherGeoJsonNode.features[i], i);
                                         if (fatherGeoJsonNode.features[i].properties.realtimeAttributes
                                             && fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty("geometry")
-                                            && geoJsonData.realtime && geoJsonData.realtime.results
-                                            && geoJsonData.realtime.results.bindings
-                                            && geoJsonData.realtime.results.bindings[0]
-                                            && geoJsonData.realtime.results.bindings[0]["geometry"]) {
-                                            var shapeJsonString = geoJsonData.realtime.results.bindings[0]["geometry"].value;
-                                            if (IsJsonString(shapeJsonString)) {
-                                                var shapeJson = JSON.parse(shapeJsonString);
+                                            && featureRealtimeBinding && featureRealtimeBinding["geometry"] != null) {
+                                            shapeJson = getBimShapeJsonFromRealtime(geoJsonData, fatherGeoJsonNode.features[i], i);
+                                            if (shapeJson != null) {
                                                 fatherGeoJsonNode.features[i].geometry.coordinates = shapeJson.coordinates;
                                             }
                                         }
                                         if (fatherGeoJsonNode.features[i].properties.realtimeAttributes
-                                            && fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(metricKey)
-                                            && geoJsonData.realtime && geoJsonData.realtime.results
-                                            && geoJsonData.realtime.results.bindings
-                                            && geoJsonData.realtime.results.bindings[0]
-                                            && geoJsonData.realtime.results.bindings[0][metricKey]) {
+                                            && queryMetricKey !== ""
+                                            && fatherGeoJsonNode.features[i].properties.realtimeAttributes.hasOwnProperty(queryMetricKey)
+                                            && featureRealtimeBinding && featureRealtimeBinding[queryMetricKey] != null) {
                                             var obj = {};
-                                            obj[metricKey] = geoJsonData.realtime.results.bindings[0][metricKey].value;
+                                            obj[queryMetricKey] = unwrapBimMetricValue(featureRealtimeBinding[queryMetricKey]);
                                             fatherGeoJsonNode.features[i].properties["lastValue"] = obj;
                                         }
                                     } else {
-                                        fatherGeoJsonNode.features[i].properties[metricKey] = 0;
+                                        if (queryMetricKey !== "") {
+                                            fatherGeoJsonNode.features[i].properties[queryMetricKey] = 0;
+                                        }
                                         //continue;
                                     }
                                 }
@@ -26695,7 +27925,9 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
                                 dataObj.eventType = "bimShapeEvent";
                                 dataObj.descBim = metricKey;
+                                dataObj.bimPatternMetric = bimPatternMetric;
                                 dataObj.query = passedData.query;
+                                dataObj.floorNumber = passedData.floorNumber;
                                 dataObj.targets = passedData.targets;
                                 dataObj.eventGenerator = passedData.eventGenerator;
                                 dataObj.color1 = passedData.color1;
@@ -26733,76 +27965,139 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                             return;
                         }
 
-                        map.eventsOnMap.push(dataObj);
-                        var colorBimMapName = "";
-                        var legendBimFilePath = "";
+                        var labelOptions = getBimShapeLabelOptions(passedData);
+                        var labelMetricKey = getBimShapeFixedLabelMetricKey(passedData, labelOptions, metricKey, bimPatternMetric, queryMetricKey);
 
-                        if (passedData.floorNumber == null) {
-                            if (fatherGeoJsonNode.features[0].properties.deviceModel === "buildingModelEnergy15Min" || fatherGeoJsonNode.features[0].properties.model === "buildingModelEnergy15Min") {
-                                colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_building";
-                            } else {
-                                colorBimMapName = "colormapshape" + metricKey;
-                            }
-                        } else {
-                            colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_floor";
-                        }
-                        legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
+                        function continueBimShapeRendering() {
+                            if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
+                            var colorBimMapName = "";
+                            var legendBimFilePath = "";
 
-                        var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
-                        getColorMapData.done(function (colorScale) {
-
-                            bimColorScale = colorScale;
-                            /*if (geoJsonLayerShape) {
-                                map.defaultMapRef.removeLayer(geoJsonLayerShape);
-                            }*/
-
-                            var styleBimShapeBound = function(feature) {
-                                var color = "";
-                                if (feature.properties.values) {
-                                    color = getBimColor(feature.properties.values[metricKey]);
-                                } else if (feature.properties.lastValue) {
-                                    color = getBimColor(feature.properties.lastValue[metricKey]);
+                            if (metricKey !== "") {
+                                if (passedData.floorNumber == null) {
+                                    if (fatherGeoJsonNode.features[0].properties.deviceModel === "buildingModelEnergy15Min" || fatherGeoJsonNode.features[0].properties.model === "buildingModelEnergy15Min") {
+                                        colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_building";
+                                    } else {
+                                        colorBimMapName = "colormapshape" + metricKey;
+                                    }
+                                } else {
+                                    colorBimMapName = "colormap" + (metricKey).charAt(0).toUpperCase() + (metricKey).slice(1) + "_floor";
                                 }
-                                var borderColor = darkenColor(color, 0.2);
-                                return {
-                                    stroke: true,
-                                    color: borderColor,
-                                    weight: 1,
-                                    opacity: 1,
-                                    fillOpacity: 0.6,
-                                    fillColor: color
-                                };
-                            };
+                                legendBimFilePath = '../img/heatmapsGradientLegends/' + colorBimMapName + '.png';
+                            }
 
-                            try {
-                            /*    geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
-                                    // style: styleBimShape(fatherGeoJsonNode.features[0].properties.lastValue[bubbleSelectedMetric[descBim]]),
-                                    style: styleBimShape,
-                                    // onEachFeature: onMapEntityClick
-                                    onEachFeature: function(feature, layer) {
-                                        onMapEntityClick(feature, layer, descBim);
+                            function renderBimShapeLayers(colorScale) {
+                                if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
+                                if (colorScale) {
+                                    bimColorScale = colorScale;
+                                }
+
+                                var styleBimShapeBound = function(feature) {
+                                    var color = "";
+                                    if (metricKey !== "") {
+                                        color = getBimColor(getBimFeatureMetricValue(feature, metricKey));
                                     }
-                                }); */
-                                geoJsonLayerShape = L.geoJson(fatherGeoJsonNode, {
-                                    style: styleBimShapeBound,
-                                    onEachFeature: function(feature, layer) {
-                                        onMapEntityClick(feature, layer, localDesc);   // <-- passa la cattura locale
+                                    if (!color) {
+                                        color = "#777777";
                                     }
-                                });
-                                geoJsonLayerShape.addTo(map.defaultMapRef);
+                                    var borderColor = darkenColor(color, 0.2);
+                                    return {
+                                        stroke: true,
+                                        color: borderColor,
+                                        weight: 1,
+                                        opacity: 1,
+                                        fillOpacity: metricKey !== "" ? 0.6 : 0.001,
+                                        fillColor: color
+                                    };
+                                };
+
+                                try {
+                                    var fixedShapeLabelEnabled = labelOptions.enabled && labelMetricKey !== "";
+                                    var hoverMetricText = metricKey || "";
+                                    var hoverTooltipMode = labelOptions.enabled ? "labelAware" : (passedData.bimShapeSuppressHoverTooltip === "yes" ? "always" : false);
+                                    var bimShapeLayerGroup = L.layerGroup();
+                                    var bimShapeBaseLayer = L.geoJson(fatherGeoJsonNode, {
+                                        style: styleBimShapeBound,
+                                        onEachFeature: function(feature, layer) {
+                                            onMapEntityClick(feature, layer, hoverMetricText, hoverTooltipMode);
+                                        }
+                                    });
+                                    bimShapeBaseLayer.addTo(bimShapeLayerGroup);
+
+                                    var bimPatternLayer = null;
+                                    if (bimPatternMetric !== "") {
+                                        initializeBimShapePatternZoomState(getBimShapePatternZoomBehavior(passedData));
+                                        var bimShapePatternPaneName = "bimShapePatternPane_" + String(map.mapName || "map").replace(/[^a-zA-Z0-9_-]/g, "_");
+                                        if (map.defaultMapRef.createPane && map.defaultMapRef.getPane && !map.defaultMapRef.getPane(bimShapePatternPaneName)) {
+                                            var bimShapePatternPane = map.defaultMapRef.createPane(bimShapePatternPaneName);
+                                            bimShapePatternPane.style.zIndex = 410;
+                                            bimShapePatternPane.style.pointerEvents = "none";
+                                        }
+                                        if (!map.bimShapePatternRenderer || map.bimShapePatternRenderer.options.pane !== bimShapePatternPaneName) {
+                                            map.bimShapePatternRenderer = L.svg({ pane: bimShapePatternPaneName });
+                                            map.bimShapePatternRenderer.addTo(map.defaultMapRef);
+                                        }
+                                        ensureBimShapePatternDefs(map.bimShapePatternRenderer);
+
+                                        bimPatternLayer = L.geoJson(fatherGeoJsonNode, {
+                                            renderer: map.bimShapePatternRenderer,
+                                            pane: bimShapePatternPaneName,
+                                            interactive: false,
+                                            style: function(feature) {
+                                                var patternValue = getBimFeatureMetricValue(feature, bimPatternMetric);
+                                                var patternId = getBimShapePatternId(patternValue);
+                                                if (patternId == null) {
+                                                    return {
+                                                        stroke: false,
+                                                        fill: false,
+                                                        fillOpacity: 0,
+                                                        fillColor: "transparent"
+                                                    };
+                                                }
+                                                return {
+                                                    stroke: false,
+                                                    fill: true,
+                                                    color: "transparent",
+                                                    weight: 0,
+                                                    opacity: 0,
+                                                    fillOpacity: 1,
+                                                    fillColor: "url(#" + patternId + ")"
+                                                };
+                                            }
+                                        });
+                                        bimPatternLayer.addTo(bimShapeLayerGroup);
+                                    }
+
+                                    var bimShapeLabelKeys = [];
+                                    if (fixedShapeLabelEnabled) {
+                                        var labelFeatureIndex = 0;
+                                        bimShapeBaseLayer.eachLayer(function(layer) {
+                                            var labelKey = addBimShapeFixedLabel(shapeEntityId, shapeKey, labelMetricKey, layer.feature, layer, labelOptions, labelFeatureIndex);
+                                            if (labelKey) {
+                                                bimShapeLabelKeys.push(labelKey);
+                                            }
+                                            labelFeatureIndex++;
+                                        });
+                                    }
+                                    scheduleBimShapeFixedLabelsVisibilityUpdate();
+
+                                    geoJsonLayerShape = bimShapeLayerGroup;
+                                    geoJsonLayerShape.addTo(map.defaultMapRef);
 
                                 if ((passedData.modelInstance == "singleBuilding" || passedData.modelInstance == "singleDevice")
                                     && fatherGeoJsonNode.features && fatherGeoJsonNode.features.length > 0) {
-                                    map.defaultMapRef.setView(
-                                        [fatherGeoJsonNode.features[0].geometry.coordinates[0][0][1],
-                                            fatherGeoJsonNode.features[0].geometry.coordinates[0][0][0]],
-                                        18
-                                    );
+                                    var shapeCenter = getBimShapeLayerCenter(bimShapeBaseLayer);
+                                    if (shapeCenter) map.defaultMapRef.setView(shapeCenter, 18);
                                 }
 
                                 if (geoJsonLayerShape) {
                                     try {
-                                        geoJsonLayerShape.bringToFront();
+                                        if (bimShapeBaseLayer && bimShapeBaseLayer.bringToFront) {
+                                            bimShapeBaseLayer.bringToFront();
+                                        }
+                                        if (bimPatternLayer && bimPatternLayer.bringToFront) {
+                                            bimPatternLayer.bringToFront();
+                                        }
                                     } catch {
 
                                     }
@@ -26815,23 +28110,26 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                                 // add legend to map
                                 //map.legendHeatmap.addTo(map.defaultMapRef);
                                 //map.eventsOnMap.push(heatmap);
-                                var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
+                                var bimShapeLegendColors = null;
+                                if (metricKey !== "") {
+                                    var mapControlsContainer = document.getElementsByClassName("leaflet-control")[0];
 
-                                var bimShapeLegendColors = L.control({ position: 'bottomleft' });
+                                    bimShapeLegendColors = L.control({ position: 'bottomleft' });
 
-                                bimShapeLegendColors.onAdd = function (map) {
-                                    var div = L.DomUtil.create('div', 'info legend');
-                                    div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
-                                    return div;
-                                };
+                                    bimShapeLegendColors.onAdd = function (map) {
+                                        var div = L.DomUtil.create('div', 'info legend');
+                                        div.innerHTML += " <img src=" + legendBimFilePath + " height='100%'" + '<br>';
+                                        return div;
+                                    };
 
-                                // Check if legend already exists
-                                if (!map.bimLegendsOnMap[metricKey]) {
-                                    map.bimLegendsOnMap[metricKey] = bimShapeLegendColors;
-                                    bimShapeLegendColors.addTo(map.defaultMapRef);
-                                } else {
-                                    bimShapeLegendColors = map.bimLegendsOnMap[metricKey];
-                                    // If leggend already exists, don't add
+                                    // Check if legend already exists
+                                    if (!map.bimLegendsOnMap[metricKey]) {
+                                        map.bimLegendsOnMap[metricKey] = bimShapeLegendColors;
+                                        bimShapeLegendColors.addTo(map.defaultMapRef);
+                                    } else {
+                                        bimShapeLegendColors = map.bimLegendsOnMap[metricKey];
+                                        // If leggend already exists, don't add
+                                    }
                                 }
                                 
                                 //bimShapeLegendColors.addTo(map.defaultMapRef);
@@ -26843,8 +28141,11 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                                 map.bimShapesOnMap[shapeKey] = {
                                     layer: geoJsonLayerShape,
                                     legendColors: bimShapeLegendColors,
-                                    descBim: metricKey
+                                    descBim: metricKey,
+                                    bimPatternMetric: bimPatternMetric,
+                                    labelKeys: bimShapeLabelKeys
                                 };
+                                map.eventsOnMap.push(dataObj);
 
                                 loadingDiv.empty();
                                 loadingDiv.append(loadOkText);
@@ -26879,7 +28180,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
                                     eventGenerator.show();
                                 }
-                            } catch(err) {
+                                } catch(err) {
                                 loadingDiv.empty();
                                 loadingDiv.append(loadKoText);
 
@@ -26896,9 +28197,73 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                                         loadingDiv.remove();
                                     }, 350);
                                 }, 1000);
+                                }
                             }
 
-                        });
+                            function renderBimShapeLayersAfterPatternConfig(colorScale) {
+                                if (bimPatternMetric !== "") {
+                                    loadBimShapePatternConfigs(function() {
+                                        renderBimShapeLayers(colorScale);
+                                    });
+                                } else {
+                                    renderBimShapeLayers(colorScale);
+                                }
+                            }
+
+                            if (metricKey !== "") {
+                                var getColorMapData = fetchAjax(heatmapUrl + "getColorMap.php?metricName=" + colorBimMapName, null, "GET", 'json', true, null);
+                                getColorMapData.done(function (colorScale) {
+                                    if (!colorScale || !colorScale.length) {
+                                        showBimShapeLoadError();
+                                        return;
+                                    }
+                                    renderBimShapeLayersAfterPatternConfig(colorScale);
+                                });
+                                getColorMapData.fail(function () {
+                                    console.log("Error in getting BIM color map data: " + colorBimMapName);
+                                    showBimShapeLoadError();
+                                });
+                            } else {
+                                renderBimShapeLayersAfterPatternConfig(null);
+                            }
+                        }
+
+                        function continueBimShapeRenderingAfterLabelMetric() {
+                            if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
+                            if (labelOptions.enabled && labelOptions.contentMode !== "deviceName" && labelMetricKey !== "" && labelMetricKey !== queryMetricKey && labelMetricKey !== bimPatternMetric) {
+                                var labelMetricApiUrl = replaceBimShapeQueryParam(apiUrl, "valueName", labelMetricKey);
+                                var getBimLabelMetricData = fetchAjax(labelMetricApiUrl, null, "GET", "json", true, 0);
+                                getBimLabelMetricData.done(function(labelMetricData) {
+                                    if (labelMetricData && labelMetricData.error == null && labelMetricData.failure == null) {
+                                        mergeBimMetricValues(fatherGeoJsonNode, labelMetricData, queryType, labelMetricKey);
+                                    }
+                                    continueBimShapeRendering();
+                                });
+                                getBimLabelMetricData.fail(function() {
+                                    console.log("Error in getting BIM label metric data: " + labelMetricKey);
+                                    continueBimShapeRendering();
+                                });
+                            } else {
+                                continueBimShapeRendering();
+                            }
+                        }
+
+                        if (bimPatternMetric !== "" && bimPatternMetric !== queryMetricKey) {
+                            var patternApiUrl = replaceBimShapeQueryParam(apiUrl, "valueName", bimPatternMetric);
+                            var getBimPatternMetricData = fetchAjax(patternApiUrl, null, "GET", "json", true, 0);
+                            getBimPatternMetricData.done(function(patternMetricData) {
+                                if (patternMetricData && patternMetricData.error == null && patternMetricData.failure == null) {
+                                    mergeBimPatternMetricValues(fatherGeoJsonNode, patternMetricData, queryType, bimPatternMetric);
+                                }
+                                continueBimShapeRenderingAfterLabelMetric();
+                            });
+                            getBimPatternMetricData.fail(function() {
+                                console.log("Error in getting BIM pattern metric data: " + bimPatternMetric);
+                                continueBimShapeRenderingAfterLabelMetric();
+                            });
+                        } else {
+                            continueBimShapeRenderingAfterLabelMetric();
+                        }
 
                     } else {
                         gisLayersOnMap[event.passedData.desc] = "loadError";
@@ -26937,6 +28302,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 });
 
                 getSmartCityAPIData.fail(function (errorData) {
+                    if (!isBimShapeRequestCurrent(bimRequest)) { loadingDiv.remove(); return; }
                     gisLayersOnMap[event.passedData.desc] = "loadError";
 
                     loadingDiv.empty();
@@ -29373,63 +30739,69 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
             }
         }*/
 
-        function removeBimShape(resetPageFlag, descBimToRemove, query) {
-            // combined key
-            var shapeEntityId = "";
-            if (query && query.indexOf("model=") !== -1) {
-                // Prendi tutto tra "model=" e "&" oppure fino a fine stringa
-                var modelStart = query.indexOf("model=") + "model=".length;
-                var modelEnd = query.indexOf("&", modelStart);
-                if (modelEnd !== -1) {
-                    shapeEntityId = query.substring(modelStart, modelEnd);
-                } else {
-                    shapeEntityId = query.substring(modelStart);
-                }
-            } else if (query && query.lastIndexOf("/") !== -1) {
-                shapeEntityId = query.substring(query.lastIndexOf("/") + 1);
-            } else {
-                shapeEntityId = query;
+        function hasBimColorShapesForMetric(metricKey) {
+            if (!metricKey || !map.bimShapesOnMap) {
+                return false;
             }
-            // combined key
-            var shapeKey = shapeEntityId + "_" + descBimToRemove;
+            for (var key in map.bimShapesOnMap) {
+                if (!map.bimShapesOnMap.hasOwnProperty(key)) {
+                    continue;
+                }
+                var shapeRecord = map.bimShapesOnMap[key];
+                if (shapeRecord && shapeRecord.descBim === metricKey && shapeRecord.legendColors) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        function removeBimColorLegendIfUnused(metricKey) {
+            if (!metricKey || !map.bimLegendsOnMap || !map.bimLegendsOnMap[metricKey]) {
+                return;
+            }
+            if (hasBimColorShapesForMetric(metricKey)) {
+                return;
+            }
+            try {
+                map.defaultMapRef.removeControl(map.bimLegendsOnMap[metricKey]);
+            } catch (e) {
+                console.log("Error removing BIM color legend for " + metricKey + ": " + e);
+            }
+            delete map.bimLegendsOnMap[metricKey];
+        }
+
+        function removeBimShape(resetPageFlag, descBimToRemove, query, bimPatternMetricToRemove, floorNumberToRemove) {
+            var shapeKey = getBimShapeEventKey({query:query, floorNumber:floorNumberToRemove,
+                bubbleSelectedMetric:descBimToRemove, bimPatternMetric:bimPatternMetricToRemove});
+            invalidateBimShapeRequest(shapeKey);
 
             if (shapeKey && map.bimShapesOnMap && map.bimShapesOnMap[shapeKey]) {
                 // Remove shape from map
-                map.defaultMapRef.removeLayer(map.bimShapesOnMap[shapeKey].layer);
+                var removedShapeRecord = map.bimShapesOnMap[shapeKey];
+                map.defaultMapRef.removeLayer(removedShapeRecord.layer);
+                removeBimShapeFixedLabelsByShapeKey(shapeKey);
                 // var descBim = map.bimShapesOnMap[shapeKey].descBim;
                 delete map.bimShapesOnMap[shapeKey];
-
-                // Check if there are other shapes with the same metric
-                var found = false;
-                for (var key in map.bimShapesOnMap) {
-                    if (map.bimShapesOnMap.hasOwnProperty(key)) {
-                        // Confronta con descBimToRemove (che è il bubbleSelectedMetric della shape rimossa)
-                        if (map.bimShapesOnMap[key].descBim === descBimToRemove) {
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-
-                // If no more shapes are on map with the specific metric, remove legend
-                if (!found && map.bimLegendsOnMap && map.bimLegendsOnMap[descBimToRemove]) {
-                    map.defaultMapRef.removeControl(map.bimLegendsOnMap[descBimToRemove]);
-                    delete map.bimLegendsOnMap[descBimToRemove];
-                }
+                resetBimShapePatternReferenceZoomIfUnused();
+                removeBimColorLegendIfUnused(removedShapeRecord.descBim || descBimToRemove);
+            } else {
+                removeBimColorLegendIfUnused(descBimToRemove);
             }
         }
 
         if (event.target === map.mapName) {
             var passedData = event.passedData || {};
-            var descToRemove = passedData.bubbleSelectedMetric;
+            var descToRemove = passedData.bubbleSelectedMetric || "";
+            var bimPatternMetricToRemove = passedData.bimPatternMetric || "";
+            var floorNumberToRemove = passedData.floorNumber;
             var queryToRemove = passedData.query;
-            if (descToRemove && queryToRemove) {
-                removeBimShape(true, descToRemove, queryToRemove);
+            if ((descToRemove || bimPatternMetricToRemove) && queryToRemove) {
+                removeBimShape(true, descToRemove, queryToRemove, bimPatternMetricToRemove, floorNumberToRemove);
                 for (let i = map.eventsOnMap.length - 1; i >= 0; i--) {
-                    if (map.eventsOnMap[i] && map.eventsOnMap[i].eventType && map.eventsOnMap[i].eventType === 'bimShapeEvent' && map.eventsOnMap[i].descBim === descToRemove) {
-                        map.eventsOnMap.splice(i, 1);
-                    } else if (map.eventsOnMap[i] && map.eventsOnMap[i].type && map.eventsOnMap[i].type === 'addBimShape') {
-                        removeBimShapeColorLegend(i, true);
+                    if (map.eventsOnMap[i] && map.eventsOnMap[i].eventType === 'bimShapeEvent'
+                        && getBimShapeEventKey({query:map.eventsOnMap[i].query, floorNumber:map.eventsOnMap[i].floorNumber,
+                            bubbleSelectedMetric:map.eventsOnMap[i].descBim, bimPatternMetric:map.eventsOnMap[i].bimPatternMetric})
+                            === getBimShapeEventKey(passedData)) {
                         map.eventsOnMap.splice(i, 1);
                     }
                 }
@@ -29439,6 +30811,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
 
         $(document).on('removeAllBimShapes', function (event) {
             if (event.target === map.mapName) {
+                invalidateAllBimShapeRequests();
                 // Remove Alla Shapes
                 if (map.bimShapesOnMap) {
                     for (var key in map.bimShapesOnMap) {
@@ -29450,7 +30823,9 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                         }
                     }
                     map.bimShapesOnMap = {};
+                    resetBimShapePatternReferenceZoomIfUnused();
                 }
+                removeAllBimShapeFixedLabels();
                 // Remove all Legends
                 if (map.bimLegendsOnMap) {
                     for (var lkey in map.bimLegendsOnMap) {

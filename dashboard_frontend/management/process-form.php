@@ -70,6 +70,7 @@
     
     //Corpo dell'API
 require_once __DIR__.'/../databaseException.php';
+$dashboardDbReportMode = (new mysqli_driver())->report_mode;
 $dashboardDbBufferLevel = ob_get_level();
 ob_start();
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -2164,8 +2165,12 @@ try {
                             {
                                $context  = stream_context_create($orionCallOptions);
                                $callResult = file_get_contents($orionAddEntityUrl, false, $context);
-                               
-                               if(strpos($http_response_header[0], '201 Created') === false)
+                               // The function is available from PHP 8.4; older PHP keeps headers locally.
+                               $orionResponseHeaders = function_exists('http_get_last_response_headers')
+                                   ? http_get_last_response_headers()
+                                   : (get_defined_vars()['http_response_header'] ?? array());
+
+                               if(strpos($orionResponseHeaders[0] ?? '', '201 Created') === false)
                                {            
                                     $delActuatorQuery = "DELETE FROM Dashboard.Config_widget_dashboard WHERE Id = $nextId";
                                     $delActuatorQueryResult = mysqli_query($link, $delActuatorQuery);
@@ -4012,6 +4017,35 @@ try {
                 if(isset($_POST['exportMapM']) && ($_POST['exportMapM'] != "")) {
                     $exportMapM = sanitizePostString('exportMapM');
                     $mapStyleParametersM['exportMap'] = ($exportMapM === 'enabled') ? 'enabled' : 'disabled';
+                }
+
+                $bimShapeLabelFontFamilyM = isset($_POST['bimShapeLabelFontFamily']) && $_POST['bimShapeLabelFontFamily'] !== "" ? sanitizePostString('bimShapeLabelFontFamily') : 'Arial';
+                if (!in_array($bimShapeLabelFontFamilyM, array('Arial', 'Calibri', 'Times New Roman'), true)) {
+                    $bimShapeLabelFontFamilyM = 'Arial';
+                }
+
+                $mapStyleParametersM['bimShapeLabelsEnabled'] = isset($_POST['bimShapeLabelsEnabled']) && $_POST['bimShapeLabelsEnabled'] !== "" ? sanitizePostString('bimShapeLabelsEnabled') : 'no';
+                $mapStyleParametersM['bimShapeLabelBoxEnabled'] = isset($_POST['bimShapeLabelBoxEnabled']) && $_POST['bimShapeLabelBoxEnabled'] !== "" ? sanitizePostString('bimShapeLabelBoxEnabled') : 'no';
+                if (!in_array($mapStyleParametersM['bimShapeLabelBoxEnabled'], array('yes', 'no'), true)) {
+                    $mapStyleParametersM['bimShapeLabelBoxEnabled'] = 'no';
+                }
+                $bimShapeLabelMinZoomM = isset($_POST['bimShapeLabelMinZoom']) && $_POST['bimShapeLabelMinZoom'] !== "" ? sanitizePostInt('bimShapeLabelMinZoom') : 0;
+                $bimShapeLabelMinZoomM = max(0, min($bimShapeLabelMinZoomM, 22));
+                $mapStyleParametersM['bimShapeLabelMinZoom'] = $bimShapeLabelMinZoomM;
+                $mapStyleParametersM['bimShapeLabelAvoidOverlap'] = isset($_POST['bimShapeLabelAvoidOverlap']) && $_POST['bimShapeLabelAvoidOverlap'] !== "" ? sanitizePostString('bimShapeLabelAvoidOverlap') : 'yes';
+                if (!in_array($mapStyleParametersM['bimShapeLabelAvoidOverlap'], array('yes', 'no'), true)) {
+                    $mapStyleParametersM['bimShapeLabelAvoidOverlap'] = 'yes';
+                }
+                $mapStyleParametersM['bimShapeLabelContentMode'] = isset($_POST['bimShapeLabelContentMode']) && $_POST['bimShapeLabelContentMode'] !== "" ? sanitizePostString('bimShapeLabelContentMode') : 'name';
+                if (!in_array($mapStyleParametersM['bimShapeLabelContentMode'], array('name', 'value'), true)) {
+                    $mapStyleParametersM['bimShapeLabelContentMode'] = 'name';
+                }
+                $mapStyleParametersM['bimShapeLabelFontSize'] = isset($_POST['bimShapeLabelFontSize']) && $_POST['bimShapeLabelFontSize'] !== "" ? sanitizePostString('bimShapeLabelFontSize') : '12';
+                $mapStyleParametersM['bimShapeLabelFontFamily'] = $bimShapeLabelFontFamilyM;
+                $mapStyleParametersM['bimShapeLabelFontColor'] = isset($_POST['bimShapeLabelFontColor']) && $_POST['bimShapeLabelFontColor'] !== "" ? sanitizePostString('bimShapeLabelFontColor') : '#000000';
+                $mapStyleParametersM['bimShapePatternZoomBehavior'] = isset($_POST['bimShapePatternZoomBehavior']) && $_POST['bimShapePatternZoomBehavior'] !== "" ? sanitizePostString('bimShapePatternZoomBehavior') : 'scaleWithMap';
+                if (!in_array($mapStyleParametersM['bimShapePatternZoomBehavior'], array('fixed', 'scaleWithMap'), true)) {
+                    $mapStyleParametersM['bimShapePatternZoomBehavior'] = 'scaleWithMap';
                 }
 
                 if(sizeof($mapStyleParametersM) > 0) {
@@ -6551,5 +6585,7 @@ try {
     }
 } catch (\mysqli_sql_exception $exception) {
     dashboardDatabaseFailure($exception, isset($link) ? $link : null, $dashboardDbBufferLevel);
+} finally {
+    mysqli_report($dashboardDbReportMode);
 }
 if (ob_get_level()>$dashboardDbBufferLevel) ob_end_flush();
