@@ -24,6 +24,7 @@ $ssoEndpoint = $ssoContent["ssoEndpoint"][$genFileContent['environment']['value'
 
 //$init_flag = 1;
 session_start();
+session_write_close();
 
 //Te la gestisci in base al grado di gestione d'errore che ti serve
 //error_reporting(E_ALL);
