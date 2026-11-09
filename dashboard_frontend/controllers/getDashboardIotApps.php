@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
+require_once __DIR__.'/serviceResponse.php';
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
 
@@ -60,6 +61,7 @@ if(isset($_SESSION['loggedUsername']))
         {
             $appsFromQuery = mysqli_num_rows($r1);
             $myFilteredApps = [];
+            $myApps = [];
 
             while($row = mysqli_fetch_assoc($r1))
             {
@@ -75,8 +77,9 @@ if(isset($_SESSION['loggedUsername']))
                 );
 
                 $context  = stream_context_create($options);
-                $myAppsJson = file_get_contents($apiUrl, false, $context);
-                $myApps = json_decode($myAppsJson);
+                $http_response_header = [];
+                $myAppsJson = @file_get_contents($apiUrl, false, $context);
+                $myApps = dashboardControllerRequireList($myAppsJson, $http_response_header ?? [], ['elementId', 'elementUrl', 'elementName']);
 
                 for($i = 0; $i < count($myApps); $i++) 
                 {

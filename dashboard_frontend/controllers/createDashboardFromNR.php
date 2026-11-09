@@ -15,6 +15,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include('../config.php');
+require_once __DIR__.'/serviceResponse.php';
 //include '../session.php';
 require '../sso/autoload.php';
 header('Access-Control-Allow-Origin: *');
@@ -91,23 +92,27 @@ $dashboardId = "";
 
 if($accessToken && $loggedUsername) {
     $queryLimits = $ownershipApiBaseUrl . "/v1/limits/?accessToken=" . $accessToken;
-    $queryLimitsResults = file_get_contents($queryLimits);
-    $limitsResultArray = json_decode($queryLimitsResults, true);
-    if (sizeof($limitsResultArray) > 0) {
+    $http_response_header = [];
+    $queryLimitsResults = @file_get_contents($queryLimits);
+    $limitCheckResult = false;
+    try {
+        dashboardControllerAssertServiceHttp($http_response_header ?? []);
+        $limitsResultArray = dashboardDecodeServiceJson($queryLimitsResults, true, [['limits']]);
         foreach ($limitsResultArray['limits'] as $limit) {
-            if ($limit['elementType'] == "DashboardID") {
-                $dashIdLimit = $limit['limit'];
-                $dashIdCurrent = $limit['current'];
-                if ($limit['limit'] - $limit['current'] <= 0) {
-                    $limitCheckResult = false;
-                } else {
-                    $limitCheckResult = true;
-                }
+            if (!is_array($limit) || !isset($limit['elementType'], $limit['limit'], $limit['current']) ||
+                !is_string($limit['elementType']) || !is_numeric($limit['limit']) || !is_numeric($limit['current'])) {
+                throw new UnexpectedValueException('invalid_data_service_response');
             }
         }
-    } else {
-        $response['result'] = 'KO';
-        $response['errormsg'] = 'Time-out Ownership API.';
+        foreach ($limitsResultArray['limits'] as $limit) {
+            if ($limit['elementType'] === 'DashboardID') {
+                $dashIdLimit = $limit['limit'];
+                $dashIdCurrent = $limit['current'];
+                $limitCheckResult = $dashIdLimit - $dashIdCurrent > 0;
+            }
+        }
+    } catch (UnexpectedValueException $e) {
+        dashboardControllerServiceError(); exit;
     }
     $username = $loggedUsername;
     if ($limitCheckResult != false) {
@@ -200,6 +205,7 @@ if($accessToken && $loggedUsername) {
                     try
                     {
                         $context  = stream_context_create($options);
+                        $http_response_header = [];
                         $callResult = @file_get_contents($apiUrl, false, $context);
 
                         if(strpos($http_response_header[0], '200') !== false) {

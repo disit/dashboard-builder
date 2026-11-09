@@ -48,7 +48,9 @@ if (isset($_SESSION['refreshToken'])) {
   $name = $_REQUEST['name'];
   
   $json = http_get($ownershipApiBaseUrl."/v1/list/?type=AppID;DAAppID&elementId=$id&accessToken=" . $accessToken);
-  if ($json['httpcode'] == 200 && count($json['result'])>0) {  
+  if ($json['httpcode'] == 200 && !empty($json['isList']) && isset($json['result'][0]) &&
+      is_array($json['result'][0]) && is_string($json['result'][0]['elementType'] ?? null) &&
+      $json['result'][0]['elementType'] !== '') {
     $app=array();
     $app['elementId'] = $id;
     $app['elementName'] = $name;
@@ -61,6 +63,13 @@ if (isset($_SESSION['refreshToken'])) {
     } else {
       $response['detail'] = 'Ko';
       $response['error'] = $json['result'];
+    }
+  } else {
+    $response['detail'] = 'Ko';
+    $response['error'] = $json['result'];
+    if ($json['httpcode'] == 200 || !$json['httpcode']) {
+      http_response_code(502);
+      $response['error'] = 'Invalid ownership service response';
     }
   }
 } else {
@@ -100,8 +109,8 @@ function http_get($url) {
   # Get the response (you can use this for GET)
   $result = file_get_contents($url, false, $context);
   $json_result = json_decode($result, true);
-  if($json_result===null || $json_result===false)
-    $json_result = json_encode($result, true);
+
   //var_dump($http_response_header);
-  return array("httpcode" => explode(" ", $http_response_header[0])[1], "result" => $json_result, "url"=>$url);
+  $httpCode = isset($http_response_header[0]) ? (explode(" ", $http_response_header[0])[1] ?? 0) : 0;
+  return array("httpcode" => $httpCode, "result" => $json_result, "isList" => is_array(json_decode($result)), "url"=>$url);
 }

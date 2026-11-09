@@ -2,17 +2,16 @@
      /* Dashboard Builder.
    Copyright (C) 2018 DISIT Lab https://www.disit.org - University of Florence
 
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
    include '../config.php';
    include '../controllers/WidgetDbRow.php';
@@ -422,6 +421,7 @@
     $response = [];
     $response['msgType'] = $msgObj->msgType;
 
+    try {
     switch($msgType)
     {
         case "AddEmitter":
@@ -444,10 +444,20 @@
             $msgObj->dashboardTitle = urldecode($msgObj->dashboardTitle);
             
             mysqli_autocommit($link, FALSE);
-            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+            if (!mysqli_begin_transaction($link)) {
+                $response['result'] = 'Ko';
+                mysqli_autocommit($link, TRUE);
+                break;
+            }
             
             $q0 = "SELECT * FROM Dashboard.NodeRedInputs WHERE NodeRedInputs.nodeId = '$nodeId' AND NodeRedInputs.user = '$user'";
             $r0 = mysqli_query($link, $q0);
+            if (!$r0) {
+                mysqli_rollback($link);
+                $response['result'] = 'Ko';
+                mysqli_autocommit($link, TRUE);
+                break;
+            }
             
             if(mysqli_num_rows($r0) > 0)
             {
@@ -559,13 +569,11 @@
                                         }
                                         else
                                         {
-                                            mysqli_rollback($link);
                                             $response['result'] = 'Ko';
                                         }
                                     }
                                     catch (Exception $ex) 
                                     {
-                                        mysqli_rollback($link);
                                         $response['result'] = 'Ko';
                                     }
                                 }
@@ -579,7 +587,6 @@
                                 }
                                 else
                                 {
-                                    mysqli_rollback($link);
                                     $response['result'] = 'Ko';
                                 }
                             }
@@ -594,6 +601,13 @@
                         $response['result'] = 'Ok';
                     }
                     
+                    if (($response['result'] ?? null) !== 'Ok') {
+                        mysqli_rollback($link);
+                        $response['result'] = 'Ko';
+                        mysqli_autocommit($link, TRUE);
+                        break;
+                    }
+
                     if($oldNrInputId == null)
                     {
                         $q2b = "INSERT INTO Dashboard.ActuatorsAppsValues(widgetName, actionTime, value, username, ipAddress, actuationResult, actuationResultTime, nrInputId) " .
@@ -608,25 +622,30 @@
 
                     if($r2b)
                     {
-                        $response['result'] = 'Ok';
                         $commitResult = mysqli_commit($link);
+                        if ($commitResult) {
+                            $response['result'] = 'Ok';
+                        } else {
+                            mysqli_rollback($link);
+                            $response['result'] = 'Ko';
+                        }
                     }
                     else
                     {
                         $rollbackResult = mysqli_rollback($link);
-                        $response['result'] = $q2b;
+                        $response['result'] = 'Ko';
                     }
                 }
                 else
                 {
                     mysqli_rollback($link);
-                    $response['result'] = $q2;
+                    $response['result'] = 'Ko';
                 }
             }
             else
             {
                 mysqli_rollback($link);
-                $response['result'] = $q1;
+                $response['result'] = 'Ko';
             }
             mysqli_autocommit($link, TRUE);
             break;
@@ -637,7 +656,11 @@
             
             
             mysqli_autocommit($link, FALSE);
-            mysqli_begin_transaction($link, MYSQLI_TRANS_START_READ_WRITE);
+            if (!mysqli_begin_transaction($link)) {
+                $response['result'] = 'Ko';
+                mysqli_autocommit($link, TRUE);
+                break;
+            }
             $q1 = "DELETE FROM Dashboard.NodeRedInputs WHERE NodeRedInputs.name = '$name' AND NodeRedInputs.user = '$user'";
             $r1 = mysqli_query($link, $q1);
             if($r1)
@@ -652,8 +675,12 @@
 
                     if($r3)
                     {
-                        mysqli_commit($link);
-                        $response['result'] = 'Ok';
+                        if (mysqli_commit($link)) {
+                            $response['result'] = 'Ok';
+                        } else {
+                            mysqli_rollback($link);
+                            $response['result'] = 'Ko';
+                        }
                     }
                     else 
                     {
@@ -678,6 +705,11 @@
         default:
             break;
 
+    }
+
+    } catch (\mysqli_sql_exception $exception) {
+        try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
+        $response['result'] = 'Ko';
     }
 
     mysqli_close($link);

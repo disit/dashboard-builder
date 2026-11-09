@@ -159,9 +159,10 @@ switch ($choice){
 		}
 
 		// Start the transaction
-		mysqli_begin_transaction($link);
-
 		try {
+		    if (!mysqli_begin_transaction($link)) {
+		        throw new Exception("Transaction could not be started.");
+		    }
 			// Move data to deletedratelimit table
 			$sql_insert = "INSERT INTO `deletedratelimit` 
 						   SELECT * FROM `ratelimit` 
@@ -173,7 +174,9 @@ switch ($choice){
 			}
 
 			mysqli_stmt_bind_param($stmt, "si", $deletionuser, $deletionid);
-			mysqli_stmt_execute($stmt);
+			if (!mysqli_stmt_execute($stmt)) {
+			    throw new Exception("Rule archive failed: " . mysqli_stmt_error($stmt));
+			}
 			mysqli_stmt_close($stmt);
 
 			// Delete data from ratelimit table
@@ -186,15 +189,19 @@ switch ($choice){
 			}
 
 			mysqli_stmt_bind_param($stmt, "si", $deletionuser, $deletionid);
-			mysqli_stmt_execute($stmt);
+			if (!mysqli_stmt_execute($stmt)) {
+			    throw new Exception("Rule deletion failed: " . mysqli_stmt_error($stmt));
+			}
 			mysqli_stmt_close($stmt);
 
 			// Commit the transaction
-			mysqli_commit($link);
+			if (!mysqli_commit($link)) {
+			    throw new Exception("Transaction could not be committed.");
+			}
 			echo json_encode(["success" => true]);
 		} catch (Exception $e) {
 			// Rollback transaction on failure
-			mysqli_rollback($link);
+			try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
 			http_response_code(500);
 			echo json_encode(["error" => $e->getMessage()]);
 		}
@@ -818,12 +825,7 @@ switch ($choice){
                 		mysqli_stmt_close($stmt);
                 		exit;
             		}
-			$result = mysqli_stmt_get_result($stmt);
-			
-			$data = [];
-			while ($row = mysqli_fetch_assoc($result)) {
-				$data[] = $row;
-			}
+			$data = []; // INSERT has no resultset.
 
 			mysqli_stmt_close($stmt);
 			echo json_encode(["results" => $data]);
@@ -934,12 +936,7 @@ switch ($choice){
 			mysqli_stmt_bind_param($stmt, "sissss", strtolower($selectUserRule), $selectRuleResource, $selectRuleKind, $preparedjson, $selectAddRuleStartingOfValidity, $selectAddRuleEndingOfValidity);  # lowercase to prevent issues
 			
 			if (mysqli_stmt_execute($stmt)) {
-				$result = mysqli_stmt_get_result($stmt);
-
-				$data = [];
-				while ($row = mysqli_fetch_assoc($result)) {
-					$data[] = $row;
-				}
+				$data = []; // INSERT has no resultset.
 
 				mysqli_stmt_close($stmt);
 				echo json_encode(["results" => $data]);
@@ -1089,12 +1086,7 @@ switch ($choice){
 				mysqli_stmt_bind_param($stmt, "sisssss", strtolower($user), $selectRuleResource, $selectRuleKind, $preparedjson, $selectAddRuleStartingOfValidity, $selectAddRuleEndingOfValidity, $selectSourceIpMask);  # lowercase to prevent issues
 				//review this return!!!
 				if (mysqli_stmt_execute($stmt)) {
-					$result = mysqli_stmt_get_result($stmt);
-
-					$data = [];
-					while ($row = mysqli_fetch_assoc($result)) {
-						$data[] = $row;
-					}
+					// INSERT has no resultset; execute success is the write outcome.
 					$resultsToBeReturned[] = $user;
 					mysqli_stmt_close($stmt);
 				} else {
@@ -1214,11 +1206,12 @@ switch ($choice){
 			}
 			// end delete service block
 			
-			mysqli_begin_transaction($link);
-
 			try {
+			    if (!mysqli_begin_transaction($link)) {
+			        throw new Exception("Transaction could not be started.");
+			    }
 				// Step 1: Update `apitable`
-				$sql_1 = "UPDATE .apitable SET apideletiondate = ? WHERE idapi = ?";
+				$sql_1 = "UPDATE apitable SET apideletiondate = ? WHERE idapi = ?";
 				$stmt_1 = mysqli_prepare($link, $sql_1);
 				
 				if (!$stmt_1) {
@@ -1294,13 +1287,15 @@ switch ($choice){
 				mysqli_stmt_close($stmt_5);
 
 				// If everything is successful, commit transaction
-				mysqli_commit($link);
+				if (!mysqli_commit($link)) {
+				    throw new Exception("Transaction could not be committed.");
+				}
 
 				echo json_encode(["success" => true]);
 
 				} catch (Exception $e) {
 					// Rollback transaction if any query fails
-					mysqli_rollback($link);
+					try { mysqli_rollback($link); } catch (\Throwable $rollbackError) {}
 
 					http_response_code(500);
 					echo json_encode(["error" => "Error in deletion of api: ".$e->getMessage()]);

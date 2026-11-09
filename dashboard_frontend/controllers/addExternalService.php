@@ -52,6 +52,7 @@
     mysqli_select_db($link, $dbname);
 
     $response = NULL;
+    $queryFail = false;
     
  //   $nature = mysqli_real_escape_string($link, $_REQUEST['nature']);
     if (sanitizePostString('nature') == null) {       // New pentest COMMON CTR
@@ -100,6 +101,12 @@
     {
         $filename = $_FILES['getIcon']['name'];
         $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if (!in_array($ext, ['png', 'jpg'], true)) {
+            $response['result'] = "Ko-Ext";
+            mysqli_close($link);
+            echo json_encode($response);
+            return;
+        }
         $filename = $sub_nature . "." . $ext;
         $filename = preg_replace('/\s+/', '_', $filename);
         $microAppExtServIcon = $filename;
@@ -177,7 +184,8 @@
             }
         }
         
-        $response['result'] = "Ok";
+        $response['result'] = $queryFail ? "Ko" : "Ok";
+        if ($queryFail) $response['detail'] = "The service icon could not be saved.";
         $response['url'] = escapeForHTML($param);
     }
     else

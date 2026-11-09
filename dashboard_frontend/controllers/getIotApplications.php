@@ -140,8 +140,20 @@ if (isset($_SESSION['refreshToken'])) {
     exit;
   } else {
     $json = http_get($iotAppApiBaseUrl."/v1/?op=list&mtime=true&&accessToken=" . $accessToken);
-    if ($json['httpcode'] == 200) {
+    $validApplicationList = $json['httpcode'] == 200 && !empty($json['isList']);
+    if ($validApplicationList) {
+      foreach ($json['result'] as $candidate) {
+        if (!is_array($candidate) || !isset($candidate['id'], $candidate['name'], $candidate['type']) ||
+            !is_scalar($candidate['id']) || !is_string($candidate['name']) || !is_string($candidate['type']) ||
+            ($candidate['type'] === 'edge' && !is_string($candidate['edgetype'] ?? null))) {
+          $validApplicationList = false;
+          break;
+        }
+      }
+    }
+    if ($validApplicationList) {
       $response['applications'] = array();
+      $applicationQueryFailed = false;
       foreach ($json['result'] as $app) {
         $a = $app;
         $a['name'] = htmlspecialchars($a['name']);
@@ -153,7 +165,7 @@ if (isset($_SESSION['refreshToken'])) {
             $a['icon'] = $icons['advanced'];
           }
           if($a['type']=='plumber' || $a['type']=='python') {
-            @$a['iotapps'] = join(',', $a['iotapps']);
+            $a['iotapps'] = is_array($a['iotapps'] ?? null) ? implode(',', $a['iotapps']) : null;
           }
         } else {
           $os = explode('_', $a['edgetype']);
@@ -168,7 +180,15 @@ if (isset($_SESSION['refreshToken'])) {
         $a['dashboards'] = array();
         //search for connected dashboards
         $q = "SELECT DISTINCT id_dashboard as dashboardId,title_header as dashboardName, user as dashboardAuthor FROM Dashboard.Config_widget_dashboard w JOIN Dashboard.Config_dashboard d ON d.Id=w.id_dashboard WHERE appId='$app[id]' AND d.deleted='no'";
-        $r = mysqli_query($link, $q);
+        try {
+          $r = mysqli_query($link, $q);
+        } catch (\mysqli_sql_exception $databaseError) {
+          $r = false;
+        }
+        if (!$r) {
+          $applicationQueryFailed = true;
+          break;
+        }
         if($r)
         {
             while($row = mysqli_fetch_assoc($r))
@@ -179,10 +199,21 @@ if (isset($_SESSION['refreshToken'])) {
         }
         $response['applications'][] = $a;
       }
-      $response['detail'] = 'Ok';
+      if ($applicationQueryFailed) {
+        unset($response['applications']);
+        http_response_code(500);
+        $response['detail'] = 'Ko';
+        $response['error'] = 'Database query failed';
+      } else {
+        $response['detail'] = 'Ok';
+      }
     } else {
       $response['detail'] = 'Ko';
       $response['error'] = $json['result'];
+      if ($json['httpcode'] == 200 || !$json['httpcode']) {
+        http_response_code(502);
+        $response['error'] = 'Invalid application service response';
+      }
     }
   }
 } else {
@@ -205,5 +236,6 @@ function http_get($url) {
   $result = file_get_contents($url, false, $context);
   //echo "result:$result\n";
   //var_dump($http_response_header);
-  return array("httpcode" => explode(" ", $http_response_header[0])[1], "result" => json_decode($result,true));
+  $httpCode = isset($http_response_header[0]) ? (explode(" ", $http_response_header[0])[1] ?? 0) : 0;
+  return array("httpcode" => $httpCode, "result" => json_decode($result,true), "isList" => is_array(json_decode($result)));
 }

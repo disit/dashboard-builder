@@ -14,6 +14,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 	
 include '../config.php';
+require_once __DIR__.'/../controllers/serviceResponse.php';
 session_start();
 require '../sso/autoload.php';
 use Jumbojett\OpenIDConnectClient;
@@ -77,7 +78,7 @@ if($accessToken && $loggedUsername && $loggedRole) {
 	
 	if($loggedRole == "RootAdmin") {
 		$ownersMap = getOwnersOfServiceURIs($ownershipApiBaseUrl,$accessToken,$kburls);		
-		if($ownersMap === false) { header("HTTP/1.1 500 Internal Server Error"); die();	}
+		if($ownersMap === false) { dashboardControllerServiceError(); die(); }
 		if(empty($ownersMap)) { echo("[]"); die(); }		
 		if($id == null) {
 			$link = mysqli_connect($host, $username, $password);
@@ -140,7 +141,7 @@ if($accessToken && $loggedUsername && $loggedRole) {
 	}
 	else {
 		$ownedServiceURIs = getOwnedServiceURIs($ownershipApiBaseUrl,$accessToken,$kburls);
-		if($ownedServiceURIs === false) { header("HTTP/1.1 500 Internal Server Error"); die(); }
+		if($ownedServiceURIs === false) { dashboardControllerServiceError(); die(); }
 		if($id == null) {
 			$response = [];
 			if(!empty($ownedServiceURIs)) {
@@ -215,7 +216,33 @@ else {
     die();
 }
 
+function dashboardSensorOwnershipRows($body, array $headers, array $fields)
+{
+    $rows = dashboardControllerDecodeList($body, $headers, $fields, true);
+    foreach ($rows as $row) foreach ($fields as $field) {
+        if (!is_string($row[$field]) || trim($row[$field]) === '') throw new UnexpectedValueException('invalid_data_service_response');
+    }
+    return $rows;
+}
+
+function dashboardSensorGraphUris($body, array $headers)
+{
+    dashboardControllerAssertServiceHttp($headers);
+    if (!is_string($body) || trim($body) === '') throw new UnexpectedValueException('invalid_data_service_response');
+    $lines = preg_split('/\r\n|\n|\r/', trim($body));
+    if (str_getcsv(array_shift($lines), ',', '"', '\\') !== ['s']) throw new UnexpectedValueException('invalid_data_service_response');
+    $uris = [];
+    foreach ($lines as $line) {
+        if (trim($line) === '') continue;
+        $fields = str_getcsv($line, ',', '"', '\\');
+        if (count($fields) !== 1 || !is_string($fields[0]) || trim($fields[0]) === '') throw new UnexpectedValueException('invalid_data_service_response');
+        $uris[] = $fields[0];
+    }
+    return $uris;
+}
+
 function getOwnedServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
+    try {
 	
 	$uris = [];	
 		
@@ -229,9 +256,10 @@ function getOwnedServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-	foreach(json_decode($callResult,true) as $serviceURI) {
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementUrl']);
+	foreach($ownershipRows as $serviceURI) {
 		$uris[] = "'".$serviceURI["elementUrl"]."'";
 	}
 	
@@ -245,9 +273,10 @@ function getOwnedServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-	foreach(json_decode($callResult,true) as $serviceURI) {
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementId']);
+	foreach($ownershipRows as $serviceURI) {
 		$uris[] = "'".$serviceURI["elementId"]."'";
 	}
 	// Get ownership set on graphs and explode
@@ -262,29 +291,29 @@ function getOwnedServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 			  )
 		);
 		$context  = stream_context_create($options);
-		$callResult = file_get_contents($apiUrl, false, $context);
-		if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-		foreach(json_decode($callResult,true) as $graphURI) {
+		$http_response_header = [];
+		$callResult = @file_get_contents($apiUrl, false, $context);
+		$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementId']);
+		foreach($ownershipRows as $graphURI) {
 			$graphs[] = "'".$graphURI["elementId"]."'";
 		}
 		foreach($kburls as $kburl) {
 			foreach($graphs as $graphURI) {
 				$qry = $kburl."?default-graph-uri=&query=select+distinct+%3Fs+%7B+graph+%3C".$graphURI."%3E+%7B+%3Fs+a+%3Fc+%7D+%7D&format=text%2Fcsv&timeout=0&debug=on";
-				$res = file_get_contents($qry);
-				$graphuris = [];
-				foreach(explode("\n",$res) as $line){
-					if($line == "\"s\"") continue;
-					$graphuris[] = trim($line,"\"");
-				} 
+				$http_response_header = [];
+				$res = @file_get_contents($qry);
+				$graphuris = dashboardSensorGraphUris($res, $http_response_header ?? []);
 				$uris = array_merge($uris,$graphuris);		
 			}	
 		}
 	}
 	// Return
 	return $uris;
+    } catch (UnexpectedValueException $e) { return false; }
 }
 
 function getOwnersOfServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
+    try {
 	
 	$uris = [];
 	
@@ -298,9 +327,10 @@ function getOwnersOfServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-	foreach(json_decode($callResult,true) as $serviceURI) {
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementUrl', 'username']);
+	foreach($ownershipRows as $serviceURI) {
 		$uris[$serviceURI["elementUrl"]] = $serviceURI["username"];
 	}
 	
@@ -314,9 +344,10 @@ function getOwnersOfServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 		  )
 	);
 	$context  = stream_context_create($options);
-	$callResult = file_get_contents($apiUrl, false, $context);
-	if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-	foreach(json_decode($callResult,true) as $serviceURI) {
+	$http_response_header = [];
+	$callResult = @file_get_contents($apiUrl, false, $context);
+	$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementId', 'username']);
+	foreach($ownershipRows as $serviceURI) {
 		$uris[$serviceURI["elementId"]] = $serviceURI["username"];
 	}
 	
@@ -332,24 +363,26 @@ function getOwnersOfServiceURIs($ownershipApiBaseUrl, $accessToken, $kburls) {
 			  )
 		);
 		$context  = stream_context_create($options);
-		$callResult = file_get_contents($apiUrl, false, $context);
-		if(array_key_exists("error",json_decode($callResult,true))) { echo($callResult); return false; }
-		foreach(json_decode($callResult,true) as $graphURI) {
+		$http_response_header = [];
+		$callResult = @file_get_contents($apiUrl, false, $context);
+		$ownershipRows = dashboardSensorOwnershipRows($callResult, $http_response_header ?? [], ['elementId', 'username']);
+	foreach($ownershipRows as $graphURI) {
 			$graphs[$graphURI["elementId"]] = $graphURI["username"];
 		}
 		foreach($kburls as $kburl) {
 			foreach(array_keys($graphs) as $graphURI) {
 				$qry = $kburl."?default-graph-uri=&query=select+distinct+%3Fs+%7B+graph+%3C".$graphURI."%3E+%7B+%3Fs+a+%3Fc+%7D+%7D&format=text%2Fcsv&timeout=0&debug=on";				
-				$res = file_get_contents($qry);
-				foreach(explode("\n",$res) as $line){
-					if($line == "\"s\"") continue;
-					$uris[trim($line,"\"")] = $graphs[$graphURI];
-				} 		
+				$http_response_header = [];
+				$res = @file_get_contents($qry);
+                foreach (dashboardSensorGraphUris($res, $http_response_header ?? []) as $serviceURI) {
+                    $uris[$serviceURI] = $graphs[$graphURI];
+                }
 			}	
 		}
 	}
 	// Return
 	return $uris;
+    } catch (UnexpectedValueException $e) { return false; }
 }
 
 ?>
