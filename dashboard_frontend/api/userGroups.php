@@ -44,7 +44,6 @@ if(isset($_GET['accessToken'])) {
 				http_response_code(502);
 				$output_message['status'] = 'KO';
 				$output_message['message'] = 'Errore cURL: ' . curl_error($ch);
-				curl_close($ch);
 				echo json_encode($output_message);
 				exit;
 			}
@@ -52,7 +51,6 @@ if(isset($_GET['accessToken'])) {
 // Chiudi la sessione cURL
 $obj = json_decode($response, true);
 if (!is_array($obj)) {
-    curl_close($ch);
     http_response_code(502);
     $output_message['status'] = 'KO';
     $output_message['message'] = 'Invalid identity service response';
@@ -224,7 +222,6 @@ if (array_key_exists('error', $obj)) {
 	die();
 }
 
-curl_close($ch);
 
 	}else{
 

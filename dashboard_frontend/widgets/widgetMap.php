@@ -24115,6 +24115,17 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
         function initializeP5(data){
             console.log('initializeP5');    
 
+            // Scollega il ResizeObserver dell'istanza precedente
+            if (map.vectorFieldResizeObserver) {
+                try { map.vectorFieldResizeObserver.disconnect(); } catch (e) { console.warn(e); }
+                map.vectorFieldResizeObserver = null;
+            }
+            // Rimuove l'istanza p5 precedente (ferma il loop e rimuove il canvas)
+            if (map.vectorFieldP5) {
+                try { map.vectorFieldP5.remove(); } catch (e) { console.warn('VF remove failed', e); }
+                map.vectorFieldP5 = null;
+            }
+
             // Definisco l'istanza p5.js
             const VF = new p5(function(p) {
                 // Funzione di setup per p5
@@ -24135,24 +24146,14 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                     map.defaultMapRef.setView([data.latitude, data.longitude], zoom);
                     let mapWidth = mapContainer.offsetWidth;
                     let mapHeight = mapContainer.offsetHeight;
-                                        
-                    //let canvas = p.createCanvas(mapWidth, mapHeight);
-                    let canvas = p.createCanvas(rect.width, rect.height);
-                    // canvas.parent('p5-container');
-                    // const p5Container = document.getElementById('p5-container');
-                    // p5Container.style.position = 'absolute'; // or 'relative' if you want it to take space
-                    // p5Container.style.zIndex = 400;
-                    // mapContainer.style.position = 'relative'; // or 'absolute'
-                    // mapContainer.style.zIndex = 1000;
 
-                    // canvas.elt.style.position = 'relative';
-                    // canvas.elt.style.zIndex = -1;
-
-                    //canvas.position(mapContainer.offsetLeft, mapContainer.offsetTop);
-                    canvas.position(rect.left, rect.top);
-
-                    // const canvasElement = document.querySelector('canvas');
-                    // canvasElement.style.zIndex = '500'; // Lower than the Leaflet control
+                    // Il canvas deve condividere l'origine del contenitore Leaflet _map,
+                    // perché latLngToContainerPoint() disegna rispetto al suo top-left.
+                    // Agganciarlo qui elimina sia il drift da scroll sia lo shift costante
+                    // dovuto al padding/offset di .map2dContainer.
+                    let canvas = p.createCanvas(mapWidth, mapHeight);
+                    canvas.parent(mapContainer);
+                    canvas.position(0, 0);
 
                     //
                     let bottomLeftPoint = map.defaultMapRef.latLngToLayerPoint([data.latitude, data.longitude]);
@@ -24162,6 +24163,16 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                     map.defaultMapRef.on('zoom move', () => {
                         p.redraw();  // Redraw ripete il ciclo di draw quando la mappa cambia
                     });
+
+                    // Mantiene canvas e mappa della stessa dimensione quando il widget viene ridimensionato
+                    if (typeof ResizeObserver !== 'undefined') {
+                        const ro = new ResizeObserver(() => {
+                            p.resizeCanvas(mapContainer.offsetWidth, mapContainer.offsetHeight);
+                            p.redraw();
+                        });
+                        ro.observe(mapContainer);
+                        map.vectorFieldResizeObserver = ro;   // salvato su map, non su VF (VF non è ancora inizializzato in setup)
+                    }
 
                     // Disabilita il loop automatico di p5.js, dato che vogliamo ridisegnare solo su richiesta
                     //p.noLoop();
@@ -24629,6 +24640,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
                 }
             });
 
+            map.vectorFieldP5 = VF;
             return VF;
         };        
     });

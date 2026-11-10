@@ -12,6 +12,9 @@ use Jumbojett\OpenIDConnectClient;
 error_reporting(E_ERROR);
 session_start();
 
+// PHP >= 8.1 throws mysqli_sql_exception by default: restore the return-false behaviour this script relies on
+mysqli_report(MYSQLI_REPORT_OFF);
+
 $conn = new mysqli($host, $username, $password, $dbname);
 
 if ($conn->connect_error) {
@@ -34,6 +37,15 @@ foreach ($tablesCreationMap as $tab => $query) {
         echo "Table '$tab' already exists in the Database.".$NL;
         continue;
     }
+    // entries like AddFK_* are not tables: skip them if their constraint already exists
+    if (preg_match('/ADD CONSTRAINT `([^`]+)`/i', $query, $m)) {
+        $constraint = $conn->real_escape_string($m[1]);
+        $result = $conn->query("SELECT 1 FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = DATABASE() AND CONSTRAINT_NAME = '$constraint'");
+        if ($result && $result->num_rows > 0) {
+            echo "Constraint '{$m[1]}' already exists in the Database.".$NL;
+            continue;
+        }
+    }
 
     if ($conn->query($query) === TRUE) {
         echo "Table '$tab' has been successfully created.".$NL;
@@ -51,7 +63,7 @@ foreach ($tablesUpdateMap as $table => $columns) {
     }
 
     // Check if $columns is an array of objects or a single object
-    if (!isset($columns[0])) {
+    if (!is_array($columns) || !isset($columns[0])) {
         $columns = [$columns];
     }
 
@@ -87,7 +99,7 @@ foreach ($tablesSchemaUpdateMap as $table => $columns) {
     }
 
     // Check if $columns is an array of objects or a single object
-    if (!isset($columns[0])) {
+    if (!is_array($columns) || !isset($columns[0])) {
         $columns = [$columns];
     }
 
@@ -117,7 +129,7 @@ foreach ($tableRecordUpdateMap as $table => $queries) {
     }
 
     // Check if $queries is an array of objects or a single object
-    if (!isset($queries[0])) {
+    if (!is_array($queries) || !isset($queries[0])) {
         $queries = [$queries];
     }
 

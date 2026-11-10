@@ -123,7 +123,6 @@ if (isset($_POST["accessToken"])) {
             ]));
         } else {
             $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
             if ($httpcode !== 200) {
                 die(json_encode([
                     "responseState" => "ko",

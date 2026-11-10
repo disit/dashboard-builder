@@ -33,8 +33,27 @@ if(!$showMenu){
     }
 }
 function getDashboardIdFromUrl($url){
-    parse_str(explode("?", explode("#", $url)[0])[1], $output);
-    return clearB64DashId(trim($output["iddasboard"] ?? ""));
+    parse_str((string)parse_url($url, PHP_URL_QUERY), $output);
+    $dashboardId = $output["iddasboard"] ?? "";
+    return is_string($dashboardId) ? clearB64DashId(trim($dashboardId)) : "";
+}
+
+function escapeHtml($value){
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
+
+function isValidUrl(string $url, array $schemes = ['http', 'https']): bool
+{
+    if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+        return false;
+    }
+
+    $parts = parse_url($url);
+    if ($parts === false || empty($parts['scheme']) || empty($parts['host'])) {
+        return false;
+    }
+
+    return in_array(strtolower($parts['scheme']), $schemes, true);
 }
 
 function isDashboardLink($url){
@@ -75,7 +94,7 @@ if($showMenu){
     
         while ($customLinkStmt->fetch()) {
             $target = $openMode == "samePage" ? "" : "target='_blank'";
-            $href = "href='$linkUrl'";
+            $href = "href='" . escapeHtml($linkUrl) . "'";
             $class = "";
             $subLinks = [];
             $submenuIndicator = "";
@@ -85,17 +104,17 @@ if($showMenu){
                 foreach ($subLinks as $subLink) {
                     $subLinkUrl = $subLink["linkUrl"];
                     $subLinkIgnoreDelegation = $subLink["ignoreDelegation"];
-                    if ($subLinkUrl != "" && ($role == "RootAdmin" || $subLinkIgnoreDelegation || checkLink($subLinkUrl))){
+                    if (isValidUrl((string)$subLinkUrl) && ($role == "RootAdmin" || $subLinkIgnoreDelegation || checkLink($subLinkUrl))){
                         $subId = $subLink["id"];
                         $subText = $subLink["text"];
                         $subOpenMode = $subLink["openMode"];
                         $subIcon = $subLink["icon"];
                         $subIconColor = $subLink["iconColor"];
                         $subTarget = $subOpenMode == "samePage" ? "" : "target='_blank'";
-                        $sublinksText .= "<div class='row customLinkRow sublink' data-linkid='$subId'>" .
-                            "<div class='col-md-12 orgMenuItemCnt' data-fathermenuiddiv='$id' style='display: none;'>" .
-                            "<a title='$subText' href='$subLinkUrl' $subTarget id='subCustomLink_$subId' class='customLink'>" .
-                            "<i class='$subIcon' style='color: $subIconColor'></i><span class='customLinkText'>$subText</span>" .
+                        $sublinksText .= "<div class='row customLinkRow sublink' data-linkid='" . escapeHtml($subId) . "'>" .
+                            "<div class='col-md-12 orgMenuItemCnt' data-fathermenuiddiv='" . escapeHtml($id) . "' style='display: none;'>" .
+                            "<a title='" . escapeHtml($subText) . "' href='" . escapeHtml($subLinkUrl) . "' $subTarget id='subCustomLink_" . escapeHtml($subId) . "' class='customLink'>" .
+                            "<i class='" . escapeHtml($subIcon) . "' style='color: " . escapeHtml($subIconColor) . "'></i><span class='customLinkText'>" . escapeHtml($subText) . "</span>" .
                             "</a>" .
                             "</div></div>";
                     }
@@ -106,11 +125,11 @@ if($showMenu){
                     $submenuIndicator = '<i class="fa fa-caret-right submenuIndicator" style="color: rgb(51, 64, 69)"></i>';
                 }
             }
-            if ($sublinksText != "" || ($linkUrl != "" && ($role == "RootAdmin" || $ignoreDelegation || checkLink($linkUrl)))) {
-                echo "<div class='row customLinkRow $class' data-linkid='$id'>" .
+            if ($sublinksText != "" || (isValidUrl((string)$linkUrl) && ($role == "RootAdmin" || $ignoreDelegation || checkLink($linkUrl)))) {
+                echo "<div class='row customLinkRow $class' data-linkid='" . escapeHtml($id) . "'>" .
                     "<div class='col-md-12 orgMenuItemCnt'>" .
-                    "<a title='$text' $href $target id='customLink_$id' class='customLink'>" .
-                    "<i class='$icon' style='color: $iconColor'></i><span class='customLinkText'>$text</span>" .
+                    "<a title='" . escapeHtml($text) . "' $href $target id='customLink_" . escapeHtml($id) . "' class='customLink'>" .
+                    "<i class='" . escapeHtml($icon) . "' style='color: " . escapeHtml($iconColor) . "'></i><span class='customLinkText'>" . escapeHtml($text) . "</span>" .
                     $submenuIndicator .
                     "</a>" .
                     "</div></div>";

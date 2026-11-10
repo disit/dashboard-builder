@@ -100,7 +100,6 @@ if (isset($_POST["accessToken"])) {
 
         } else {
             $api_status_code = curl_getinfo($ch1, CURLINFO_HTTP_CODE);
-            curl_close($ch1);
             if ($api_status_code !== 200) {
                 error_log("Errore cURL: " . $error_get);
                 die(json_encode([
