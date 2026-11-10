@@ -584,11 +584,12 @@ else
         else if($action == "get_dashboards")
         {
             require_once __DIR__.'/../controllers/serviceResponse.php';
-            $requireDashboardId = function($dashboard) {
+            $requireDashboardId = function($dashboard, $service, $index) {
                 if (!isset($dashboard->elementId) ||
                     (!is_int($dashboard->elementId) && !is_string($dashboard->elementId)) ||
                     preg_match('/^[0-9]+$/D', (string)$dashboard->elementId) !== 1) {
-                    dashboardControllerServiceError();
+                    dashboardControllerServiceError(['service'=>$service, 'reason'=>'invalid_dashboard_id', 'field'=>'elementId',
+                        'value_type'=>property_exists($dashboard, 'elementId') ? gettype($dashboard->elementId) : 'missing', 'index'=>$index]);
                     exit;
                 }
                 return $dashboard->elementId;
@@ -779,10 +780,10 @@ else
                             $http_response_header = [];
                             $myDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $myDashboards = dashboardControllerRequireList($myDashboardsJson, $http_response_header);
+                            $myDashboards = dashboardControllerRequireList($myDashboardsJson, $http_response_header, [], false, ['service'=>'ownership']);
 
                             for ($i = 0; $i < count($myDashboards); $i++) {
-                                array_push($dashIds, $requireDashboardId($myDashboards[$i]));
+                                array_push($dashIds, $requireDashboardId($myDashboards[$i], 'ownership', $i));
                             }
 
                             //echo "Dashboards: " . count($dashIds);
@@ -823,7 +824,7 @@ else
                             $http_response_header = [];
                             $delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType']);
+                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType'], false, ['service'=>'public_delegations']);
 
                             // Patch per filtrare le public di roottooladmin1
                             $orgNameSql = mysqli_real_escape_string($link, $_SESSION['loggedOrganization']);
@@ -846,7 +847,7 @@ else
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if (!isset($delegatedDashboards->error)) {
                                     if (@$delegatedDashboards[$i]->elementType == 'DashboardID') {
-                                        $dashboardId = $requireDashboardId($delegatedDashboards[$i]);
+                                        $dashboardId = $requireDashboardId($delegatedDashboards[$i], 'public_delegations', $i);
                                         if ($orgFlag != "all") {
                                             if (in_array($dashboardId, $dashboardOrgList, true)) {
                                                 array_push($dashIds, $dashboardId);
@@ -877,18 +878,20 @@ else
                             $http_response_header = [];
                             $delegatedDashboardsJson = @file_get_contents($apiUrl, false, $context);
 
-                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType']);
+                            $delegatedDashboards = dashboardControllerRequireList($delegatedDashboardsJson, $http_response_header, ['elementType'], false, ['service'=>'user_delegations']);
                             for ($i = 0; $i < count($delegatedDashboards); $i++) {
                                 if ($delegatedDashboards[$i]->elementType == 'DashboardID') {
-                                    $dashboardId = $requireDashboardId($delegatedDashboards[$i]);
+                                    $dashboardId = $requireDashboardId($delegatedDashboards[$i], 'user_delegations', $i);
                                     if (!isset($delegatedDashboards[$i]->usernameDelegator) ||
                                         (!is_string($delegatedDashboards[$i]->usernameDelegator) && !is_int($delegatedDashboards[$i]->usernameDelegator) && !is_float($delegatedDashboards[$i]->usernameDelegator))) {
-                                        dashboardControllerServiceError();
+                                        dashboardControllerServiceError(['service'=>'user_delegations', 'reason'=>'invalid_field_type', 'field'=>'usernameDelegator',
+                                            'value_type'=>property_exists($delegatedDashboards[$i], 'usernameDelegator') ? gettype($delegatedDashboards[$i]->usernameDelegator) : 'missing', 'index'=>$i]);
                                         exit;
                                     }
                                     if (!property_exists($delegatedDashboards[$i], 'groupnameDelegated')) $delegatedDashboards[$i]->groupnameDelegated = null;
                                     if ($delegatedDashboards[$i]->groupnameDelegated !== null && !is_string($delegatedDashboards[$i]->groupnameDelegated)) {
-                                        dashboardControllerServiceError();
+                                        dashboardControllerServiceError(['service'=>'user_delegations', 'reason'=>'invalid_field_type', 'field'=>'groupnameDelegated',
+                                            'value_type'=>gettype($delegatedDashboards[$i]->groupnameDelegated), 'index'=>$i]);
                                         exit;
                                     }
                                     array_push($dashIds, $dashboardId);

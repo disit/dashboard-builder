@@ -42,27 +42,54 @@ function compare_values($obj_a, $obj_b) {
 
 // Keep failed directory lookups separate from genuinely empty LDAP results.
 function ldapApiReadEntries($server, $port, $baseDn, $filter, $list = false) {
+    global $ldapAdminDN, $ldapAdminPwd;
     $connection = false;
     $entries = false;
+    $stage = 'connect';
+    $ldapCode = null;
     try {
         $connection = @ldap_connect($server, $port);
         if ($connection === false) throw new \RuntimeException('directory_unavailable');
+        $stage = 'protocol';
+        if (!@ldap_set_option($connection, LDAP_OPT_PROTOCOL_VERSION, 3)) throw new \RuntimeException('directory_unavailable');
+        // Match updateLdapUsers.php: use the configured reader, otherwise anonymous bind.
+        // Never retry anonymously after a configured authenticated bind fails.
+        $stage = 'bind';
+        if (!empty($ldapAdminDN)) {
+            if (!is_string($ldapAdminDN) || trim($ldapAdminDN) === '' || !is_string($ldapAdminPwd) || $ldapAdminPwd === '') {
+                $stage = 'bind_configuration';
+                throw new \RuntimeException('directory_unavailable');
+            }
+            $bound = @ldap_bind($connection, $ldapAdminDN, $ldapAdminPwd);
+        } else {
+            $bound = @ldap_bind($connection);
+        }
+        if (!$bound) throw new \RuntimeException('directory_unavailable');
+        $stage = 'search';
         $search = $list ? @ldap_list($connection, $baseDn, $filter) : @ldap_search($connection, $baseDn, $filter);
         if ($search === false) throw new \RuntimeException('directory_unavailable');
+        $stage = 'decode';
         $entries = @ldap_get_entries($connection, $search);
         if (!is_array($entries) || !isset($entries['count']) || !is_int($entries['count']) || $entries['count'] < 0) {
             throw new \RuntimeException('directory_unavailable');
         }
     } catch (\Throwable $ignored) {
         $entries = false;
+        // Capture only the numeric LDAP status, before unbinding; never log DN, filters or passwords.
+        if ($connection !== false && function_exists('ldap_errno')) {
+            try { $ldapCode = @ldap_errno($connection); } catch (\Throwable $ignoredCode) {}
+        }
     } finally {
         if ($connection !== false) {
             try { @ldap_unbind($connection); } catch (\Throwable $ignored) {}
         }
     }
     if ($entries === false) {
+        $response = ['status'=>'ko', 'msg'=>'directory_unavailable', 'content'=>'', 'log'=>'', 'reason'=>$stage.'_failed'];
+        if (is_int($ldapCode) && $ldapCode > 0) $response['ldap_code'] = $ldapCode;
+        error_log('Dashboard LDAP lookup failed: '.json_encode(['reason'=>$response['reason'], 'ldap_code'=>$response['ldap_code'] ?? null]));
         http_response_code(502);
-        echo json_encode(['status'=>'ko', 'msg'=>'directory_unavailable', 'content'=>'', 'log'=>'']);
+        echo json_encode($response);
         exit;
     }
     return $entries;
