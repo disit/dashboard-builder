@@ -135,7 +135,7 @@ and open the template in the editor.
                         $admin = new \RocketChat\User($userIdAdminChat, $passAdminChat);
                         $groupUser= findMember($userAdd);
                                                    
-                        if($groupUser[success])
+                        if($groupUser['success'])
                             {
                             $chan=new \RocketChat\Channel($nameGroup);                            
                             $a = findGroup($nameGroup,$me);
@@ -155,7 +155,7 @@ and open the template in the editor.
                 $me=talklogin(); 
                 $nameGroup=strtolower($_REQUEST['nameDash']);
                 $checkNameGroup=findGroup($nameGroup,$me);
-                $check=$checkNameGroup[success];    
+                $check=$checkNameGroup['success'];
                 $admin->login();
             if(!$check&&$varB=='Btn'){
                 echo "<font color='#eeeeee' size='3em'>No chat for this dashboard. Do you want to create it?</br></br></font>";

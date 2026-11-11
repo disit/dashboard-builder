@@ -13,9 +13,9 @@
  * PHP Version 5.4
  */
 
-include_once('../config.php');
-
 namespace League\OAuth2\Client\Provider;
+
+include_once('../config.php');
 
 require 'vendor/autoload.php';
 

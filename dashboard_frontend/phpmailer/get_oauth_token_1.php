@@ -15,6 +15,8 @@
 
 namespace League\OAuth2\Client\Provider;
 
+include_once('../config.php');
+
 require 'vendor/autoload.php';
 
 use League\OAuth2\Client\Provider\Exception\IdentityProviderException;

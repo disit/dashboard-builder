@@ -13,6 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
    
+   require_once __DIR__ . '/../phpCompatibility.php';
    include('process-form.php');
   include '../locale.php';
    header("Cache-Control: private, max-age=$cacheControlMaxAge");
@@ -27,7 +28,7 @@
     mysqli_select_db($link, $dbname);
     error_reporting(E_ERROR);
 
-    $lastUsedColors = null;
+    $lastUsedColors = [];
     $dashId = escapeForSQL($_REQUEST['dashboardId'], $link);
     if (checkVarType($dashId, "integer") === false) {
         eventLog("Returned the following ERROR in dashboard_configdash.php for dashId = ".$dashId.": ".$dashId." is not an integer as expected. Exit from script.");
@@ -47,7 +48,7 @@
         }
         else
         {
-            $lastUsedColors = json_decode($row['lastUsedColors']);
+            $lastUsedColors = dashboardDecodeStringList($row['lastUsedColors'] ?? null) ?? [];
             $dashboardAuthorName = $row['user']; //$_REQUEST['dashboardAuthorName'];
             $dashboardTitle = $row['title_header']; //$_REQUEST['dashboardTitle'];
             $dashboardEditorName = $_SESSION['loggedUsername'];
@@ -275,7 +276,7 @@
     <script src="../js/highcharts-localization.js"></script>
 
     <!-- New WS -->
-    <script src="https://www.snap4city.org/synoptics/socket.io/socket.io.js"></script>
+    <script src="/synoptics/socket.io/socket.io.js"></script>
 
 </head>
 

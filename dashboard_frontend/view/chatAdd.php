@@ -133,7 +133,7 @@ and open the template in the editor.
                         $admin = new \RocketChat\User($userIdAdminChat, $passAdminChat);
                         $me=talklogin();
                         $groupUser= findMember($userAdd,$me);
-                       if($groupUser[success])
+                       if($groupUser['success'])
                             {
                             $chan=new \RocketChat\Channel($nameGroup); 
                             $a = findGroup($nameGroup,$me);

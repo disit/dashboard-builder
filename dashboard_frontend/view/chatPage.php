@@ -88,7 +88,7 @@ and open the template in the editor.
                 $me=talklogin();
                 $checkNameGroup=findGroup($nameGroup,$me);
                 $isJoint=checkMembers($nameGroup,$me);
-                if($checkNameGroup[success]){
+                if($checkNameGroup['success']){
                     if($_SESSION['loggedRole']=='Root---Admin'){
                                    // header('Location: ' . $chatBaseUrl . '/channel/'.$nameGroup.'/?layout=embedded');
                                     }else{

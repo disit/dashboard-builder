@@ -24,7 +24,7 @@ abstract class WebSocketServer {
     socket_bind($this->master, $addr, $port)                      or die("Failed: socket_bind()");
     socket_listen($this->master,20)                               or die("Failed: socket_listen()");
     $this->sockets['m'] = $this->master;
-    $this->stdout("Server started\nListening on: $addr:$port\nMaster socket: ".$this->master);
+    $this->stdout("Server started\nListening on: $addr:$port\nMaster socket: ".$this->socketIdentifier($this->master));
   }
 
   abstract protected function process($user,$message); // Called immediately when the data is recieved. 
@@ -90,13 +90,13 @@ abstract class WebSocketServer {
       foreach ($read as $socket) {
         if ($socket == $this->master) {
           $client = socket_accept($socket);
-          if ($client < 0) {
+          if ($client === false) {
             $this->stderr("[" . $currentDate . "] - socket_accept() KO");
             continue;
           } 
           else {
             $this->connect($client);
-            $this->stdout("[" . $currentDate . "] - Client connected: " . $client . " - Total clients: " . (count($this->sockets) - 1));
+            $this->stdout("[" . $currentDate . "] - Client connected: " . $this->socketIdentifier($client) . " - Total clients: " . (count($this->sockets) - 1));
           }
         } 
         else {
@@ -116,11 +116,11 @@ abstract class WebSocketServer {
               case 121: // EREMOTEIO    -- Rempte I/O error -- Their hard drive just blew up.
               case 125: // ECANCELED    -- Operation canceled
                 
-                $this->stderr("[" . $currentDate . "] - Unusual disconnection on socket " . $socket . " - Error type known: " . socket_strerror($sockErrNo));
+                $this->stderr("[" . $currentDate . "] - Unusual disconnection on socket " . $this->socketIdentifier($socket) . " - Error type known: " . socket_strerror($sockErrNo));
                 $this->disconnect($socket, true, $sockErrNo); // disconnect before clearing error, in case someone with their own implementation wants to check for error conditions on the socket.
                 break;
               default:
-                $this->stderr("[" . $currentDate . "] - Disconnection on socket " . $socket . " - Error type: " . socket_strerror($sockErrNo));
+                $this->stderr("[" . $currentDate . "] - Disconnection on socket " . $this->socketIdentifier($socket) . " - Error type: " . socket_strerror($sockErrNo));
                 //Qui ci aggiungiamo noi il disconnect, nell'originale non c'era
                 $this->disconnect($socket, true, $sockErrNo); // disconnect before clearing error, in case someone with their own implementation wants to check for error conditions on the socket.  
             }
@@ -128,10 +128,10 @@ abstract class WebSocketServer {
           }
           elseif ($numBytes == 0) {
             $this->disconnect($socket);
-            $this->stderr("[" . $currentDate . "] - Zero bytes on last frame, client disconnected. TCP connection lost: " . $socket);
+            $this->stderr("[" . $currentDate . "] - Zero bytes on last frame, client disconnected. TCP connection lost: " . $this->socketIdentifier($socket));
           } 
           else {
-            $this->stdout("[" . $currentDate . "] - New bytes on socket " . $socket);  
+            $this->stdout("[" . $currentDate . "] - New bytes on socket " . $this->socketIdentifier($socket));
             $user = $this->getUserBySocket($socket);
             if (!$user->handshake) {
               $tmp = str_replace("\r", '', $buffer);
@@ -172,7 +172,7 @@ abstract class WebSocketServer {
       }
 
       if ($triggerClosed) {
-        $this->stdout("[" . date("Y-m-d H:i:s") . "] - Client disconnected. ".$disconnectedUser->socket . " - Total clients: " . (count($this->sockets) - 1));
+        $this->stdout("[" . date("Y-m-d H:i:s") . "] - Client disconnected. ".$this->socketIdentifier($disconnectedUser->socket) . " - Total clients: " . (count($this->sockets) - 1));
         $this->closed($disconnectedUser);
         socket_close($disconnectedUser->socket);
       }
@@ -295,6 +295,10 @@ abstract class WebSocketServer {
       }
     }
     return null;
+  }
+
+  protected function socketIdentifier($socket) {
+    return is_object($socket) ? 'socket-'.spl_object_id($socket) : (is_resource($socket) ? 'socket-'.(int)$socket : 'closed');
   }
 
   public function stdout($message) {
