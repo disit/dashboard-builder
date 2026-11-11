@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -243,8 +244,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedIOTJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedIOT = json_decode($ownedIOTJson);
+$ownedIOT = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedIOT); $i++) {
     array_push($ownedElements, $ownedIOT[$i]->elementId);
@@ -363,14 +363,7 @@ if($rsIP) {
                 $sparqlErrorFlag = true;
             }   */
 
-            $queryIotSensorRresults = file_get_contents($queryIotSensor);
-            if ($queryIotSensorRresults === false) {
-                echo ("ERRORE SPARQL QUERY. Exit Script.\n");
-                $sparqlErrorFlag = true;
-                exit();
-            }
-
-            $resArray = json_decode($queryIotSensorRresults, true);
+            $resArray = feedSparqlResult($queryIotSensor);
 
             if (sizeof($resArray['results']['bindings']) == 0) {
                 $sparqlErrorFlag = true;

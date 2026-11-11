@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -49,7 +50,7 @@ function getAccessToken($token_endpoint, $username, $password, $client_id){
     curl_setopt($ch, CURLOPT_URL,$token_endpoint);
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS,
-        "username=".$username."&password=".$password."&grant_type=password&client_id=".$client_id);
+        "username=".$username."&password=".$password."&scope=openid&grant_type=password&client_id=".$client_id);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $curl_response = curl_exec($ch);
@@ -121,8 +122,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedIOTJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedIOT = json_decode($ownedIOTJson);
+$ownedIOT = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedIOT); $i++) {
     array_push($ownedElements, $ownedIOT[$i]->elementId);

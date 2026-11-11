@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2022 DISIT Lab https://www.disit.org - University of Florence
@@ -13,7 +14,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function udate($format = 'u', $microT) {
+function udate($format, $microT) {
 
     $timestamp = floor($microT);
     $milliseconds = round(($microT - $timestamp) * 1000000);
@@ -24,9 +25,10 @@ function udate($format = 'u', $microT) {
 function get_from_date ($od_hostname, $dateArray, $precision, $organization_od, $longitude, $latitude, $unique_name_id) {
     for ($n=0; $n < sizeof($dateArray); $n++) {
         $od_data_API = $od_hostname . "api/get?precision=" . $precision . "&from_date=" . str_replace(" ", "%20", $dateArray[$n]) . "&organization=" . $organization_od . "&inflow=True&longitude=" . $longitude . "&latitude=" . $latitude . "&od_id=" . $unique_name_id . "&perc=True";
-        $od_data_Results = file_get_contents($od_data_API);
-        $od_data_Results_Array = json_decode($od_data_Results, true);
-        if (sizeof($od_data_Results_Array) > 0) {
+        $od_response = feedHttpJson($od_data_API);
+        if (!feedHttpSucceeded($od_response['headers']) || !is_string($od_response['body'])) continue;
+        $od_data_Results_Array = json_decode($od_response['body'], true);
+        if (is_array($od_data_Results_Array) && count($od_data_Results_Array) > 0) {
             return $dateArray[$n];
         }
     }

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -13,7 +14,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function udate($format = 'u', $microT) {
+function udate($format, $microT) {
 
     $timestamp = floor($microT);
     $milliseconds = round(($microT - $timestamp) * 1000000);
@@ -98,6 +99,22 @@ $parameters_KPI = "";
 
 $accessToken=get_access_token($token_endpoint, $username, $password, $client_id);
 
+// Validate AppID ownership before any ingestion in this job.
+// NEW OWENRSHIP - REQUEST ALL OWNED AppID ELEMENTS
+$apiOwnershipUrl = $ownershipApiBaseUrl . "/v1/list/?type=AppID&accessToken=" . $accessToken;
+
+$options = array(
+    'http' => array(
+        'header'  => "Content-type: application/json\r\n",
+        'method'  => 'GET',
+        'timeout' => 30,
+        'ignore_errors' => true
+    )
+);
+
+$context  = stream_context_create($options);
+$ownedApp = feedOwnershipList($apiOwnershipUrl, $context);
+
 $test = "yes";
 if ($test === "yes") {
     $queryApiPersonalKPI = $host_pd.":8080/datamanager/api/v1/kpidata/?sourceRequest=dashboardmanager&accessToken=" . $accessToken . "&highLevelType=MyKPI";
@@ -134,7 +151,7 @@ foreach ($resKPIArray as $resKPIRecord) {
         $querySearchGeolocatedKPI = $host_pd.":8080/datamanager/api/v1/poidata/" . $resKPIRecord['id'] . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . "&last=0";
         $geolocatedKPIRresults = file_get_contents($querySearchGeolocatedKPI);
         $resGeolocatedKPIArray = json_decode($geolocatedKPIRresults, true);
-        if (sizeof($resGeolocatedKPIArray['geometry']['coordinates']) != 0) {
+        if (isset($resGeolocatedKPIArray['geometry']['coordinates']) && is_array($resGeolocatedKPIArray['geometry']['coordinates']) && count($resGeolocatedKPIArray['geometry']['coordinates']) > 0) {
             $latitude_KPI = $resKPIRecord['latitude'];
             $longitude_KPI = $resKPIRecord['longitude'];
         } else {
@@ -554,7 +571,7 @@ foreach ($resMyDataArray as $resMyDataRecord) {
         $querySearchGeolocatedMyData = $host_pd.":8080/datamanager/api/v1/poidata/" . $resMyDataRecord['id'] . "/?sourceRequest=dashboardmanager&highLevelType=MyPOI&accessToken=" . $accessToken . "&last=0";
         $geolocatedMyDataRresults = file_get_contents($querySearchGeolocatedMyData);
         $resGeolocatedMyDataArray = json_decode($geolocatedMyDataRresults, true);
-        if (sizeof($resGeolocatedMyDataArray['geometry']['coordinates']) != 0) {
+        if (isset($resGeolocatedMyDataArray['geometry']['coordinates']) && is_array($resGeolocatedMyDataArray['geometry']['coordinates']) && count($resGeolocatedMyDataArray['geometry']['coordinates']) > 0) {
             $latitude_MyData = $resMyDataRecord['latitude'];
             $longitude_MyData = $resMyDataRecord['longitude'];
         } else {
@@ -764,22 +781,6 @@ if(trim($apiAllDelegationsResults) != "")
     $resApiAllArray = json_decode($apiAllDelegationsResults, true);
     $delegatedApp = $resApiAllArray;
 }
-
-// NEW OWENRSHIP - REQUEST ALL OWNED AppID ELEMENTS
-$apiOwnershipUrl = $ownershipApiBaseUrl . "/v1/list/?type=AppID&accessToken=" . $accessToken;
-
-$options = array(
-    'http' => array(
-        'header'  => "Content-type: application/json\r\n",
-        'method'  => 'GET',
-        'timeout' => 30,
-        'ignore_errors' => true
-    )
-);
-
-$context  = stream_context_create($options);
-$ownedAppJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedApp = json_decode($ownedAppJson);
 
 for($i = 0; $i < count($ownedApp); $i++) {
     array_push($ownedElements, $ownedApp[$i]->elementId);

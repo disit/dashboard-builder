@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -27,9 +28,9 @@ mysqli_select_db($link, $dbname);
 $allowedElementIDs = [];
 $allowedElementCouples = [];
 $ownedElements = [];
-$encrCpls = [];                 // MOD OWN-DEL
-$encrDelCpls = [];              // MOD OWN-DEL
-$encrDelGroupCpls = [];         // MOD OWN-DEL
+$encrCpls = [];
+$encrDelCpls = [];
+$encrDelGroupCpls = [];
 $genFileContent = parse_ini_file("../conf/environment.ini");
 $personalDataFileContent = parse_ini_file("../conf/personalData.ini");
 $env = $genFileContent['environment']['value'];
@@ -43,8 +44,6 @@ $client_secret = $personalDataFileContent["client_secret_PD"][$genFileContent['e
 $accessToken = get_access_token($token_endpoint, $username, $password, $client_id, $client_secret);
 
 $apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager&elementType=AppID";
-// MOD-GP 2019 Query Per prendere TUTTI i DELEGATED ANONYMOUS
-//$apiUrl = $host_PD . ":8080/datamanager/api/v1/username/ANONYMOUS/delegated?accessToken=" . $accessToken . "&sourceRequest=dashboardmanager";
 $apiResults = file_get_contents($apiUrl);
 
 if(trim($apiResults) != "")
@@ -79,8 +78,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedAppJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedApp = json_decode($ownedAppJson);
+$ownedApp = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedApp); $i++) {
     array_push($ownedElements, $ownedApp[$i]->elementId);
@@ -120,9 +118,9 @@ $organizations2 = "";
 //$allowedElementIDs = [];
 //$allowedElementCouples = [];
 $ownedElements = [];
-$encrCpls = [];                 // MOD OWN-DEL
-$encrDelCpls = [];              // MOD OWN-DEL
-$encrDelGroupCpls = [];         // MOD OWN-DEL
+$encrCpls = [];
+$encrDelCpls = [];
+$encrDelGroupCpls = [];
 
 $s2 = "";
 $a2 = "";
@@ -138,15 +136,15 @@ if($rs2) {
 
     while($row2 = mysqli_fetch_assoc($rs2)) 
     {
-        $owner = null;                  // MOD OWN-DEL
-        $cryptedOwner = null;           // MOD OWN-DEL
-        $cryptedDelegatedUsr = null;    // MOD OWN-DEL
-        $decryptedOwner = null;         // MOD OWN-DEL
-        $ownerCheck = null;             // MOD OWN-DEL
-        $delegatedUsers = [];           // MOD OWN-DEL
-        $delegatedGroups = [];          // MOD OWN-DEL
-        $delegatedUsersStr = null;        // MOD OWN-DEL
-        $delegatedGroupStr = null;        // MOD OWN-DEL
+        $owner = null;
+        $cryptedOwner = null;
+        $cryptedDelegatedUsr = null;
+        $decryptedOwner = null;
+        $ownerCheck = null;
+        $delegatedUsers = [];
+        $delegatedGroups = [];
+        $delegatedUsersStr = null;
+        $delegatedGroupStr = null;
 
         $queryDashboardName2 = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = ".$row2['id_dashboard'];
         $rsDashName2 = mysqli_query($link, $queryDashboardName2);
@@ -289,16 +287,6 @@ if($rs2) {
 
                             }
 
-                        /*    $insertQuery2 = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id,
-                             instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters,
-                              healthiness, lastCheck, ownership, organizations, ownerHash, delegatedHash,
-                               delegatedGroupHash, value_name, value_type) VALUES ('$nature2','$high_level_type2','$sub_nature2',
-                               '$low_level_type2', '$unique_name_id2', '$instance_uri2', '$get_instances2', 
-                               '$unit2', '$metric2', '$saved_direct2', '$kb_based2', '$sm_based2', '$parameters2', 
-                               '$healthiness2', '$lastCheck', '$ownership2', '$organizations2', '$cryptedOwner', 
-                               '$delegatedUsersStr', '$delegatedGroupStr', '$value_name2', '$value_type2') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type2 . "', sub_nature = '" . $sub_nature2 . "', low_level_type = '" . $low_level_type2 . "', unique_name_id = '" . $unique_name_id2 . "', instance_uri = '" . $instance_uri2 . "', get_instances = '" . $get_instances2 . "', unit = '" . $unit2 . "', sm_based = '" . $sm_based2 . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters2 . "', healthiness = '" . $healthiness2 . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership2 . "', organizations = '" . $organizations2 . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name2 . "', value_type = '" . $value_type2 . "';";
-                            mysqli_query($link, $insertQuery2);*/
-
                             $open_search->createUpdateDocumentDashboardWizard(
                                 $nature2,
                                 $high_level_type2,
@@ -373,9 +361,9 @@ $organizations = "";
 //$allowedElementIDs = [];
 //$allowedElementCouples = [];
 $ownedElements = [];
-$encrCpls = [];                 // MOD OWN-DEL
-$encrDelCpls = [];              // MOD OWN-DEL
-$encrDelGroupCpls = [];         // MOD OWN-DEL
+$encrCpls = [];
+$encrDelCpls = [];
+$encrDelGroupCpls = [];
 
 $s = "";
 $a = "";
@@ -391,15 +379,15 @@ if($rs) {
 
     while ($row = mysqli_fetch_assoc($rs)) {
 
-        $owner = null;                  // MOD OWN-DEL
-        $cryptedOwner = null;           // MOD OWN-DEL
-        $cryptedDelegatedUsr = null;    // MOD OWN-DEL
-        $decryptedOwner = null;         // MOD OWN-DEL
-        $ownerCheck = null;             // MOD OWN-DEL
-        $delegatedUsers = [];           // MOD OWN-DEL
-        $delegatedGroups = [];          // MOD OWN-DEL
-        $delegatedUsersStr = null;        // MOD OWN-DEL
-        $delegatedGroupStr = null;        // MOD OWN-DEL
+        $owner = null;
+        $cryptedOwner = null;
+        $cryptedDelegatedUsr = null;
+        $decryptedOwner = null;
+        $ownerCheck = null;
+        $delegatedUsers = [];
+        $delegatedGroups = [];
+        $delegatedUsersStr = null;
+        $delegatedGroupStr = null;
 
         $queryDashboardName = "SELECT * FROM Dashboard.Config_dashboard WHERE Id = ".$row['id_dashboard'];
         $rsDashName = mysqli_query($link, $queryDashboardName);
@@ -467,7 +455,7 @@ if($rs) {
 
                         foreach($ownedApp as $struct) {
                             if ($get_instances == $struct->elementId) {
-                                $owner = strtolower($struct->username);     // MOD OWN-DEL
+                                $owner = strtolower($struct->username);
                                 break;
                             }
                         }
@@ -546,14 +534,6 @@ if($rs) {
 
                         }
 
-                    /*    $insertQuery = "INSERT INTO DashboardWizard (nature, high_level_type, sub_nature, low_level_type, unique_name_id,
-                        instance_uri, get_instances, unit, metric, saved_direct, kb_based, sm_based, parameters, healthiness, lastCheck, 
-                        ownership, organizations, ownerHash, delegatedHash, delegatedGroupHash, value_name, value_type) VALUES ('$nature',
-                        '$high_level_type','$sub_nature','$low_level_type', '$unique_name_id', '$instance_uri', '$get_instances',
-                         '$unit', '$metric', '$saved_direct', '$kb_based', '$sm_based', '$parameters', '$healthiness', '$lastCheck',
-                          '$ownership', '$organizations', '$cryptedOwner', '$delegatedUsersStr', '$delegatedGroupStr', '$value_name',
-                           '$value_type') ON DUPLICATE KEY UPDATE high_level_type = '" . $high_level_type . "', sub_nature = '" . $sub_nature . "', low_level_type = '" . $low_level_type . "', unique_name_id = '" . $unique_name_id . "', instance_uri = '" . $instance_uri . "', get_instances = '" . $get_instances . "', unit = '" . $unit . "', sm_based = '" . $sm_based . "', last_date = last_date, last_value = last_value, parameters = '" . $parameters . "', healthiness = '" . $healthiness . "', lastCheck = '" . $lastCheck . "', ownership = '" . $ownership . "', organizations = '" . $organizations . "', ownerHash = '" . $cryptedOwner . "', delegatedHash = '" . $delegatedUsersStr . "', delegatedGroupHash = '" . $delegatedGroupStr . "', value_name = '" . $value_name . "', value_type = '" . $value_type . "';";
-                    */
                         $open_search->createUpdateDocumentDashboardWizard(
                             $nature,
                             $high_level_type,
@@ -589,7 +569,6 @@ if($rs) {
     
     
                         );
-                    //    mysqli_query($link, $insertQuery);
                             $count++;
                             echo($count . " - Dashboard ACTUATOR (From Dashboard to IOT App) : " . $unique_name_id . ", MEASURE: " . $low_level_type . "\n");
                     //    }
@@ -600,7 +579,7 @@ if($rs) {
     }
 }
 
-$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
+/*$queryMaxId = "SELECT * FROM Dashboard.DashboardWizard ORDER BY id DESC LIMIT 0, 1";
 $rs = mysqli_query($link, $queryMaxId);
 $result = [];
 if($rs) {
@@ -612,7 +591,7 @@ if($rs) {
         $queryUpdateMaxId = "ALTER TABLE Dashboard.DashboardWizard AUTO_INCREMENT " . (string) (intval($maxWizardId) + 1);
         $rs2 = mysqli_query($link, $queryUpdateMaxId);
     }
-}
+}*/
 
 $endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');

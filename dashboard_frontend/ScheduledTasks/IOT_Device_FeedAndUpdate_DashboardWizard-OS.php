@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -12,6 +13,15 @@
    GNU Affero General Public License for more details.
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
+
+function formatIotFeedProgress($percent, $processed, $total, $startedAt)
+{
+    $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
+    $elapsed = max(0, (int) floor(microtime(true) - $startedAt));
+    $elapsedText = sprintf('%02dh %02dm %02ds', intdiv($elapsed, 3600), intdiv($elapsed % 3600, 60), $elapsed % 60);
+    return "\n*** Ingestion progress: $percent% ($processed of $total) at " . $now->format('Y-m-d H:i:s') .
+        " (elapsed time since the start of script execution: $elapsedText)\n\n";
+}
 
 class Organization
 {
@@ -174,6 +184,20 @@ function getHltFromGeneric($hlt_gen) {
     return $hlt;
 }
 
+function toGlobalCountQuery(string $selectQuery): string {
+    $q = trim($selectQuery);
+
+    $lastBrace = strrpos($q, '}');
+    if ($lastBrace === false) {
+        throw new InvalidArgumentException("SPARQL SELECT query does not contain final '}'.");
+    }
+
+    // Ssub = SELECT originale troncata all’ultimo '}'
+    $sub = substr($q, 0, $lastBrace + 1);
+
+    return "SELECT (COUNT(*) AS ?total) WHERE { { $sub } }";
+}
+
 include '../config.php';
 //ini_set('memory_limit', '2048M');
 require '../sso/autoload.php';
@@ -186,6 +210,9 @@ $open_search->initDashboardWizard();
 
 error_reporting(E_ERROR);
 session_start();
+$publicIOT = [];
+$ownedIOT = [];
+$delegatedIOT = [];
 
 $processId = 1;     // 0 = SELECT & UPDATE; 1 = UPSERT
 $link = mysqli_connect($host, $username, $password);
@@ -249,8 +276,56 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedIOTJson = file_get_contents($apiOwnershipUrl, false, $context);
+
+$ownershipResponse = feedHttpJson($apiOwnershipUrl, $context);
+$ownedIOTJson = $ownershipResponse['body'];
+
+// 1) check network
+if ($ownedIOTJson === false) {
+    $lastErr = error_get_last();
+    $msg = isset($lastErr['message']) ? $lastErr['message'] : 'unknown error';
+    echo("ERROR: ownership fetch failed (network): $msg\n");
+    exit(1);
+}
+
+// 2) HTTP status check
+$statusLine = isset($ownershipResponse['headers'][0]) ? $ownershipResponse['headers'][0] : '';
+if (!preg_match('#^HTTP/\S+\s+2\d\d#', $statusLine)) {
+    echo("ERROR: ownership HTTP status not 2xx: ".($statusLine ?: 'N/A')."\n");
+    exit(1);
+}
+
+// 3) body not empty
+if (trim($ownedIOTJson) === '') {
+    echo("ERROR: ownership response body is empty\n");
+    exit(1);
+}
+
+// 4) Check valid JSON
 $ownedIOT = json_decode($ownedIOTJson);
+if (json_last_error() !== JSON_ERROR_NONE || !is_array($ownedIOT)) {
+    echo("ERROR: ownership JSON decode error: ".json_last_error_msg()."\n");
+    exit(1);
+}
+
+// Validate ownership entries before any consumer uses identifiers or usernames.
+foreach ($ownedIOT as $ownershipEntry) {
+    if (!is_object($ownershipEntry) || !property_exists($ownershipEntry, 'elementId') ||
+        !(is_int($ownershipEntry->elementId) || (is_string($ownershipEntry->elementId) && trim($ownershipEntry->elementId) !== ''))) {
+        feedAbort('ownership');
+    }
+    if (!property_exists($ownershipEntry, 'username') || !is_string($ownershipEntry->username) || trim($ownershipEntry->username) === '') {
+        feedAbort('ownership');
+    }
+}
+
+$publicCount = is_array($publicIOT) ? count($publicIOT) : 0;
+$ownedCount = is_array($ownedIOT) ? count($ownedIOT) : 0;
+$delegatedCount = is_array($delegatedIOT) ? count($delegatedIOT) : 0;
+
+echo("IOT counts --> public: $publicCount, owned: $ownedCount, delegated: $delegatedCount\n");
+
+$ownerByElement = [];
 
 for($i = 0; $i < count($ownedIOT); $i++) {
     array_push($ownedElements, $ownedIOT[$i]->elementId);
@@ -261,6 +336,10 @@ $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
 echo("*** Starting IOT_Device_Update_DashboardWizard SCRIPT at: ".$start_time_ok."\n");
+
+$scriptStartTimestamp = microtime(true);
+$progressFile = __DIR__ . "/iot_ingestion_progress_os.txt";
+file_put_contents($progressFile, "iot_ingestion_wizard_os_start_datetime: $start_time_ok\nprogress: 0%\n");
 
 // FEEDING TABELLA DASHBOARD_WIZARD CON IOT SENSORS
 
@@ -333,9 +412,16 @@ if($rsIP) {
         $sparqlBatchCounter = 0;
         $sparqlLimit = 50000;
         $sparqlOffset = 0;
+
+        $percent = 0;
+        $totCount = 0;
+        $totalToIngest = 0;
+        $progressThresholds = [];
+        $nextProgressIndex = 0;
+
         echo("\n--------- Ingestion IOT for kbIP: " . $kbHostIp . "\n");
 
-        $queryIotSensorTotal = "
+    /*    $queryIotSensorTotal = "
             SELECT (COUNT(*) AS ?total) {
               ?s a sosa:Sensor.
               ?s schema:name ?n.
@@ -356,55 +442,69 @@ if($rsIP) {
 
 
         $queryIotSensorCount = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorTotal) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+        */
 
-        $queryIotSensorCountRresults = file_get_contents($queryIotSensorCount);
-        if ($queryIotSensorCountRresults === false) {
+        $queryIotSensorCore = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
+            "?s a sosa:Sensor. " .
+            "?s schema:name ?n. " .
+            "?s km4c:hasAttribute ?a. " .
+            "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
+            "?broker <http://schema.org/name> ?brokerName. " .
+            "?a km4c:data_type ?dt. " .
+            "OPTIONAL {?a km4c:value_name ?avn.} " .
+            "OPTIONAL {?a km4c:value_type ?avt.} " .
+            "OPTIONAL {?a km4c:value_unit ?u.} " .
+            "OPTIONAL {?s km4c:organization ?org.} " .
+            "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.} " .
+            "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon.} " .
+            "OPTIONAL {?s km4c:model ?model.} " .
+            "OPTIONAL {?s km4c:isMobile ?mobile.} " .
+            "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
+            "?s a ?sType. " .
+            "?sType rdfs:subClassOf+ ?sCategory. " .
+            //    "?sCategory rdfs:subClassOf km4c:Service. " .
+            "?sCategory rdfs:subClassOf km4c:Service. FILTER(?sCategory!=km4c:HighLevelType) " .
+            "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)} ";
+
+
+        $sparqlOffset = 0;
+        $queryIotSensorDecodedInit = $queryIotSensorCore .
+            "OFFSET " . $sparqlOffset .
+            " LIMIT " . $sparqlLimit;
+
+        // Calcolo del totale globale
+        $queryIotSensorCountTotalDecoded = toGlobalCountQuery($queryIotSensorDecodedInit);
+        $queryIotSensorCountTotal = $kbHostIp . "/sparql?default-graph-uri=&query=" . urlencode($queryIotSensorCountTotalDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
+
+        $queryIotSensorCountTotalResults = file_get_contents($queryIotSensorCountTotal);
+        if ($queryIotSensorCountTotalResults === false) {
             echo ("ERRORE SPARQL QUERY. Exit Script.\n");
             $sparqlErrorFlag = true;
             exit();
         }
-
-        $resCountArray = json_decode($queryIotSensorCountRresults, true);
-        // Permette di configurare ogni quanto loggare
+        $resCountArray = json_decode($queryIotSensorCountTotalResults, true);
         $logStepPercent = 10;
 
-        // Calcolo totale e soglie per logging avanzamento
         $totalToIngest = 0;
         if (isset($resCountArray['results']['bindings'][0]['total']['value'])) {
             $totalToIngest = (int)$resCountArray['results']['bindings'][0]['total']['value'];
         }
-        $progressThresholds = [];
+
         if ($logStepPercent > 0 && $totalToIngest > 0) {
             for ($i = $logStepPercent; $i <= 100; $i += $logStepPercent) {
                 $progressThresholds[] = ceil($totalToIngest * $i / 100);
             }
         }
         $nextProgressIndex = 0;
-
+        echo("\n*** Total Measures to be ingested for kbIP " . $kbHostIp . ": ". $totalToIngest . "\n");
+        echo formatIotFeedProgress(0, $totCount, $totalToIngest, $scriptStartTimestamp);
+        file_put_contents($progressFile, "iot_ingestion_wizard_os_start_datetime: $start_time_ok\nprogress: 0%\n");
 
         while ($sparqlErrorFlag === false) {
             $sparqlOffset = ($sparqlLimit * $sparqlBatchCounter);
-            $queryIotSensorDecoded = "select distinct ?s ?n ?a ?avn ?avt ?dt ?u ?serviceType ?org ?imp ?brokerName ?model ?mobile ?lat ?lon { " .
-                "?s a sosa:Sensor. " .
-                "?s schema:name ?n. " .
-                "?s km4c:hasAttribute ?a. " .
-                "?s <http://purl.oclc.org/NET/UNIS/fiware/iot-lite#exposedBy> ?broker. " .
-                "?broker <http://schema.org/name> ?brokerName. " .
-                "?a km4c:data_type ?dt. " .
-                "OPTIONAL {?a km4c:value_name ?avn.} " .
-                "OPTIONAL {?a km4c:value_type ?avt.} " .
-                "OPTIONAL {?a km4c:value_unit ?u.} " .
-                "OPTIONAL {?s km4c:organization ?org.} " .
-                "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#lat> ?lat.} " .
-                "OPTIONAL {?s <http://www.w3.org/2003/01/geo/wgs84_pos#long> ?lon.} " .
-                "OPTIONAL {?s km4c:model ?model.} " .
-                "OPTIONAL {?s km4c:isMobile ?mobile.} " .
-                "OPTIONAL {?s <http://www.w3.org/ns/ssn/implements> ?imp.} " .
-                "?s a ?sType. " .
-                "?sType rdfs:subClassOf+ ?sCategory. " .
-                "?sCategory rdfs:subClassOf km4c:Service. " .
-                "bind(concat(replace(str(?sCategory),\"http://www.disit.org/km4city/schema#\",\"\"),\"_\",replace(str(?sType),\"http://www.disit.org/km4city/schema#\",\"\")) as ?serviceType)} " .
-		        // "FILTER(CONTAINS(STR(?n), 'semaphore_'))} " ;
+
+            // Query paginata
+            $queryIotSensorDecoded = $queryIotSensorCore .
                 "OFFSET " . $sparqlOffset .
                 " LIMIT " . $sparqlLimit;
 
@@ -417,14 +517,7 @@ if($rsIP) {
                 $sparqlErrorFlag = true;
             }   */
 
-            $queryIotSensorRresults = file_get_contents($queryIotSensor);
-            if ($queryIotSensorRresults === false) {
-                echo ("ERRORE SPARQL QUERY. Exit Script.\n");
-                $sparqlErrorFlag = true;
-                exit();
-            }
-
-            $resArray = json_decode($queryIotSensorRresults, true);
+            $resArray = feedSparqlResult($queryIotSensor);
 
             if (sizeof($resArray['results']['bindings']) == 0) {
                 $sparqlErrorFlag = true;
@@ -442,9 +535,14 @@ if($rsIP) {
                 $count++;
                 $totCount++;
                 if ($totalToIngest > 0 && $logStepPercent > 0 && $nextProgressIndex < count($progressThresholds) && $totCount >= $progressThresholds[$nextProgressIndex]) {
-                    $percent = ($nextProgressIndex + 1) * $logStepPercent;
-                    echo("\n*** Ingestion progress: $percent% (" . $totCount . " of " . $totalToIngest . ")\n\n");
-                    $nextProgressIndex++;
+                    // Small totals can cross several rounded thresholds on one measure.
+                    // Emit only the highest reached threshold, once for this measure.
+                    while ($nextProgressIndex < count($progressThresholds) && $totCount >= $progressThresholds[$nextProgressIndex]) {
+                        $percent = ($nextProgressIndex + 1) * $logStepPercent;
+                        $nextProgressIndex++;
+                    }
+                    echo formatIotFeedProgress($percent, $totCount, $totalToIngest, $scriptStartTimestamp);
+                    file_put_contents($progressFile, "iot_ingestion_wizard_os_start_datetime: $start_time_ok\nprogress: $percent%\n");
                 }
                 $owner = null;
                 $cryptedOwner = null;
@@ -503,8 +601,10 @@ if($rsIP) {
                         $owner = strtolower($struct->username);     // MOD OWN-DEL
                         break;
                     }
-                }
-
+		}
+                if (!$owner) {
+		    echo "WARNING $unique_name_id not found in ownership\n";
+		}
                 //  if (!in_array($owner, $encrCpls)) {
                 if (!array_key_exists($owner, $encrCpls)) {
                     $cryptedOwner = encryptOSSL($owner, $encryptionInitKey, $encryptionIvKey, $encryptionMethod);           // MOD OWN-DEL

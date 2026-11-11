@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -245,8 +246,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedIOTJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedIOT = json_decode($ownedIOTJson);
+$ownedIOT = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedIOT); $i++) {
     array_push($ownedElements, $ownedIOT[$i]->elementId);
@@ -379,7 +379,7 @@ if($rsOrg) {
         $response = curl_exec($curl);
         $responseArr = json_decode($response);
 
-echo $url."\n\n".$response."\n\n";
+echo $response . "\n\n";
 
 
         curl_close($curl);

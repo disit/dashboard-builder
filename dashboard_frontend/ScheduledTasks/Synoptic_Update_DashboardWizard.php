@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -76,8 +77,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedSynopticJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedSynoptic = json_decode($ownedSynopticJson);
+$ownedSynoptic = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedSynoptic); $i++) {
     array_push($ownedElements, $ownedSynoptic[$i]->elementId);
@@ -222,4 +222,7 @@ if($rs) {
         }
 
     }
+
+    echo("Script Finished.");
+
 }

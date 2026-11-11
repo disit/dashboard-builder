@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -83,22 +84,15 @@ while ($sparqlErrorFlag === false) {
         " LIMIT " . $sparqlLimit;
 
     $queryAscapiEtl = $kbHostUrl . ":8890/sparql?default-graph-uri=&query=" . urlencode($queryAscapiEtlDecoded) . "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on";
-    try {
-        $options = array(
-            'http' => array(
-                'header'  => "Content-type: application/json\r\n",
-                'timeout' => 180,
-                'ignore_errors' => true
-            )
-        );
-        $context  = stream_context_create($options);
-        $queryAscapiEtlRresults = file_get_contents($queryAscapiEtl, false, $context);
-    } catch (Exception $e) {
-        echo ("ERRORE SPARQL QUERY: " . $e->getMessage() . "\n");
-        $sparqlErrorFlag = true;
-    }
-//    echo("SPARQL file_get_contents response: " . $queryAscapiEtlRresults. "\n");
-    $resArrayEtl = json_decode($queryAscapiEtlRresults, true);
+    $options = array(
+        'http' => array(
+            'header'  => "Content-type: application/json\r\n",
+            'timeout' => 180,
+            'ignore_errors' => true
+        )
+    );
+    $context  = stream_context_create($options);
+    $resArrayEtl = feedSparqlResult($queryAscapiEtl, $context);
     echo("SPARQL Query (Not Encoded): " . $queryAscapiEtlDecoded. "\n");
     echo("SPARQL Query (URL-Encoded): " . $queryAscapiEtl. "\n");
     echo("SPARQL Response records length: " . sizeof($resArrayEtl['results']['bindings']) . "\n");

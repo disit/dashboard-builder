@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/feedCompatibility.php';
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
@@ -76,8 +77,7 @@ $options = array(
 );
 
 $context  = stream_context_create($options);
-$ownedAppJson = file_get_contents($apiOwnershipUrl, false, $context);
-$ownedApp = json_decode($ownedAppJson);
+$ownedApp = feedOwnershipList($apiOwnershipUrl, $context);
 
 for($i = 0; $i < count($ownedApp); $i++) {
     array_push($ownedElements, $ownedApp[$i]->elementId);
