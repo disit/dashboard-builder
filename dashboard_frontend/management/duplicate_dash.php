@@ -277,6 +277,20 @@ if($result1)
                          } else {
                              $maxId++;
                          }
+                        //Copy of the img on buttons
+                        if($row4['type_w'] != 'widgetButton'){
+                            continue;
+                        }
+                        $styleParameters = json_decode($row4['styleParameters'], true);
+                        if($styleParameters['hasImage'] == "no"){
+                            continue;
+                        }
+                        $sourceImgPath = "../img/widgetButtonImages/".$sourceWidgetName;
+                        $destinationImgPath = "../img/widgetButtonImages/".$clonedWidgetName;
+                        $copyResult = copyDirectory($sourceImgPath, $destinationImgPath);
+                        if (!$copyResult) {
+                            error_log("Error copying button image from $sourceImgPath to $destinationImgPath");
+                        }
                      }
 
 
@@ -310,6 +324,7 @@ if($result1)
                          echo "Ko";
                          exit();
                      }
+
 
                      //Copia logo della dashboard
                      if (file_exists("../img/dashLogos/dashboard" . $sourceDashId . "/" . $sourceDashLogoFilename)) {
@@ -390,4 +405,32 @@ if($result1)
     echo "Ko";
     exit();
 }
+}
+
+
+function copyDirectory($source, $destination)
+{
+    if (!is_dir($source)) {
+        return false;
+    }
+    if (!is_dir($destination)) {
+        if (!mkdir($destination, 0755, true)) {
+            return false;
+        }
+    }
+    $directory = new RecursiveDirectoryIterator($source,RecursiveDirectoryIterator::SKIP_DOTS);
+    $iterator = new RecursiveIteratorIterator($directory,RecursiveIteratorIterator::SELF_FIRST);
+    foreach ($iterator as $item) {
+        $target = $destination . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+        if ($item->isDir()) {
+            if (!is_dir($target)) {
+                mkdir($target, 0755, true);
+            }
+        } else {
+            if (!copy($item->getPathname(), $target)) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
