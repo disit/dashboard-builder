@@ -22,7 +22,7 @@ $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
 
-$startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$startTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
@@ -96,7 +96,7 @@ if($rs) {
     }
 }
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

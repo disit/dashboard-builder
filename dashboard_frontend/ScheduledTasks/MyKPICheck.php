@@ -24,7 +24,10 @@ function getAccessToken($token_endpoint, $username, $password, $client_id){
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     $curl_response = curl_exec($ch);
-    curl_close($ch);
+    // PHP 7 uses a resource; PHP 8 releases the CurlHandle automatically.
+    if (is_resource($ch)) {
+        curl_close($ch);
+    }
     return json_decode($curl_response)->access_token;
 
 }
@@ -108,7 +111,7 @@ if ($rsMyKPI) {
             $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
             $env = $genFileContent['environment']['value'];
 
-            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
             $date_now = $now->format('c');
             $date_now_ok = explode("+", $date_now);
             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -155,7 +158,7 @@ if ($rsMyKPI) {
     }
 }
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

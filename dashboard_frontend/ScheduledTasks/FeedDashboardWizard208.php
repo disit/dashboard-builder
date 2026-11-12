@@ -22,7 +22,7 @@ $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
 
-$startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$startTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
@@ -95,8 +95,8 @@ foreach ($resArrayEtl['results']['bindings'] as $key => $val) {
     $a = $resArrayEtl['results']['bindings'][$key]['a']['value'];   // $a --> attribute
     $n = $resArrayEtl['results']['bindings'][$key]['n']['value'];   // $a --> name
     $value_name = $resArrayEtl['results']['bindings'][$key]['avn']['value'];
-    $value_type = $resArrayEtl['results']['bindings'][$key]['avt']['value'];
-    $value_type = explode("value_type/", $value_type)[1];
+    $value_type = $resArrayEtl['results']['bindings'][$key]['avt']['value'] ?? '';
+    $value_type = explode("value_type/", $value_type)[1] ?? '';
 
     $dt = $resArrayEtl['results']['bindings'][$key]['dt']['value'];
     $u = $resArrayEtl['results']['bindings'][$key]['u']['value'];
@@ -201,7 +201,7 @@ if($rs) {
     }
 }
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

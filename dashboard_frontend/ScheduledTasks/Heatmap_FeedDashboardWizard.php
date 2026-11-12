@@ -13,7 +13,7 @@
    You should have received a copy of the GNU Affero General Public License
    along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
-function udate($format = 'u', $microT) {
+function udate($format, $microT) {
 
     $timestamp = floor($microT);
     $milliseconds = round(($microT - $timestamp) * 1000000);
@@ -30,7 +30,7 @@ $link = mysqli_connect($host, $username, $password);
 //error_reporting(E_ALL);
 mysqli_select_db($link, $dbname);
 
-$startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$startTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
@@ -158,7 +158,7 @@ foreach ($heatmapResultsArray as $heatmapName) {
 }
 
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

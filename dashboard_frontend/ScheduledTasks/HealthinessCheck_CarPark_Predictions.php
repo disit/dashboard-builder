@@ -2,17 +2,16 @@
 
 /* Dashboard Builder.
    Copyright (C) 2017 DISIT Lab https://www.disit.org - University of Florence
-   This program is free software; you can redistribute it and/or
-   modify it under the terms of the GNU General Public License
-   as published by the Free Software Foundation; either version 2
-   of the License, or (at your option) any later version.
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU Affero General Public License as
+   published by the Free Software Foundation, either version 3 of the
+   License, or (at your option) any later version.
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-   You should have received a copy of the GNU General Public License
-   along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA. */
+   GNU Affero General Public License for more details.
+   You should have received a copy of the GNU Affero General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>. */
 
 include '../config.php';
 
@@ -30,7 +29,7 @@ $saved_direct = "";
 $kb_based = "";
 $parameters = "";
 
-$startTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$startTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $start_scritp_time = $startTime->format('c');
 $start_scritp_time_string = explode("+", $start_scritp_time);
 $start_time_ok = str_replace("T", " ", $start_scritp_time_string[0]);
@@ -88,7 +87,7 @@ if ($rs) {
             $healthiness = $responseArray['healthiness'];
             $predictions = $responseArray['predictions'];
 
-            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
             $date_now = $now->format('c');
             $date_now_ok = explode("+", $date_now);
             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -155,7 +154,7 @@ if ($rs) {
 
 //mysqli_query($link, "UPDATE DashboardWizard SET healthiness = 'false' WHERE healthiness IS NULL OR healthiness = '';");
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

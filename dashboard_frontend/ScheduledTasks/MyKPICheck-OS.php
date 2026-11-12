@@ -103,7 +103,7 @@ if (sizeof($rsMyKPI) > 0) {
             $ownershipFileContent = parse_ini_file("../conf/ownership.ini");
             $env = $genFileContent['environment']['value'];
 
-            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
             $date_now = $now->format('c');
             $date_now_ok = explode("+", $date_now);
             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -153,7 +153,7 @@ if (sizeof($rsMyKPI) > 0) {
     }
 }
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

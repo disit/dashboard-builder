@@ -127,7 +127,7 @@ if (sizeof($rs) > 0) {
                 $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
             }
 
-            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
             $date_now = $now->format('c');
             $date_now_ok = explode("+", $date_now);
             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -144,13 +144,18 @@ if (sizeof($rs) > 0) {
                     ],
                 ]);
 
+                $http_response_header = [];
+                if (function_exists('http_clear_last_response_headers')) http_clear_last_response_headers();
                 $response = file_get_contents($url);
 
-                $status_line = $http_response_header[0];
+                $responseHeaders = function_exists('http_get_last_response_headers')
+                    ? http_get_last_response_headers()
+                    : (get_defined_vars()['http_response_header'] ?? []);
+                $status_line = $responseHeaders[0] ?? '';
 
                 preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
 
-                $status = $match[1];
+                $status = $match[1] ?? 0;
 
               /*  if ($status !== "200") {
                     throw new RuntimeException("unexpected response status: {$status_line}\n" . $response);
@@ -190,8 +195,11 @@ if (sizeof($rs) > 0) {
                     continue;
                 } else if ($status == "200") {
 
-                    $realtime_data = $responseArray['realtime']['results']['bindings'][0];
-                    $healthiness = $responseArray['healthiness'];
+                    $realtime_data = $responseArray['realtime']['results']['bindings'][0] ?? [];
+                    $healthiness = $responseArray['healthiness'] ?? [];
+                    if (!is_array($responseArray) || !is_array($realtime_data) || !is_array($healthiness)) {
+                        continue;
+                    }
 
                     if ($realtime_data['measuredTime']) {
                         $last_date = str_replace("T", " ", $realtime_data['measuredTime']['value']);
@@ -204,6 +212,7 @@ if (sizeof($rs) > 0) {
                     if (!empty($realtime_data)) {
 
                         foreach ($realtime_data as $key => $item) {
+                            if (!is_array($item)) continue;
 
                             if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                                 $measure = $realtime_data[$key]['value'];
@@ -214,16 +223,16 @@ if (sizeof($rs) > 0) {
 
                                 if (array_key_exists($key, $healthiness)) {
 
-                                    $healthiness_value = $healthiness[$key]['healthy'];
+                                    $healthiness_value = $healthiness[$key]['healthy'] ?? false;
 
                                 } else {
 
-                                    $healthiness_value = "false";
+                                    $healthiness_value = false;
                                 }
 
-                                if ($healthiness_value = $healthiness[$key]['healthy'] === false) {
+                                if ($healthiness_value === false) {
                                     $healthy = "false";
-                                } else if ($healthiness_value = $healthiness[$key]['healthy'] === true) {
+                                } else if ($healthiness_value === true) {
                                     $healthy = "true";
                                 } else {
                                     $healthy = "false";
@@ -253,7 +262,7 @@ if (sizeof($rs) > 0) {
                             }
                         }
                         //**********************************************************************************
-                        $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+                        $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
                         $date_now = $now->format('c');
                         $date_now_ok = explode("+", $date_now);
                         $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -329,6 +338,7 @@ if (sizeof($rs) > 0) {
                         if ($unique_name_id != '') {
                             if (!empty($healthiness)) {
                                 foreach ($healthiness as $key => $item) {
+                                    if (!is_array($item)) continue;
 
                                     if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                                     //    if ($key != 'capacity' || $sub_nature != 'Car_park') {
@@ -341,16 +351,16 @@ if (sizeof($rs) > 0) {
 
                                             if (array_key_exists($key, $healthiness)) {
 
-                                                $healthiness_value = $healthiness[$key]['healthy'];
+                                                $healthiness_value = $healthiness[$key]['healthy'] ?? false;
 
                                             } else {
 
-                                                $healthiness_value = "false";
+                                                $healthiness_value = false;
                                             }
 
-                                            if ($healthiness_value = $healthiness[$key]['healthy'] === false) {
+                                            if ($healthiness_value === false) {
                                                 $healthy = "false";
-                                            } else if ($healthiness_value = $healthiness[$key]['healthy'] === true) {
+                                            } else if ($healthiness_value === true) {
                                                 $healthy = "true";
                                             } else {
                                                 $healthy = "false";
@@ -375,7 +385,7 @@ if (sizeof($rs) > 0) {
                                 }
                             }
                             //**********************************************************************************
-                            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+                            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
                             $date_now = $now->format('c');
                             $date_now_ok = explode("+", $date_now);
                             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -464,7 +474,7 @@ if (!isset($useOpenSearch) || $useOpenSearch != "yes") {
     // $open_search->setBoolEmptyHealthinessUpdate();
 }
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);

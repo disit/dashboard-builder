@@ -116,7 +116,7 @@ if ($rs) {
                 $url = $kbUrlSuperServiceMap . "?serviceUri=" . $sUri . "&healthiness=true&format=json&apikey=" . $ssMapAPIKey;
             }
 
-            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
             $date_now = $now->format('c');
             $date_now_ok = explode("+", $date_now);
             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -133,13 +133,18 @@ if ($rs) {
                     ],
                 ]);
 
+                $http_response_header = [];
+                if (function_exists('http_clear_last_response_headers')) http_clear_last_response_headers();
                 $response = file_get_contents($url);
 
-                $status_line = $http_response_header[0];
+                $responseHeaders = function_exists('http_get_last_response_headers')
+                    ? http_get_last_response_headers()
+                    : (get_defined_vars()['http_response_header'] ?? []);
+                $status_line = $responseHeaders[0] ?? '';
 
                 preg_match('{HTTP\/\S*\s(\d{3})}', $status_line, $match);
 
-                $status = $match[1];
+                $status = $match[1] ?? 0;
 
               /*  if ($status !== "200") {
                     throw new RuntimeException("unexpected response status: {$status_line}\n" . $response);
@@ -182,8 +187,11 @@ if ($rs) {
                     continue;
                 } else if ($status == "200") {
 
-                    $realtime_data = $responseArray['realtime']['results']['bindings'][0];
-                    $healthiness = $responseArray['healthiness'];
+                    $realtime_data = $responseArray['realtime']['results']['bindings'][0] ?? [];
+                    $healthiness = $responseArray['healthiness'] ?? [];
+                    if (!is_array($responseArray) || !is_array($realtime_data) || !is_array($healthiness)) {
+                        continue;
+                    }
 
                     /*     $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
                          $date_now = $now->format('c');
@@ -191,9 +199,6 @@ if ($rs) {
                          $check_time = str_replace("T", " ", $date_now_ok[0]);
                          //     print_r($check_time);*/
 
-                    if ($sub_nature === 'Car_park') {
-                        $stop_flag = 1;
-                    }
 
                     if ($realtime_data['measuredTime']) {
                         $last_date = str_replace("T", " ", $realtime_data['measuredTime']['value']);
@@ -206,9 +211,10 @@ if ($rs) {
                     if (!empty($realtime_data)) {
 
                         foreach ($realtime_data as $key => $item) {
+                            if (!is_array($item)) continue;
 
                             if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
-                                if ($key != 'capacity' || $sub_nature != 'Car_park') {
+                            //    if ($key != 'capacity' || $sub_nature != 'Car_park') {
 
                                 /*    if ($realtime_data[$key]['valueDate']) {
                                         $last_date = str_replace("T", " ", $realtime_data[$key]['valueDate']);
@@ -222,16 +228,16 @@ if ($rs) {
 
                                     if (array_key_exists($key, $healthiness)) {
 
-                                        $healthiness_value = $healthiness[$key]['healthy'];
+                                        $healthiness_value = $healthiness[$key]['healthy'] ?? false;
 
                                     } else {
 
-                                        $healthiness_value = "false";
+                                        $healthiness_value = false;
                                     }
 
-                                    if ($healthiness_value = $healthiness[$key]['healthy'] === false) {
+                                    if ($healthiness_value === false) {
                                         $healthy = "false";
-                                    } else if ($healthiness_value = $healthiness[$key]['healthy'] === true) {
+                                    } else if ($healthiness_value === true) {
                                         $healthy = "true";
                                     } else {
                                         $healthy = "false";
@@ -244,14 +250,12 @@ if ($rs) {
                                     echo("             Updating : " . $key . " at: " . $update_time_okU . " --> healthiness = " . $healthy . "\n");
                                     $query_update = "UPDATE DashboardWizard SET oldEntry = NULL, last_date= '" . substr($last_date, 0, strlen($last_date) - 6) . "', last_value = '" . $measure . "', healthiness = '" . $healthy . "', lastCheck = '" . substr($update_time_okU, 0, strlen($update_time_okU) - 6) . "' WHERE get_instances= '" . $get_instances . "' AND low_level_type = '" . $key . "';";
                                     mysqli_query($link, $query_update);
-                                }
-                            } else {
-                                $stop_flag = 1;
+                            //    }
                             }
 
                         }
                         //**********************************************************************************
-                        $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+                        $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
                         $date_now = $now->format('c');
                         $date_now_ok = explode("+", $date_now);
                         $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -301,6 +305,7 @@ if ($rs) {
                         if ($unique_name_id != '') {
                             if (!empty($healthiness)) {
                                 foreach ($healthiness as $key => $item) {
+                                    if (!is_array($item)) continue;
 
                                     if ($key != 'measuredTime' && $key != 'updating' && $key != 'instantTime') {
                                         if ($key != 'capacity' || $sub_nature != 'Car_park') {
@@ -313,16 +318,16 @@ if ($rs) {
 
                                             if (array_key_exists($key, $healthiness)) {
 
-                                                $healthiness_value = $healthiness[$key]['healthy'];
+                                                $healthiness_value = $healthiness[$key]['healthy'] ?? false;
 
                                             } else {
 
-                                                $healthiness_value = "false";
+                                                $healthiness_value = false;
                                             }
 
-                                            if ($healthiness_value = $healthiness[$key]['healthy'] === false) {
+                                            if ($healthiness_value === false) {
                                                 $healthy = "false";
-                                            } else if ($healthiness_value = $healthiness[$key]['healthy'] === true) {
+                                            } else if ($healthiness_value === true) {
                                                 $healthy = "true";
                                             } else {
                                                 $healthy = "false";
@@ -344,7 +349,7 @@ if ($rs) {
                                 }
                             }
                             //**********************************************************************************
-                            $now = new DateTime(null, new DateTimeZone('Europe/Rome'));
+                            $now = new DateTime('now', new DateTimeZone('Europe/Rome'));
                             $date_now = $now->format('c');
                             $date_now_ok = explode("+", $date_now);
                             $check_time = str_replace("T", " ", $date_now_ok[0]);
@@ -407,7 +412,7 @@ if ($rs) {
 
 mysqli_query($link, "UPDATE DashboardWizard SET healthiness = 'false' WHERE healthiness IS NULL OR healthiness = '';");
 
-$endTime = new DateTime(null, new DateTimeZone('Europe/Rome'));
+$endTime = new DateTime('now', new DateTimeZone('Europe/Rome'));
 $end_scritp_time = $endTime->format('c');
 $end_scritp_time_string = explode("+", $end_scritp_time);
 $end_time_ok = str_replace("T", " ", $end_scritp_time_string[0]);
