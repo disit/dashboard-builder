@@ -16,6 +16,7 @@
         var missingUpdated = document.getElementById('translation-auto-missing-updated');
         var missingGeneration = 0, lastRunState;
         var timer, posting = false, enabled = false, resumable = false, runId = null, requestGeneration = 0;
+        var activePollMilliseconds = 2500, checkingWorker = false, interruptionCandidate = null, pollSequence = 0;
         button.disabled = true;
         function api(body) {
             var controller = new AbortController();
@@ -58,20 +59,33 @@
             });
         }
         function render(data) {
-            var runState = (data.run ? data.run.id + ':' + data.run.status : 'none') + ':' + (data.busy === true);
-            if (lastRunState !== undefined && lastRunState !== runState && data.busy !== true) refreshMissing();
+            // A live worker takes precedence over a conflicting resumable snapshot.
+            if (data.busy === true || data.worker_active === true)
+                data = Object.assign({}, data, {busy: true, resumable: false});
+            checkingWorker = false;
+            if (data.resumable === true && data.run && data.run.status !== 'waiting_auth') {
+                var progressCounts = data.run.counts || {};
+                var progress = Object.keys(progressCounts).sort().map(function (key) { return [key, progressCounts[key]]; });
+                var signature = JSON.stringify([data.run.id, data.run.status, data.run.heartbeat_at, data.run.error_code, progress]);
+                var observedAt = performance.now();
+                if (!interruptionCandidate || interruptionCandidate.signature !== signature)
+                    interruptionCandidate = {signature: signature, seenAt: observedAt};
+                checkingWorker = observedAt - interruptionCandidate.seenAt < activePollMilliseconds;
+            } else interruptionCandidate = null;
+            var runState = (data.run ? data.run.id + ':' + data.run.status : 'none') + ':' + (data.busy === true || checkingWorker);
+            if (lastRunState !== undefined && lastRunState !== runState && data.busy !== true && !checkingWorker) refreshMissing();
             lastRunState = runState;
             enabled = data.enabled === true;
-            resumable = data.resumable === true;
+            resumable = data.resumable === true && !checkingWorker;
             runId = data.run ? data.run.id : null;
-            button.disabled = posting || !enabled || data.busy === true;
+            button.disabled = posting || !enabled || data.busy === true || checkingWorker;
             button.textContent = resumable ? 'Resume translation' : 'Translate missing texts';
             language.disabled = button.disabled || resumable;
             if (reset) {
                 reset.hidden = !enabled || !resumable;
                 reset.disabled = posting || button.disabled || !resumable || !runId;
             }
-            if ((resumable || data.busy) && data.run) { language.value = (data.run.languages || []).length === 1 ? data.run.languages[0] : ''; }
+            if ((resumable || data.busy || checkingWorker) && data.run) { language.value = (data.run.languages || []).length === 1 ? data.run.languages[0] : ''; }
             while (results.firstChild) results.removeChild(results.firstChild);
             if (!enabled) {
                 if (logState) logState.textContent = 'Disabled';
@@ -83,10 +97,12 @@
                 var counts = run.counts || {};
                 var authentication = run.auth_mode === 'dedicated' ? 'Technical account' :
                     (run.auth_mode === 'session' ? 'Signed-in user' : '');
-                if (logState) logState.textContent = (data.busy ? 'In progress' : (resumable ? 'Resume required' : run.status)) +
+                if (logState) logState.textContent = (checkingWorker ? 'Checking worker status' : (data.busy ? 'In progress' : (resumable ? 'Resume required' : run.status))) +
                     (authentication ? ' · ' + authentication : '') +
                     ' · ' + (counts.applied || 0) + ' applied · ' + (counts.review || 0) + ' review';
-                if (data.busy) {
+                if (checkingWorker) {
+                    text = 'Checking whether the translation worker is still running… ';
+                } else if (data.busy) {
                     text = data.already_running ? 'Translation already running. ' : 'Translation in progress. ';
                     text += 'Started by ' + (run.started_by || run.requested_by || run.origin) + ' at ' + (run.launch_at || run.started_at || run.created_at) + ' UTC. ';
                     if (!data.worker_active) text += 'Waiting for the authenticated worker. ';
@@ -95,7 +111,7 @@
                         (String(run.error_code || '').indexOf('dedicated_') === 0 ?
                             'Technical authentication is unavailable or was rejected. Check dedicated credentials and API/IP permissions, then resume. ' :
                             'The session token expired or was rejected by the LLM. Sign in again or check API permissions, then resume. ') :
-                        'Translation was interrupted. Resume translation; the original selection is preserved. ';
+                        'The translation worker is not running. Resume translation to continue; the original selection is preserved. ';
                 } else text = 'Last run: ' + run.status + '. ';
                 if (authentication) text += 'Authentication: ' + authentication + '. ';
                 text += 'Applied: ' + (counts.applied || 0) +
@@ -119,16 +135,17 @@
         }
         function schedule(busy) {
             clearTimeout(timer);
-            timer = setTimeout(poll, document.hidden ? 30000 : (busy ? 2500 : 15000));
+            timer = setTimeout(poll, document.hidden ? 30000 : (busy ? activePollMilliseconds : 15000));
         }
         function poll() {
             if (posting) { schedule(true); return; }
-            var generation = requestGeneration;
+            var generation = requestGeneration, sequence = ++pollSequence;
             api({action: 'status'}).then(function (data) {
-                if (generation !== requestGeneration) return;
-                render(data); schedule(data.busy);
+                if (generation !== requestGeneration || sequence !== pollSequence) return;
+                render(data); schedule(data.busy || checkingWorker);
             }).catch(function () {
-                if (generation !== requestGeneration) return;
+                if (generation !== requestGeneration || sequence !== pollSequence) return;
+                checkingWorker = false; interruptionCandidate = null;
                 button.disabled = true; language.disabled = true;
                 if (reset) reset.disabled = true;
                 if (logState) logState.textContent = 'Status unavailable';
@@ -148,7 +165,7 @@
             status.textContent = 'Starting translation…';
             api({action: 'start', mode: 'apply',
                 languages: language.value ? [language.value] : [], request_key: key})
-                .then(function (data) { posting = false; render(data); schedule(data.busy); })
+                .then(function (data) { posting = false; render(data); schedule(data.busy || checkingWorker); })
                 .catch(function () {
                     posting = false;
                     status.textContent = 'Could not confirm the start. Checking the server status…';
@@ -163,7 +180,7 @@
             if (logState) logState.textContent = 'Resetting…';
             status.textContent = 'Resetting pending translation…';
             api({action: 'reset', run_id: runId})
-                .then(function (data) { posting = false; render(data); schedule(data.busy); })
+                .then(function (data) { posting = false; render(data); schedule(data.busy || checkingWorker); })
                 .catch(function () {
                     posting = false;
                     status.textContent = 'Could not confirm the reset. Checking the server status…';

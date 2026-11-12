@@ -28,15 +28,21 @@ function logFailure($stage,\Throwable $error,array $context=[]) {
             'invalid_request request_too_large invalid_languages automatic_translation_disabled_or_invalid_action invalid_retry_ids worker_running run_reserved');
         $code=$error->getMessage();
         if(!in_array($code,$known,true) && !preg_match('/^(?:api|token|dedicated_auth)_http_[0-9]{1,3}$/D',$code))$code='unexpected_error';
-        $record=['event'=>'failure','stage'=>$stage,'error'=>$code,'exception'=>get_class($error),
+        $record=['timestamp'=>(new \DateTimeImmutable('now',new \DateTimeZone('UTC')))->format('Y-m-d\TH:i:s.v\Z'),
+            'event'=>'failure','stage'=>$stage,'error'=>$code,'exception'=>get_class($error),
             'exception_code'=>(int)$error->getCode(),'file'=>basename($error->getFile()),'line'=>$error->getLine(),
             'pid'=>getmypid(),'sapi'=>PHP_SAPI,'php_version'=>PHP_VERSION];
         foreach(['run_id','batch','language','item_count','requested_by','auth_mode','action','finish_reason'] as $key)
             if(isset($context[$key]) && is_scalar($context[$key]))$record[$key]=is_string($context[$key])?substr($context[$key],0,128):$context[$key];
         if($error instanceof ApiError){
             $record['retryable']=$error->retryable;
+        }
+        if($error instanceof ApiError || $error instanceof CompletionError){
             foreach(['failure_type','host','http_status','curl_errno','curl_error','timeout_seconds','elapsed_seconds',
-                'dns_seconds','connect_seconds','response_bytes','response_limit_bytes','json_error','oauth_error'] as $key)
+                'dns_seconds','connect_seconds','response_bytes','response_limit_bytes','json_error','oauth_error',
+                'validation_reason','expected_count','received_count','item_index','received_type','missing_count','completion_bytes','content_format',
+                'budget_scope','configured_timeout_seconds','request_budget_seconds','run_remaining_seconds','run_elapsed_seconds',
+                'run_budget_seconds','minimum_request_seconds','consecutive_failures'] as $key)
                 if(isset($error->diagnostics[$key]) && is_scalar($error->diagnostics[$key]))$record[$key]=$error->diagnostics[$key];
         }
         if($error instanceof \mysqli_sql_exception){
@@ -143,7 +149,7 @@ class Client
         return $token;
     }
     private function renewDedicatedToken($deadline) {
-        $remaining=$deadline-microtime(true);
+        $remaining=$deadline-translationClock();
         if($remaining<=0)throw new ApiError('time_budget',true);
         $this->config['auth']=dedicatedAccessToken($this->config,$this->transport,$remaining)+['source'=>'dedicated'];
     }
@@ -152,12 +158,25 @@ class Client
         if($status<200 || $status>=300) throw new ApiError($prefix.'_http_'.$status,
             $status===429 || $status>=500,$reply['retry_after'] ?? 0,($reply['diagnostics'] ?? [])+['http_status'=>$status]);
     }
-    public function complete($language,array $items,$timeout=null) {
-        $deadline=microtime(true)+($timeout ?? $this->config['timeout_seconds']);
+    public function complete($language,array $items,$timeout=null,$runDeadline=null) {
+        $requestBudget=$timeout ?? $this->config['timeout_seconds'];
+        $deadline=translationClock()+$requestBudget;
+        $runLimited=$runDeadline!==null && $runDeadline<=$deadline;
+        if($runDeadline!==null)$deadline=min($deadline,$runDeadline);
+        $minimum=$runDeadline!==null?minimumInferenceSeconds($this->config):0;
+        $remainingBudget=function()use($deadline,$runDeadline,$runLimited,$minimum,$requestBudget){
+            $remaining=$deadline-translationClock();
+            if($remaining<=0 || $remaining<$minimum)throw new ApiError('time_budget',true,0,[
+                'failure_type'=>'budget','budget_scope'=>$runLimited?'run':'request',
+                'configured_timeout_seconds'=>$this->config['timeout_seconds'],'request_budget_seconds'=>$requestBudget,
+                'run_remaining_seconds'=>$runDeadline!==null?max(0,$runDeadline-translationClock()):null,
+                'minimum_request_seconds'=>$minimum
+            ]);
+            return $remaining;
+        };
         $renewed=false;
         while(true){
-            $remaining=$deadline-microtime(true);
-            if($remaining<=0)throw new ApiError('time_budget',true);
+            $remaining=$remainingBudget();
             try{$token=$this->token();}
             catch(ApiError $e){
                 if($this->config['auth_mode']!=='dedicated' || $renewed ||
@@ -166,17 +185,27 @@ class Client
             }
             if(requestTextTokens($language,$items,$this->config)>inputContextBudget($this->config))
                 throw new ApiError('context_token_budget_exceeded');
-            $body=json_encode(['access_token'=>$token,'endpoint'=>$this->config['api_endpoint'],'params'=>[
+            $payload=['access_token'=>$token,'endpoint'=>$this->config['api_endpoint'],'params'=>[
                 'messages'=>[
                     ['role'=>'system','content'=>[['type'=>'text','text'=>systemPrompt($this->config['glossary'] ?? [])]]],
                     ['role'=>'user','content'=>[['type'=>'text','text'=>json_encode(['target_language'=>$language,'items'=>$items],JSON_UNESCAPED_UNICODE)]]]
                 ],'tools'=>[],'tool_choice'=>'none','temperature'=>0,'max_tokens'=>$this->config['output_tokens']
-            ]],JSON_UNESCAPED_UNICODE);
-            $remaining=$deadline-microtime(true);
-            if($remaining<=0)throw new ApiError('time_budget',true);
-            $reply=call_user_func($this->transport,$this->config['api_url'],[
-                'Accept: application/json','Content-Type: application/json','Authorization: Bearer '.$token
-            ],$body,$remaining);
+            ]];
+            if($this->config['structured_output'])$payload['params']['response_format']=completionResponseFormat($items);
+            $body=json_encode($payload,JSON_UNESCAPED_UNICODE);
+            $remaining=$remainingBudget();
+            try{
+                $reply=call_user_func($this->transport,$this->config['api_url'],[
+                    'Accept: application/json','Content-Type: application/json','Authorization: Bearer '.$token
+                ],$body,$remaining);
+            }catch(ApiError $e){
+                $e->diagnostics+=['configured_timeout_seconds'=>$this->config['timeout_seconds'],
+                    'request_budget_seconds'=>$requestBudget,'budget_scope'=>$runLimited?'run':'request',
+                    'run_remaining_seconds'=>$runDeadline!==null?max(0,$runDeadline-translationClock()):null];
+                if(($e->diagnostics['curl_errno'] ?? null)===28 && $runLimited && translationClock()>=$runDeadline)
+                    throw new ApiError('time_budget',true,$e->retryAfter,$e->diagnostics);
+                throw $e;
+            }
             if($reply['status']===401 && $this->config['auth_mode']==='dedicated' && !$renewed){
                 $renewed=true;$this->renewDedicatedToken($deadline);continue;
             }

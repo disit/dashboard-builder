@@ -33,7 +33,8 @@ class Worker
                 return ['busy'=>$run!==null,'status'=>'request_already_finished']+$this->repository->status();
             if(!$run)$run=$this->repository->reserve($origin,null,$mode,$languages,$this->config)['run'];
             if($launch!==null)$this->repository->consumeLaunch($run['id'],$launch['launch_secret'] ?? null,$launch['username'] ?? '');
-            $id=$run['id'];$preview=$run['mode']==='preview';$start=microtime(true);
+            $id=$run['id'];$preview=$run['mode']==='preview';$start=translationClock();
+            $deadline=$start+$this->config['max_seconds'];$consecutiveFailures=0;
             $this->assertLock();$this->repository->heartbeat($id);$this->repository->materialize($run,$this->config);
             $items=$this->repository->items($id);$groups=[];$error=null;
             foreach($items as $item) {
@@ -69,9 +70,6 @@ class Worker
             $batches=array_merge(buildBatches($fresh,$this->config['batch_items'],$this->config['batch_tokens'],$this->config),$retry);
             for($batchIndex=0;$batchIndex<count($batches);$batchIndex++) {
                 $batch=$batches[$batchIndex];
-                $remaining=$this->config['max_seconds']-(microtime(true)-$start);
-                if($remaining<=0){$error='time_budget';logFailure('worker_budget',new ApiError($error,true),
-                    ['run_id'=>(int)$id,'auth_mode'=>$this->config['auth_mode'],'requested_by'=>$run['requested_by'] ?? null]);break;}
                 $this->assertLock();$this->repository->heartbeat($id);
                 $active=[];foreach($this->repository->items($id) as $item)$active[$item['id']]=true;
                 $inputs=[];
@@ -82,11 +80,22 @@ class Worker
                 if(!$inputs)continue;
                 $batch['items']=$inputs;
                 $ids=[];foreach($batch['items'] as $input)foreach($lookup[$input['id']]['tasks'] as $task)$ids[]=$task['id'];
+                // Recompute after database work; never pass an old remainder to a new request.
+                $remaining=$deadline-translationClock();
+                if($remaining<minimumInferenceSeconds($this->config)){
+                    $error='time_budget';logFailure('worker_budget',new ApiError($error,true,0,[
+                        'failure_type'=>'budget','budget_scope'=>'run','run_budget_seconds'=>$this->config['max_seconds'],
+                        'run_elapsed_seconds'=>translationClock()-$start,'run_remaining_seconds'=>max(0,$remaining),
+                        'configured_timeout_seconds'=>$this->config['timeout_seconds'],'minimum_request_seconds'=>minimumInferenceSeconds($this->config)
+                    ]),['run_id'=>(int)$id,'auth_mode'=>$this->config['auth_mode'],'requested_by'=>$run['requested_by'] ?? null]);break;
+                }
                 $this->repository->attempt($ids);
                 try {
-                    $response=$this->client->complete($batch['language'],$batch['items'],min($remaining,$this->config['timeout_seconds']));
+                    $response=$this->client->complete($batch['language'],$batch['items'],min($remaining,$this->config['timeout_seconds']),$deadline);
+                    $consecutiveFailures=0;
                     $results=parseCompletion($response,$batch['items'],$this->config);
                 } catch(ApiError $e) {
+                    $consecutiveFailures++;$e->diagnostics['consecutive_failures']=$consecutiveFailures;
                     logFailure('inference',$e,['run_id'=>(int)$id,'batch'=>$batchIndex+1,'language'=>$batch['language'],
                         'item_count'=>count($batch['items']),'requested_by'=>$run['requested_by'] ?? null,'auth_mode'=>$this->config['auth_mode']]);
                     $error=$e->getMessage();$this->assertLock();
@@ -98,7 +107,11 @@ class Worker
                         return ['status'=>'waiting_auth']+$this->repository->status();
                     }
                     $this->repository->failure($ids,$error,$e->retryable);
-                    break;
+                    // Continue past a transient service failure, with finite item and outage budgets.
+                    if(!$e->retryable || ($error==='time_budget' && ($e->diagnostics['budget_scope'] ?? 'run')==='run') ||
+                        $e->retryAfter>0 || $consecutiveFailures>=$this->config['max_attempts'])break;
+                    if($this->repository->retryWithinRun($id,$ids,$this->config['max_attempts']))$batches[]=$batch;
+                    $error=null;continue;
                 } catch(\InvalidArgumentException $e) {
                     $finishReason=$response['choices'][0]['finish_reason'] ?? null;
                     logFailure('completion_validation',$e,['run_id'=>(int)$id,'batch'=>$batchIndex+1,'language'=>$batch['language'],
