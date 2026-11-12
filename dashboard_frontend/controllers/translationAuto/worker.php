@@ -10,7 +10,7 @@ class Worker
     private $config;
     private $client;
     const LOCK_NAME='Dashboard.multilanguage.autotranslate.worker.v1';
-    public function __construct(array $base,array $config,Client $client=null) {
+    public function __construct(array $base,array $config,?Client $client=null) {
         $config=$config+settings([]);
         $this->repository=new Repository($base,$config);
         // MySQL 5.6 releases a connection's previous named lock on GET_LOCK.
@@ -23,7 +23,7 @@ class Worker
         if($row['owner']===null || (string)$row['owner']!==(string)$row['connection'])
             throw new \RuntimeException('worker_lock_lost');
     }
-    public function execute($requestedId=null,$origin='manual',$mode='apply',array $languages=[],array $launch=null) {
+    public function execute($requestedId=null,$origin='manual',$mode='apply',array $languages=[],?array $launch=null) {
         if(!$this->config['enabled']) return ['status'=>'disabled','busy'=>false];
         $acquired=$this->lock->query('SELECT GET_LOCK(?,0) AS acquired',[self::LOCK_NAME])[0]['acquired'];
         if((int)$acquired!==1)return ['busy'=>true]+$this->repository->status();
@@ -70,7 +70,8 @@ class Worker
             for($batchIndex=0;$batchIndex<count($batches);$batchIndex++) {
                 $batch=$batches[$batchIndex];
                 $remaining=$this->config['max_seconds']-(microtime(true)-$start);
-                if($remaining<=0){$error='time_budget';break;}
+                if($remaining<=0){$error='time_budget';logFailure('worker_budget',new ApiError($error,true),
+                    ['run_id'=>(int)$id,'auth_mode'=>$this->config['auth_mode'],'requested_by'=>$run['requested_by'] ?? null]);break;}
                 $this->assertLock();$this->repository->heartbeat($id);
                 $active=[];foreach($this->repository->items($id) as $item)$active[$item['id']]=true;
                 $inputs=[];
@@ -86,6 +87,8 @@ class Worker
                     $response=$this->client->complete($batch['language'],$batch['items'],min($remaining,$this->config['timeout_seconds']));
                     $results=parseCompletion($response,$batch['items'],$this->config);
                 } catch(ApiError $e) {
+                    logFailure('inference',$e,['run_id'=>(int)$id,'batch'=>$batchIndex+1,'language'=>$batch['language'],
+                        'item_count'=>count($batch['items']),'requested_by'=>$run['requested_by'] ?? null,'auth_mode'=>$this->config['auth_mode']]);
                     $error=$e->getMessage();$this->assertLock();
                     if(in_array($this->config['auth']['source'] ?? '',['session','dedicated'],true) &&
                         (in_array($error,['session_token_expired','dedicated_token_expired','api_http_401','api_http_403'],true) ||
@@ -97,6 +100,10 @@ class Worker
                     $this->repository->failure($ids,$error,$e->retryable);
                     break;
                 } catch(\InvalidArgumentException $e) {
+                    $finishReason=$response['choices'][0]['finish_reason'] ?? null;
+                    logFailure('completion_validation',$e,['run_id'=>(int)$id,'batch'=>$batchIndex+1,'language'=>$batch['language'],
+                        'item_count'=>count($batch['items']),'requested_by'=>$run['requested_by'] ?? null,'auth_mode'=>$this->config['auth_mode'],
+                        'finish_reason'=>in_array($finishReason,['stop','length','tool_calls','content_filter','function_call'],true)?$finishReason:'unknown']);
                     $this->assertLock();
                     $this->repository->failure($ids,$e->getMessage(),true);
                     // Retry individually within this finite run; never apply malformed responses.

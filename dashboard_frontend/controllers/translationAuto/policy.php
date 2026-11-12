@@ -32,7 +32,7 @@ function automaticPhpBinary() {
     return is_file($binary)?$binary:'/usr/local/bin/php';
 }
 
-function settings(array $values=null) {
+function settings(?array $values=null) {
     $values=$values ?? dashboardConfig();
     $config=[
         'enabled'=>false, 'api_url'=>'', 'api_endpoint'=>'llama4-agentic-inference', 'auth_mode'=>'session',
@@ -140,7 +140,7 @@ function emptyTranslation($text)
 {
     return is_string($text) && trim($text, ' ') === '';
 }
-function estimateTextTokens($text,array $config=null)
+function estimateTextTokens($text,?array $config=null)
 {
     // Deliberately approximate: internal ASCII ratio, conservative non-ASCII byte weight.
     // This is a batching heuristic, not Scout tokenization or a guaranteed context bound.
@@ -148,7 +148,7 @@ function estimateTextTokens($text,array $config=null)
     $ratio=ESTIMATED_CHARS_PER_TOKEN;
     return intdiv($ascii,$ratio)+($ascii%$ratio?1:0)+strlen($text)-$ascii;
 }
-function eligibleText($text, $maxTokens,array $config=null)
+function eligibleText($text, $maxTokens,?array $config=null)
 {
     return is_string($text) && preg_match('//u', $text) && trim($text) !== '' &&
         !is_numeric(trim($text)) &&
@@ -161,7 +161,7 @@ function protectedTokens($text)
     preg_match_all('/\{\{[^{}]+\}\}|\$?\{[a-zA-Z_][\w.:-]*\}|%(?:\d+\$)?[-+0-9.]*[sdifuxX]|\b(?:Snap4City|SnapAdvisor|DISIT|PM10|PM2\.5|CO2|kWh)\b|°C|[µμ]g\/m[³3]|mg\/m[³3]|km\/h/u', $text, $matches);
     $tokens = $matches[0]; sort($tokens, SORT_STRING); return $tokens;
 }
-function validateTranslation($original, $text,array $config=null)
+function validateTranslation($original, $text,?array $config=null)
 {
     return is_string($text) && preg_match('//u', $text) && trim($text) !== '' &&
         // Intrinsic MySQL TEXT capacity (dictionary and audit schema), not an LLM budget.
@@ -169,7 +169,7 @@ function validateTranslation($original, $text,array $config=null)
         !preg_match('/[\x00-\x1F\x7F]|<\/?[a-z!][^>]*>/i', $text) &&
         protectedTokens($original) === protectedTokens($text);
 }
-function parseCompletion(array $completion, array $items,array $config=null)
+function parseCompletion(array $completion, array $items,?array $config=null)
 {
     $choice = $completion['choices'][0] ?? null;
     $message = $choice['message'] ?? null;
@@ -209,7 +209,7 @@ function batchFits($language,array $items,array $config) {
         // Reserve room for translations that expand relative to the source-based JSON estimate.
         estimateTextTokens(json_encode(['translations'=>$proposals],JSON_UNESCAPED_UNICODE),$config)*2<=$config['output_tokens'];
 }
-function buildBatches(array $items, $maxItems, $maxTokens,array $config=null)
+function buildBatches(array $items, $maxItems, $maxTokens,?array $config=null)
 {
     $config=array_replace($config ?? settings([]),['batch_items'=>$maxItems,'batch_tokens'=>$maxTokens]);
     $batches = []; $current = null;

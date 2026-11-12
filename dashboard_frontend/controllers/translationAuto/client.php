@@ -6,13 +6,51 @@ class ApiError extends \RuntimeException
 {
     public $retryable;
     public $retryAfter;
-    public function __construct($code, $retryable = false, $retryAfter = 0) {
+    public $diagnostics;
+    public function __construct($code, $retryable = false, $retryAfter = 0, array $diagnostics = []) {
         parent::__construct($code); $this->retryable=$retryable; $this->retryAfter=max(0,(int)$retryAfter);
+        $this->diagnostics=$diagnostics;
     }
 }
 
+/* Private server diagnostics only. Never serialize exceptions, traces, SQL or remote bodies. */
+function logFailure($stage,\Throwable $error,array $context=[]) {
+    try {
+        $known=explode(' ','api_transport https_required time_budget response_size_exceeded invalid_gateway_response '.
+            'context_token_budget_exceeded missing_session_access_token missing_dedicated_access_token session_token_expired dedicated_token_expired '.
+            'dedicated_auth_unavailable dedicated_auth_invalid_response invalid_dedicated_auth_configuration '.
+            'session_authentication_required session_token_unavailable session_save_failed invalid_sso_configuration invalid_token_response '.
+            'worker_launcher_unavailable worker_php_binary_unavailable worker_launch_failed invalid_worker_context invalid_worker_launch '.
+            'manual_translation_start_failed authenticated_manual_launch_required worker_lock_lost worker_interrupted database_fetch_failed '.
+            'dashboard_configuration_missing invalid_translation_boolean invalid_translation_auth_mode invalid_translation_endpoint '.
+            'invalid_translation_glossary invalid_translation_limit inconsistent_translation_limits invalid_translation_configuration '.
+            'invalid_completion invalid_output_json invalid_output_ids missing_output_ids item_token_budget_exceeded '.
+            'invalid_request request_too_large invalid_languages automatic_translation_disabled_or_invalid_action invalid_retry_ids worker_running run_reserved');
+        $code=$error->getMessage();
+        if(!in_array($code,$known,true) && !preg_match('/^(?:api|token|dedicated_auth)_http_[0-9]{1,3}$/D',$code))$code='unexpected_error';
+        $record=['event'=>'failure','stage'=>$stage,'error'=>$code,'exception'=>get_class($error),
+            'exception_code'=>(int)$error->getCode(),'file'=>basename($error->getFile()),'line'=>$error->getLine(),
+            'pid'=>getmypid(),'sapi'=>PHP_SAPI,'php_version'=>PHP_VERSION];
+        foreach(['run_id','batch','language','item_count','requested_by','auth_mode','action','finish_reason'] as $key)
+            if(isset($context[$key]) && is_scalar($context[$key]))$record[$key]=is_string($context[$key])?substr($context[$key],0,128):$context[$key];
+        if($error instanceof ApiError){
+            $record['retryable']=$error->retryable;
+            foreach(['failure_type','host','http_status','curl_errno','curl_error','timeout_seconds','elapsed_seconds',
+                'dns_seconds','connect_seconds','response_bytes','response_limit_bytes','json_error','oauth_error'] as $key)
+                if(isset($error->diagnostics[$key]) && is_scalar($error->diagnostics[$key]))$record[$key]=$error->diagnostics[$key];
+        }
+        if($error instanceof \mysqli_sql_exception){
+            $record['failure_type']='database';
+            $databaseErrors=[1045=>'authentication_failed',1049=>'database_not_found',1054=>'unknown_column',1146=>'table_not_found',
+                1205=>'lock_timeout',1213=>'deadlock',2002=>'connection_failed',2006=>'server_gone',2013=>'connection_lost'];
+            $record['database_error']=$databaseErrors[(int)$error->getCode()] ?? 'database_failure';
+        }
+        @error_log('[translation-auto] '.json_encode($record,JSON_UNESCAPED_SLASHES|JSON_PARTIAL_OUTPUT_ON_ERROR));
+    } catch(\Throwable $ignored){} // Diagnostics must never change translation or session behaviour.
+}
+
 /* Server-to-server only: no SSO bootstrap, browser cookies or refresh-token storage. */
-function dedicatedAccessToken(array $config,callable $transport=null,$timeout=null) {
+function dedicatedAccessToken(array $config,?callable $transport=null,$timeout=null) {
     $auth=$config['dedicated_auth'] ?? [];
     if(($config['auth_mode'] ?? 'session')!=='dedicated' || !is_array($auth) || !validDedicatedAuth($auth))
         throw new \RuntimeException('invalid_dedicated_auth_configuration');
@@ -24,24 +62,32 @@ function dedicatedAccessToken(array $config,callable $transport=null,$timeout=nu
     $transport=$transport ?: function($url,$headers,$body,$seconds){return Client::http($url,$headers,$body,$seconds);};
     try{$reply=$transport($auth['token_url'],['Accept: application/json','Content-Type: application/x-www-form-urlencoded'],
         http_build_query($form,'','&',PHP_QUERY_RFC3986),$timeout);}
-    catch(\Throwable $e){throw new ApiError('dedicated_auth_unavailable',true);}
+    catch(\Throwable $e){throw new ApiError('dedicated_auth_unavailable',true,0,$e instanceof ApiError?$e->diagnostics:[]);}
     $status=$reply['status'] ?? 0;
-    if(!is_int($status) || $status<200 || $status>=300)
-        throw new ApiError('dedicated_auth_http_'.(int)$status,$status===429 || $status>=500);
     $body=$reply['body'] ?? null;
-    if(!is_string($body) || strlen($body)>responseByteLimit(settings([])))throw new ApiError('dedicated_auth_invalid_response');
+    $diagnostics=($reply['diagnostics'] ?? [])+['host'=>parse_url($auth['token_url'],PHP_URL_HOST),'http_status'=>(int)$status];
+    if(!is_int($status) || $status<200 || $status>=300){
+        $oauth=is_string($body)?json_decode($body,true):null;
+        // Only standardized OAuth codes are safe; error_description can contain credentials.
+        if(is_array($oauth) && in_array($oauth['error'] ?? null,['invalid_client','invalid_grant','unauthorized_client',
+            'access_denied','invalid_scope','invalid_request','unsupported_grant_type','temporarily_unavailable','server_error'],true))
+            $diagnostics['oauth_error']=$oauth['error'];
+        throw new ApiError('dedicated_auth_http_'.(int)$status,$status===429 || $status>=500,0,$diagnostics);
+    }
+    if(!is_string($body) || strlen($body)>responseByteLimit(settings([])))throw new ApiError('dedicated_auth_invalid_response',false,0,$diagnostics);
     $data=json_decode($body,true);
+    $diagnostics['json_error']=json_last_error();
     $duration=is_array($data)?($data['expires_in'] ?? null):null;
     if(!is_array($data) || isset($data['error']) || !validToken($data['access_token'] ?? null) ||
         (!is_int($duration) && (!is_string($duration) || !ctype_digit($duration))) ||
-        filter_var($duration,FILTER_VALIDATE_INT)===false || $duration<=0)throw new ApiError('dedicated_auth_invalid_response');
+        filter_var($duration,FILTER_VALIDATE_INT)===false || $duration<=0)throw new ApiError('dedicated_auth_invalid_response',false,0,$diagnostics);
     $expires=time()+min(86400,(int)$duration);
     $parts=explode('.',$data['access_token']);
     if(count($parts)===3){
         $claims=json_decode(base64_decode(strtr($parts[1],'-_','+/'),true),true);
         if(is_array($claims) && isset($claims['exp']) && is_numeric($claims['exp']))$expires=min($expires,(int)$claims['exp']);
     }
-    if($expires<=time()+5)throw new ApiError('dedicated_auth_invalid_response');
+    if($expires<=time()+5)throw new ApiError('dedicated_auth_invalid_response',false,0,$diagnostics);
     return ['access_token'=>$data['access_token'],'expires_at'=>$expires];
 }
 
@@ -49,7 +95,7 @@ class Client
 {
     private $config;
     private $transport;
-    public function __construct(array $config, callable $transport = null) {
+    public function __construct(array $config, ?callable $transport = null) {
         $this->config=$config+settings([]);$config=$this->config;
         if (parse_url($config['api_url'], PHP_URL_SCHEME)!=='https') throw new \InvalidArgumentException('https_required');
         $this->transport=$transport ?: function($url,$headers,$body,$timeout)use($config){
@@ -57,20 +103,36 @@ class Client
                 in_array('Content-Type: application/x-www-form-urlencoded',$headers,true)?null:$config);
         };
     }
-    public static function http($url,array $headers,$body,$timeout,array $config=null){
+    public static function http($url,array $headers,$body,$timeout,?array $config=null){
         $config=$config ?? settings([]);
         if(parse_url($url,PHP_URL_SCHEME)!=='https')throw new ApiError('https_required');
-        $curl=curl_init($url);$data='';$retryAfter=0;
+        $curl=curl_init($url);$data='';$retryAfter=0;$limitExceeded=false;
         $bodyLimit=responseByteLimit($config);
         // One timeout covers connection and response; milliseconds preserve fractional run remainders.
         $timeoutMs=$timeout>PHP_INT_MAX/1000?PHP_INT_MAX:max(1,(int)ceil($timeout*1000));
-        curl_setopt_array($curl,[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_HTTPHEADER=>$headers,
+        $protocols=defined('CURLOPT_PROTOCOLS_STR')?[CURLOPT_PROTOCOLS_STR=>'https']:[CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS];
+        curl_setopt_array($curl,$protocols+[CURLOPT_POST=>true,CURLOPT_POSTFIELDS=>$body,CURLOPT_HTTPHEADER=>$headers,
             CURLOPT_TIMEOUT_MS=>$timeoutMs,CURLOPT_SSL_VERIFYPEER=>true,
-            CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,
-            CURLOPT_WRITEFUNCTION=>function($h,$chunk)use(&$data,$bodyLimit){if(strlen($data)>$bodyLimit-strlen($chunk))return 0;$data.=$chunk;return strlen($chunk);},
+            CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_FOLLOWLOCATION=>false,
+            CURLOPT_WRITEFUNCTION=>function($h,$chunk)use(&$data,$bodyLimit,&$limitExceeded){if(strlen($data)>$bodyLimit-strlen($chunk)){$limitExceeded=true;return 0;}$data.=$chunk;return strlen($chunk);},
             CURLOPT_HEADERFUNCTION=>function($h,$header)use(&$retryAfter){if(stripos($header,'Retry-After:')===0){$v=trim(substr($header,12));$retryAfter=ctype_digit($v)?(int)$v:max(0,(int)strtotime($v)-time());}return strlen($header);}]);
-        try{if(curl_exec($curl)===false)throw new ApiError('api_transport',true);return ['status'=>(int)curl_getinfo($curl,CURLINFO_HTTP_CODE),'body'=>$data,'retry_after'=>$retryAfter];}
-        finally{curl_close($curl);}
+        try{
+            $ok=curl_exec($curl);$info=curl_getinfo($curl);$errno=curl_errno($curl);
+            $diagnostics=['host'=>parse_url($url,PHP_URL_HOST),'http_status'=>(int)$info['http_code'],
+                'timeout_seconds'=>$timeoutMs/1000,'elapsed_seconds'=>$info['total_time'],
+                'dns_seconds'=>$info['namelookup_time'],'connect_seconds'=>$info['connect_time'],'response_bytes'=>strlen($data)];
+            if($ok===false){
+                $types=[5=>'dns',6=>'dns',7=>'connection',28=>'timeout',35=>'tls',51=>'tls',58=>'tls',60=>'tls',77=>'tls'];
+                $diagnostics+=['curl_errno'=>$errno,'curl_error'=>curl_strerror($errno),
+                    'failure_type'=>$limitExceeded?'response_limit':($types[$errno] ?? 'transport')];
+                if($limitExceeded)$diagnostics['response_limit_bytes']=$bodyLimit;
+                // curl_error() may embed URLs or proxy credentials; use the canonical errno description.
+                throw new ApiError('api_transport',true,0,$diagnostics);
+            }
+            return ['status'=>(int)$info['http_code'],'body'=>$data,'retry_after'=>$retryAfter,'diagnostics'=>$diagnostics];
+        }
+        // PHP 7 uses a resource; PHP 8 releases the CurlHandle object automatically.
+        finally{if(is_resource($curl))curl_close($curl);}
     }
     private function token() {
         $auth=$this->config['auth'] ?? [];
@@ -88,7 +150,7 @@ class Client
     private function checkHttp(array $reply,$prefix) {
         $status=$reply['status'];
         if($status<200 || $status>=300) throw new ApiError($prefix.'_http_'.$status,
-            $status===429 || $status>=500,$reply['retry_after'] ?? 0);
+            $status===429 || $status>=500,$reply['retry_after'] ?? 0,($reply['diagnostics'] ?? [])+['http_status'=>$status]);
     }
     public function complete($language,array $items,$timeout=null) {
         $deadline=microtime(true)+($timeout ?? $this->config['timeout_seconds']);
@@ -119,10 +181,12 @@ class Client
                 $renewed=true;$this->renewDedicatedToken($deadline);continue;
             }
             $this->checkHttp($reply,'api');
-            if(strlen($reply['body'])>responseByteLimit($this->config))throw new ApiError('response_size_exceeded',true);
-            if(!preg_match('//u',$reply['body']))throw new ApiError('invalid_gateway_response',true);
+            $diagnostics=($reply['diagnostics'] ?? [])+['http_status'=>$reply['status'],'response_bytes'=>strlen($reply['body'])];
+            if(strlen($reply['body'])>responseByteLimit($this->config))throw new ApiError('response_size_exceeded',true,0,$diagnostics);
+            if(!preg_match('//u',$reply['body']))throw new ApiError('invalid_gateway_response',true,0,$diagnostics+['json_error'=>JSON_ERROR_UTF8,'failure_type'=>'encoding']);
             $json=json_decode($reply['body'],true);
-            if(!is_array($json) || isset($json['error']) || !isset($json['choices'])) throw new ApiError('invalid_gateway_response',true);
+            if(!is_array($json) || isset($json['error']) || !isset($json['choices'])) throw new ApiError('invalid_gateway_response',true,0,
+                $diagnostics+['json_error'=>json_last_error(),'failure_type'=>json_last_error()===JSON_ERROR_NONE?'gateway_schema':'json']);
             return $json;
         }
     }

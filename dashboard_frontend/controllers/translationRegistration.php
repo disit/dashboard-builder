@@ -228,7 +228,7 @@ function translationRegistrationDashboardViewGranted(array $session, $dashboardI
         (($session['translationRegistrationDashboardViews'][(string) (int) $dashboardId] ?? null) === true);
 }
 
-function translationRegistrationContext($link, $widgetName, &$reason = null, $dashboardMenuId = null, callable $viewCheck = null)
+function translationRegistrationContext($link, $widgetName, &$reason = null, $dashboardMenuId = null, ?callable $viewCheck = null)
 {
     $reason = null;
     $query = $dashboardMenuId === null

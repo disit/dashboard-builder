@@ -21,10 +21,11 @@ function launchWorker($id,array $config,array $context) {
     // FD 3 is a private anonymous pipe, inherited as stdin by the detached worker.
     // No token in command arguments, environment variables, files or database.
     $command='nohup '.escapeshellarg($config['php_binary']).' '.escapeshellarg($script).
-        ' --run-id='.(int)$id.' --session-input <&3 3<&- >/dev/null 2>&1 & echo $!';
+        ' --run-id='.(int)$id.' --session-input <&3 3<&- >/dev/null & echo $!';
     $packet=json_encode($context)."\n";
     if(strlen($packet)>20000)throw new \RuntimeException('invalid_worker_context');
-    $process=proc_open($command,[0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['file','/dev/null','a'],3=>['pipe','r']],$pipes);
+    // Keep stderr attached to the web server log; a detached worker must not lose diagnostics.
+    $process=proc_open($command,[0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['file','php://stderr','a'],3=>['pipe','r']],$pipes);
     if(!is_resource($process))throw new \RuntimeException('worker_launch_failed');
     $offset=0;$deadline=microtime(true)+5;stream_set_blocking($pipes[3],false);stream_set_blocking($pipes[1],false);
     try{
@@ -49,7 +50,7 @@ function launchWorker($id,array $config,array $context) {
 }
 
 /* On Windows a short PowerShell relay starts PHP with .NET, then exits.
- * The context travels only through anonymous stdin pipes. Output goes to NUL. */
+ * The context travels only through anonymous stdin pipes. Only stdout goes to NUL. */
 function launchWindowsWorker($id,array $config,array $context) {
     $script=dirname(__DIR__,2).'/ScheduledTasks/TranslateMissingTexts.php';
     $powershell=rtrim(getenv('SystemRoot') ?: 'C:/Windows','/\\').'/System32/WindowsPowerShell/v1.0/powershell.exe';
@@ -62,6 +63,7 @@ function launchWindowsWorker($id,array $config,array $context) {
     $literal=function($text){return "'".str_replace("'","''",$text)."'";};
     $relay=<<<'POWERSHELL'
 $ErrorActionPreference='Stop'
+$ProgressPreference='SilentlyContinue'
 $worker=$null
 try {
     [Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)
@@ -90,7 +92,7 @@ POWERSHELL;
     $encoded=iconv('UTF-8','UTF-16LE',$relay);
     if($encoded===false)throw new \RuntimeException('worker_launcher_unavailable');
     $command='"'.$powershell.'" -NoLogo -NoProfile -NonInteractive -EncodedCommand '.base64_encode($encoded);
-    $process=@proc_open($command,[0=>['pipe','r'],1=>['file','NUL','w'],2=>['file','NUL','w']],$pipes,
+    $process=@proc_open($command,[0=>['pipe','r'],1=>['file','NUL','w'],2=>['file','php://stderr','a']],$pipes,
         dirname(__DIR__,2),null,['bypass_shell'=>true,'suppress_errors'=>true,'blocking_pipes'=>false]);
     if(!is_resource($process))throw new \RuntimeException('worker_launch_failed');
     $offset=0;$deadline=microtime(true)+5;stream_set_blocking($pipes[0],false);
@@ -118,7 +120,7 @@ POWERSHELL;
     }
 }
 
-function handleRequest(Repository $repository,array $config,array $identity,array $body,callable $launcher=null,callable $tokenProvider=null) {
+function handleRequest(Repository $repository,array $config,array $identity,array $body,?callable $launcher=null,?callable $tokenProvider=null) {
     $action=$body['action'] ?? '';
     if($action==='missing')return ['missing'=>$repository->missingTranslations()];
     if($action==='status')return ['enabled'=>$config['enabled']]+$repository->status();
@@ -141,6 +143,7 @@ function handleRequest(Repository $repository,array $config,array $identity,arra
             $context=['run_id'=>(int)$reserved['run']['id'],'launch_secret'=>$reserved['launch_secret'],'username'=>$identity['username'],'access_token'=>$token['access_token'],'expires_at'=>$token['expires_at']];
             ($launcher ?: __NAMESPACE__.'\\launchWorker')($context['run_id'],$config,$context);
         }catch(\Throwable $e){
+            logFailure('launch',$e,['run_id'=>(int)$reserved['run']['id'],'requested_by'=>$identity['username'],'auth_mode'=>$config['auth_mode']]);
             $error=$e instanceof ApiError && preg_match('/^dedicated_auth_(?:unavailable|invalid_response|http_[0-9]+)$/D',$e->getMessage())
                 ?$e->getMessage():'worker_launch_failed';
             $repository->launchFailed($reserved['run']['id'],$reserved['launch_secret'],$error);
@@ -150,7 +153,7 @@ function handleRequest(Repository $repository,array $config,array $identity,arra
     return ['enabled'=>true,'already_running'=>$reserved['busy'],'resumed'=>$reserved['resumed'] ?? false]+$repository->status();
 }
 
-function launchAccessToken(array &$session,array $base,array $config,callable $transport=null) {
+function launchAccessToken(array &$session,array $base,array $config,?callable $transport=null) {
     if($config['auth_mode']==='dedicated'){
         // Release the local session before remote I/O; never replace its user or refresh token.
         if(!session_write_close())throw new \RuntimeException('session_save_failed');
@@ -176,7 +179,7 @@ function sessionAccessToken(array &$session,array $base){
     // Keep malformed provider responses from leaking warning text to the browser.
     set_error_handler(function(){return true;},E_WARNING|E_NOTICE);
     try{$reply=$oidc->refreshToken($session['refreshToken']);}
-    catch(\Throwable $e){throw new \RuntimeException('session_token_unavailable');}
+    catch(\Throwable $e){logFailure('session_auth',$e,['auth_mode'=>'session']);throw new \RuntimeException('session_token_unavailable');}
     finally{restore_error_handler();}
     $status=$oidc->getResponseCode();
     if($status<200 || $status>=300)throw new \RuntimeException('token_http_'.(int)$status);

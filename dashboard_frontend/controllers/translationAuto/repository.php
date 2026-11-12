@@ -8,7 +8,7 @@ class Repository
     private $link;
     private $base;
     private $config;
-    public function __construct(array $base,array $config=null) {
+    public function __construct(array $base,?array $config=null) {
         $this->base=$base;
         $this->config=$config ?? settings($base);
         mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
@@ -107,9 +107,16 @@ class Repository
         $run=$this->active();
         if(!$run){$rows=$this->query('SELECT * FROM translation_auto_runs ORDER BY id DESC LIMIT 1');$run=$rows[0] ?? null;}
         if(!$run)return ['run'=>null,'busy'=>false,'worker_active'=>false,'resumable'=>false];
+        $active=$this->query('SELECT IS_USED_LOCK(?) AS owner',['Dashboard.multilanguage.autotranslate.worker.v1'])[0]['owner']!==null;
+        if(!$active && $run['active_slot']!==null){
+            // Completion is committed before the worker releases its lock. Refresh the older row
+            // before reporting an interruption, and allow a newly launched worker to appear.
+            $run=$this->run($run['id']);
+            if(!$run)return ['run'=>null,'busy'=>false,'worker_active'=>false,'resumable'=>false];
+            $active=$this->query('SELECT IS_USED_LOCK(?) AS owner',['Dashboard.multilanguage.autotranslate.worker.v1'])[0]['owner']!==null;
+        }
         $counts=[];foreach($this->query('SELECT status,COUNT(*) AS n FROM translation_auto_items WHERE run_id=? GROUP BY status',[$run['id']]) as $row)$counts[$row['status']]=(int)$row['n'];
         $samples=$this->query("SELECT menu_text,target_language,proposed_text,status,error_code FROM translation_auto_items WHERE run_id=? AND status IN ('preview','review','failed') ORDER BY id LIMIT ".(int)$this->config['batch_items'],[$run['id']]);
-        $active=$this->query('SELECT IS_USED_LOCK(?) AS owner',['Dashboard.multilanguage.autotranslate.worker.v1'])[0]['owner']!==null;
         $reserved=$run['active_slot']!==null;
         $starting=$reserved && $this->startupPending($run);
         $authMode=in_array($run['origin'],['session','dedicated'],true)?$run['origin']:null;
