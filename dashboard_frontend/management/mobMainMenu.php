@@ -1,10 +1,11 @@
 <i id="mobMainMenuBtn" data-shown="false"></i>
 
 <?php
-    $currDom = $_SERVER['HTTP_HOST'];
+    $domainId = null;
+    $currDom = $_SERVER['HTTP_HOST'] ?? '';
 
     $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
-    $r = mysqli_query($link, $domQ);
+    $r = $currDom !== '' ? mysqli_query($link, $domQ) : false;
 
     if($r)
     {
@@ -96,7 +97,7 @@
             mysqli_select_db($link, $dbname);
 
             $menuQuery = "SELECT * FROM Dashboard.MobMainMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
-            $r = mysqli_query($link, $menuQuery);
+            $r = ($domainId !== null && $domainId !== '') ? mysqli_query($link, $menuQuery) : false;
 
             if($r)
             {
@@ -348,7 +349,7 @@
             // $menuQuery = "SELECT * FROM Dashboard.MobMainMenu ORDER BY id ASC";
             $menuQuery = "SELECT * FROM Dashboard.MobMainMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
 
-            $r = mysqli_query($link, $menuQuery);
+            $r = ($domainId !== null && $domainId !== '') ? mysqli_query($link, $menuQuery) : false;
 
             if($r)
             {

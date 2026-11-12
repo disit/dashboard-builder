@@ -14,11 +14,11 @@
                 $domainId = null;
                 $headerClaimContent = 'Claim';
                 
-                $currDom = $_SERVER['HTTP_HOST'];                
+                $currDom = $_SERVER['HTTP_HOST'] ?? '';
                 //echo ($currDom);
 
                 $domQ = "SELECT * FROM Dashboard.Domains WHERE domains LIKE '%$currDom%'";
-                $r = mysqli_query($link, $domQ);
+                $r = $currDom !== '' ? mysqli_query($link, $domQ) : false;
 
                 if($r)
                 {
@@ -205,7 +205,7 @@ EOT;
                     mysqli_select_db($link, $dbname);
 
                     $menuQuery = "SELECT * FROM Dashboard.MainMenu WHERE domain = $domainId ORDER BY menuOrder ASC";
-                    $r = mysqli_query($link, $menuQuery);
+                    $r = ($domainId !== null && $domainId !== '') ? mysqli_query($link, $menuQuery) : false;
 
                     if($r)
                     {

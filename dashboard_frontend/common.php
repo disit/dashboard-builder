@@ -201,6 +201,8 @@ EOT;
 }
 
 function buildMenu($link, $domainId, $linkId, $context, $curr_lang) {
+    // An unrecognized host has no domain-specific menu.
+    if ($domainId === null || $domainId === '') return;
 
     if(isset($_SESSION['loggedOrganization'])) {
         $organization = $_SESSION['loggedOrganization'];
