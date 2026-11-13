@@ -5369,9 +5369,10 @@ try {
                         echo 'wsRetryTime = ' . $wsRetryTime . ';';
                         echo 'webSocket = new WebSocket("' . $wsProtocol . '://' . $wsServerAddress . ':' . $wsServerPort . '/' . $wsPath . '");';
                     ?>
-
-                    webSocket.addEventListener('open', openWsConn);
-                    webSocket.addEventListener('close', wsClosed);
+                    if (webSocket !== undefined && webSocket !== null) {
+                        webSocket.addEventListener('open', openWsConn);
+                        webSocket.addEventListener('close', wsClosed);
+                    }
                 }
                 catch(e)
                 {
@@ -5422,20 +5423,23 @@ try {
                     metricName: encodeURIComponent(metricName),
                     widgetUniqueName: "<?= $_REQUEST['name_w'] ?>"
                   };
-                  
-                webSocket.send(JSON.stringify(wsRegistration));
-                webSocket.addEventListener('message', manageIncomingWsMsg);
+                if (webSocket !== undefined && webSocket !== null) {
+                    webSocket.send(JSON.stringify(wsRegistration));
+                    webSocket.addEventListener('message', manageIncomingWsMsg);
+                }
             };
 
             wsClosed = function(e)
             {
-                webSocket.removeEventListener('close', wsClosed);
-                webSocket.removeEventListener('open', openWsConn);
-                webSocket.removeEventListener('message', manageIncomingWsMsg);
-                webSocket = null;
-                if(wsRetryActive === 'yes')
-                {
-                    setTimeout(openWs, parseInt(wsRetryTime*1000));
+                if (webSocket !== undefined && webSocket !== null) {
+                    webSocket.removeEventListener('close', wsClosed);
+                    webSocket.removeEventListener('open', openWsConn);
+                    webSocket.removeEventListener('message', manageIncomingWsMsg);
+                    webSocket = null;
+                    if(wsRetryActive === 'yes')
+                        {
+                            setTimeout(openWs, parseInt(wsRetryTime*1000));
+                        }
                 }
             };
 
