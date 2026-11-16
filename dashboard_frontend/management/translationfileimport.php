@@ -47,6 +47,7 @@ if (isset($_SESSION['loggedRole'])) {
             } elseif (strpos($fileName, '.csv') !== false) {
                 $json = csvToJson($_FILES['file']['tmp_name']);
             } else {
+                error_log("Unsupported file type: " . $fileType);
                 throw new \UnexpectedValueException('Unsupported file type');
             }
             $test_key = json_decode($json);
@@ -66,7 +67,7 @@ if (isset($_SESSION['loggedRole'])) {
         //
         $er_ind = 0;
         $crr_ind = 0;
-        if (isset($test_key[0]->{'Reference Text'}) && $test_key[0]->{'Translated Text'}) {
+        if (isset($test_key[0]->{'Reference Text'}, $test_key[0]->{'Translated Text'}) && $test_key[0]->{'Reference Text'} !== '') {
             // do something
             for ($i = 0; $i < $count; $i++) {
                 $ref = ($test_key[$i]->{'Reference Text'});
@@ -151,6 +152,11 @@ function csvToJson($fname) {
         throw new \UnexpectedValueException('Cannot read import file');
     }
     try {
+        //UTF-8 BOM detection:
+        $bom = fread($fp, 3);
+        if ($bom !== "\xEF\xBB\xBF") {
+            rewind($fp);
+        }
         $key = translationImportHeader(fgetcsv($fp, 0, ';', '"', '\\'));
         $json = array();
         $rowNumber = 1;
