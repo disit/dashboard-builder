@@ -138,14 +138,18 @@ if (isset($_SESSION['loggedRole'])) {
             $icon_e = preg_replace('/[^A-Za-z0-9_\-]/', '', $_REQUEST['icon_e']);
 
 //$translate = $_POST['translate'];
-            $translate = mysqli_real_escape_string($link, trim($_REQUEST['translate']));
-//
+            if (isset($_REQUEST['translate'])) {
+                $translate ="'" . mysqli_real_escape_string($link, trim($_REQUEST['translate'])) . "'";
+            } else {
+                $translate = "NULL";
+            }//
 
             $query = "UPDATE multilanguage
                     SET menuText='" . $reference . "',
                         language='" . $icon_e . "',
-                        translatedText='" . $translate . "'
+                        translatedText=" . $translate . "
                     WHERE id='" . $id . "'";
+
             $result = mysqli_query($link, $query);
             // Keep this connection open until the shared lock is released below.
 //
@@ -184,7 +188,7 @@ if (isset($_SESSION['loggedRole'])) {
 //
 
             $count = 0;
-            fputcsv($fp, $csv_fields['Reference Text']);
+            fputcsv($fp, $csv_fields['Reference Text'], ';');
             foreach ($result_list as $fields) {
                 $menuText = $fields['menuText'];
                 $csv_fields[$count]['Reference Text'] = $menuText;
@@ -204,7 +208,7 @@ if (isset($_SESSION['loggedRole'])) {
                     }
 //
                 }
-//fputcsv($fp, $fields);
+//fputcsv($fp, $fields, ';');
                 $count++;
             }
             $json = json_encode($csv_fields);
@@ -212,11 +216,11 @@ if (isset($_SESSION['loggedRole'])) {
 //echo($json);
             $data = json_decode($json, true);
 //
-            fputcsv($fp, $headers);
+            fputcsv($fp, $headers, ';');
 //
             foreach ($data as $row) {
 
-                fputcsv($fp, $row);
+                fputcsv($fp, $row, ';');
             }
 
 //echo($name);

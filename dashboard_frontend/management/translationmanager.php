@@ -437,6 +437,7 @@ $lastUsedColors = null;
                             <th>Language</th>
                             <th>Translated Text</th>
                             <th>Edit</th> 
+                            <th>Null</th> 
                         </tr>
                     </thead>
                     <tbody>
@@ -546,7 +547,16 @@ $lastUsedColors = null;
                         <span class="input-group-addon">Translated text: </span>
 
                         <textarea  id="translate_edit" class="form-control" aria-label="With textarea"></textarea>
+
                     </div><br />
+
+                    <div class="input-group">
+                        <input class="form-check-input" type="checkbox" id="null_edit" value="1">
+                        <span class="form-check-label" for="null_edit" style="margin-left: 5px;">
+                            Set to NULL
+                        </span>
+                    </div><br />
+
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -765,7 +775,8 @@ $lastUsedColors = null;
                         var translatedText_ed = results[i]['translatedText'];
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td></tr>');
+                        var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
@@ -871,18 +882,23 @@ $lastUsedColors = null;
                 var icon_edit = $('#icon_edit').val();
                 var translate_edit = $('#translate_edit').val();
                 var id_element = $('#id_element').val();
+
+                var null_edit = $('#null_edit').is(':checked');
+                var data = {
+                    action: 'edit',
+                    reference: reference_edit,
+                    icon_e: icon_edit,
+                    id_element: id_element
+                };
+
+                if(!null_edit){
+                    data.translate = translate_edit;
+                }
                 $.ajax({
                     async: true,
                     type: 'POST',
                     url: 'translatemenu.php',
-                    data: {
-                        action: 'edit',
-                        reference: reference_edit,
-                        icon_e: icon_edit,
-                        translate: translate_edit,
-                        id_element: id_element
-                                //lang: lang
-                    },
+                    data: data,
                     success: function (data) {
                         //alert('Translation modified successfully');
                         var message = data;
@@ -1010,6 +1026,30 @@ $lastUsedColors = null;
             //}
         });
 
+        function function_null(button, id) {
+            //write on db the null
+            const row = $(button).closest('tr');
+            const cells = row.find('td');
+            $.ajax({
+                async: true,
+                type: 'POST',
+                url: 'translatemenu.php',
+                data: {
+                    action: 'edit',
+                    id_element: id,
+                    reference: cells.eq(1).text(),
+                    icon_e: cells.eq(2).text()
+                },
+                success: function (data){
+                    console.log(`Element nullified successfully, ${data}`);
+                },
+                error: function (e) {
+                    alert(`Error during element nullification, ${e}`);
+                }
+            });
+            //render in table
+            cells.eq(3).text('null');
+        }
 
         function function_edit(id) {
             //
@@ -1087,7 +1127,8 @@ $lastUsedColors = null;
                         var translatedText_ed = results[i]['translatedText'];
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td></tr>');
+                        var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
