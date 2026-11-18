@@ -346,6 +346,11 @@ $lastUsedColors = null;
         height: 90%;
         width: 90%;
     }
+
+    .null-value {
+        font-style: italic;
+        font-weight: 800;
+    }
 </style>
 
 <body style="overflow-y: hidden !important">
@@ -777,7 +782,7 @@ $lastUsedColors = null;
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
                         var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
@@ -1048,7 +1053,7 @@ $lastUsedColors = null;
                 }
             });
             //render in table
-            cells.eq(3).text('null');
+            cells.eq(3).text('null').addClass('null-value');
         }
 
         function function_edit(id) {
@@ -1128,7 +1133,7 @@ $lastUsedColors = null;
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
                         var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td>' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
