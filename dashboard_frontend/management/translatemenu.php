@@ -100,7 +100,7 @@ if (isset($_SESSION['loggedRole'])) {
 //$translate = $_POST['translate'];
             $translate = mysqli_real_escape_string($link, trim($_POST['translate']));
 //
-            $query_check1 = 'SELECT DISTINCT count(*) AS count FROM multilanguage WHERE language="' . $icon_e . '" AND menuText="' . $reference . '";';
+            $query_check1 = 'SELECT DISTINCT count(*) AS count FROM multilanguage WHERE language="' . $icon_e . '" AND BINARY menuText = BINARY "' . $reference . '";';
             $result_check1 = mysqli_query($link, $query_check1);
             if (mysqli_num_rows($result_check1) > 0) {
                 while ($row = mysqli_fetch_assoc($result_check1)) {

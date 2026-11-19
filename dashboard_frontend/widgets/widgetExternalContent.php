@@ -160,65 +160,106 @@ try {
         //TRANSLATION
 
         //extract text from HTML
+
         function extractTextFromHTMLCode(code) {
-            // Decode HTML entities such as &lt;, &gt; and &quot;
+
+            // Decode HTML entities
             const decoder = document.createElement("textarea");
             decoder.innerHTML = code;
             code = decoder.value;
-            // Parse the HTML without inserting it into the current document
+
+            // Parse HTML without inserting it into the current document
             const doc = new DOMParser().parseFromString(code, "text/html");
+
             const texts = new Set();
-            // Check whether a string is an HTML tag or an incomplete markup fragment
-            const isMarkupFragment = (value) =>/^\s*<\/?[a-z][\w:-]*(?:\s+[^<>]*)?\s*\/?>?\s*$/i.test(value);
-            // Check whether a string should be excluded from translation
+
+            // Check whether a string is an HTML tag or incomplete markup
+            const isMarkupFragment = (value) =>
+                /^\s*<\/?[a-z][\w:-]*(?:\s+[^<>]*)?\s*\/?>?\s*$/i.test(value);
+
+            // Check whether a string should be excluded
             const isNonTranslatableText = (value) => {
+
                 value = value.trim();
-                if (!value) {
+
+                if (!value) return true;
+
+                // Exclude standalone HTML attributes
+                if (/^(?:id|class|style|name|href|src|rel|type|role|for|onclick|onchange|placeholder|title|alt|value|integrity|crossorigin|aria-[\w-]+|data-[\w-]+)\s*=/i.test(value)) {
                     return true;
                 }
-                // Exclude standalone HTML attributes and their values
-                if (/^(?:id|class|style|name|href|src|rel|type|role|for|onclick|onchange|placeholder|title|alt|value|aria-[\w-]+|data-[\w-]+)\s*=/i.test(value)
-                ) {
+
+                // Exclude strings containing underscore
+                if (value.includes("_")) {
                     return true;
                 }
-                // Exclude numeric values, including decimals and signed numbers
+
+                // Exclude numbers
                 if (/^[+-]?\d+(?:[.,]\d+)?$/.test(value)) {
                     return true;
                 }
+
                 // Exclude percentages
                 if (/^[+-]?\d+(?:[.,]\d+)?\s*%$/.test(value)) {
                     return true;
                 }
-                // Exclude numbers followed by common units of measurement
+
+                // Exclude measurements
                 if (/^[+-]?\d+(?:[.,]\d+)?\s*(?:px|em|rem|pt|vh|vw|vmin|vmax|s|ms|sec|min|h|km|m|cm|mm|kg|g|mg|mb|gb|kb|°c|°f)$/i.test(value)) {
                     return true;
                 }
-                // Exclude Font Awesome icon class names
+
+                // Exclude Font Awesome classes
                 if (/^(?:fa|fas|far|fal|fab|fad)-[\w-]+$/i.test(value)) {
                     return true;
                 }
-                // Exclude common hexadecimal font icon codes
+
+                // Exclude hexadecimal icon codes
                 if (/^\\?f[0-9a-f]{3,4}$/i.test(value)) {
                     return true;
                 }
-                // Exclude strings that contain no letters
+
+                // Exclude strings without letters
                 if (!/[A-Za-zÀ-ÖØ-öø-ÿΑ-ωА-я\u3040-\u30ff\u4e00-\u9fff]/.test(value)) {
                     return true;
                 }
+
+                // Apply the following rules only to single words
+                if (!/\s/.test(value)) {
+
+                    // Exclude words starting with lowercase
+                    if (/^[a-zà-öø-ÿ]/.test(value)) {
+                        return true;
+                    }
+
+                    // Exclude words containing more than one uppercase letter
+                    const uppercaseCount = (value.match(/\p{Lu}/gu) || []).length;
+
+                    if (uppercaseCount > 1) {
+                        return true;
+                    }
+                }
+
                 return false;
             };
-            // Extract visible text nodes while ignoring scripts, styles and markup fragments
+
+            // Extract visible text nodes
             const walker = document.createTreeWalker(
                 doc.body,
                 NodeFilter.SHOW_TEXT
             );
+
             let node;
+
             while ((node = walker.nextNode())) {
-                // Ignore text inside JavaScript and CSS elements
-                if (node.parentElement?.closest("script, style")) {
+
+                // Ignore script, style, link and noscript contents
+                if (node.parentElement?.closest("script, style, link, noscript")) {
                     continue;
                 }
+
                 const text = node.textContent.trim();
+
                 if (
                     text !== "" &&
                     !isMarkupFragment(text) &&
@@ -227,7 +268,8 @@ try {
                     texts.add(text);
                 }
             }
-            // Define the HTML attributes that may contain translatable text
+
+            // Attributes containing potentially translatable text
             const attributes = [
                 "placeholder",
                 "title",
@@ -236,10 +278,18 @@ try {
                 "aria-description",
                 "value"
             ];
-            // Extract translatable values from HTML attributes
+
             doc.body.querySelectorAll("*").forEach((element) => {
+
+                // Ignore elements containing CSS/JS or external resources
+                if (element.closest("script, style, link")) {
+                    return;
+                }
+
                 for (const attr of attributes) {
+
                     const value = element.getAttribute(attr);
+
                     if (
                         value &&
                         value.trim() !== "" &&
@@ -250,103 +300,160 @@ try {
                     }
                 }
             });
-            // Return unique translatable strings as an array
+
             return [...texts];
         }
 
-        function extractStaticJsTexts(source) {
-          const found = new Set();
-          const decoder = document.createElement("textarea");
-          const elementNames = new Set((
-              "a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption " +
-              "circle cite clipPath code col colgroup data datalist dd defs del details dfn dialog div dl dt " +
-              "ellipse em embed fieldset figcaption figure footer foreignObject form g h1 h2 h3 h4 h5 h6 head " +
-              "header hgroup hr i iframe image img input ins kbd label legend li line linearGradient main map " +
-              "mark marker menu meta meter nav object ol optgroup option output p param path pattern picture " +
-              "polygon polyline portal pre progress q radialGradient rect rp rt ruby s samp script search section " +
-              "select slot small source span stop strong style sub summary sup svg switch symbol table tbody td " +
-              "template text tfoot th thead time title tr track u ul use var video wbr"
-          ).toLowerCase().split(/\s+/));
-          let decoded = source;
-          for (let i = 0; i < 4; i++) {
-              decoder.innerHTML = decoded;
-              const next = decoder.value;
-              if (next === decoded) break;
-              decoded = next;
-          }
-          // extract js
-          const scripts = [...decoded.matchAll(
-              /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi
-          )].map(match => match[1]);
-          // string patterns
-          const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
-          const patterns = [
-              // text content assignment
-              new RegExp(
-                  String.raw`\.(?:textContent|innerText|innerHTML|outerHTML|text|html)\s*=\s*${stringLiteral}`,
-                  "g"
-              ),
-              // functions that insert text content
-              new RegExp(
-                  String.raw`\.(?:append|prepend|before|after|insertAdjacentHTML)\s*\(\s*${stringLiteral}`,
-                  "g"
-              ),
-              // document.write() e document.writeln()
-              new RegExp(
-                  String.raw`\bdocument\s*\.\s*write(?:ln)?\s*\(\s*${stringLiteral}`,
-                  "g"
-              ),
-              // text passed in create buttons
-              new RegExp(
-                  String.raw`\bcreateButton\s*\(\s*${stringLiteral}`,
-                  "g"
-              )
-          ]
-          for (const script of scripts) {
-              for (const pattern of patterns) {
-                  for (const match of script.matchAll(pattern)) {
-                      const value = match[2]
-                          .replace(/\\([\\'"`])/g, "$1")
-                          .replace(/\\n/g, "\n")
-                          .trim();
-                      if (!value || /\$\{|<\/?(?:script|style)\b/i.test(value)) {
-                          continue;
-                      }
-                      //exclude icons
-                      if (!/[\p{L}\p{N}]/u.test(value)) {
-                          continue;
-                      }
-                      // Strings starting with "<" can be markup
-                      if (/^\s*</.test(value)) {
-                          const fragment = document.createElement("template");
-                          fragment.innerHTML = value;
-                          const hasMarkup = fragment.content.querySelector("*") !== null;
-                          const hasText = fragment.content.textContent.trim() !== "";
-                          const hasTranslatableAttribute =
-                              fragment.content.querySelector(
-                                  "[placeholder], [title], [alt], [aria-label], " +
-                                  "[aria-description], [value]"
-                              ) !== null;
-                          if (hasMarkup && (hasText || hasTranslatableAttribute)) {
-                              for (const text of extractTextFromHTMLCode(value)) {
-                                  found.add(text);
-                              }
-                          }
-                        
-                          continue;
-                      }
-                      //exclude tags used as names
-                      if (elementNames.has(value.toLowerCase())) {
-                          continue;
-                      }
-                    
-                      found.add(value);
-                  }
-              }
-          }
+
         
-          return [...found];
+        function extractStaticJsTexts(source) {
+        
+            const found = new Set();
+            const decoder = document.createElement("textarea");
+        
+            const elementNames = new Set((
+                "a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption " +
+                "circle cite clipPath code col colgroup data datalist dd defs del details dfn dialog div dl dt " +
+                "ellipse em embed fieldset figcaption figure footer foreignObject form g h1 h2 h3 h4 h5 h6 head " +
+                "header hgroup hr i iframe image img input ins kbd label legend li line linearGradient main map " +
+                "mark marker menu meta meter nav object ol optgroup option output p param path pattern picture " +
+                "polygon polyline portal pre progress q radialGradient rect rp rt ruby s samp script search section " +
+                "select slot small source span stop strong style sub summary sup svg switch symbol table tbody td " +
+                "template text tfoot th thead time title tr track u ul use var video wbr"
+            ).toLowerCase().split(/\s+/));
+        
+            // Decode HTML entities
+            let decoded = source;
+        
+            for (let i = 0; i < 4; i++) {
+                decoder.innerHTML = decoded;
+                const next = decoder.value;
+        
+                if (next === decoded) break;
+        
+                decoded = next;
+            }
+        
+            // Extract script contents
+            const scripts = [...decoded.matchAll(
+                /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi
+            )].map(match => match[1]);
+        
+            // Static string literal
+            const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
+        
+            // Recognized DOM targets
+            const domTarget = String.raw`(?:
+                document(?:\s*\.\s*(?:body|head|documentElement))? |
+                window\s*\.\s*document(?:\s*\.\s*(?:body|head|documentElement))? |
+                (?:\$|jQuery)\s*\([^)]*\) |
+                (?:el|elem|element|node|container|wrapper|target|parent|child|
+                   content|html|div|row|cell|cells|button|form|list|item|panel|
+                   modal|label|span|table|tbody|ul|li)
+            )`;
+        
+            // JavaScript patterns
+            const patterns = [
+        
+                // Direct text/HTML assignments
+                new RegExp(
+                    String.raw`${domTarget}\s*\.\s*(?:textContent|innerText|innerHTML|outerHTML)\s*=\s*${stringLiteral}`,
+                    "gi"
+                ),
+        
+                // jQuery text() / html()
+                new RegExp(
+                    String.raw`(?:\$|jQuery)\s*\([^)]*\)\s*\.\s*(?:text|html)\s*\(\s*${stringLiteral}\s*\)`,
+                    "gi"
+                ),
+        
+                // DOM insertion methods: exactly one string argument
+                new RegExp(
+                    String.raw`${domTarget}\s*\.\s*(?:append|prepend|before|after)\s*\(\s*${stringLiteral}\s*\)`,
+                    "gi"
+                ),
+        
+                // insertAdjacentHTML()
+                new RegExp(
+                    String.raw`${domTarget}\s*\.\s*insertAdjacentHTML\s*\(\s*['"](?:beforebegin|afterbegin|beforeend|afterend)['"]\s*,\s*${stringLiteral}\s*\)`,
+                    "gi"
+                ),
+        
+                // document.write() / document.writeln()
+                new RegExp(
+                    String.raw`\bdocument\s*\.\s*write(?:ln)?\s*\(\s*${stringLiteral}\s*\)`,
+                    "g"
+                ),
+        
+                // createButton()
+                new RegExp(
+                    String.raw`\bcreateButton\s*\(\s*${stringLiteral}`,
+                    "g"
+                )
+            ];
+        
+            // Extract strings
+            for (const script of scripts) {
+        
+                for (const pattern of patterns) {
+        
+                    for (const match of script.matchAll(pattern)) {
+        
+                        const value = match[2]
+                            .replace(/\\([\\'"\x60])/g, "$1")
+                            .replace(/\\n/g, "\n")
+                            .trim();
+        
+                        if (!value || /\$\{|<\/?(?:script|style)\b/i.test(value)) {
+                            continue;
+                        }
+        
+                        // Exclude icons and strings without letters/numbers
+                        if (!/[\p{L}\p{N}]/u.test(value)) {
+                            continue;
+                        }
+        
+                        // Strings starting with "<" may contain HTML
+                        if (/^\s*</.test(value)) {
+        
+                            const fragment = document.createElement("template");
+                            fragment.innerHTML = value;
+        
+                            const hasMarkup =
+                                fragment.content.querySelector("*") !== null;
+        
+                            const hasText =
+                                fragment.content.textContent.trim() !== "";
+        
+                            const hasTranslatableAttribute =
+                                fragment.content.querySelector(
+                                    "[placeholder], [title], [alt], [aria-label], " +
+                                    "[aria-description], [value]"
+                                ) !== null;
+        
+                            if (hasMarkup && (hasText || hasTranslatableAttribute)) {
+        
+                                for (const text of extractTextFromHTMLCode(value)) {
+                                    found.add(text);
+                                }
+                            }
+        
+                            continue;
+                        }
+        
+                        // Exclude HTML tag names used as strings
+                        if (elementNames.has(value.toLowerCase())) {
+                            continue;
+                        }
+        
+                        found.add(value);
+                    }
+                }
+            }
+        
+            return [...found];
         }
+
 
 
         function loadCsblTranslations(texts) {
