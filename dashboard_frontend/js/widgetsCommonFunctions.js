@@ -58,6 +58,23 @@ getConfigData(configVarsStr, function(err, data) {
 });
 
 
+//adattare stringhe per il traslator //Bologna - 19/11/2026
+function applyTranslationRules(widgetString) {
+    if (widgetString === widgetString.toUpperCase()) {
+        return widgetString;
+    }
+    
+    return widgetString
+        .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+        .replaceAll("_", " ")
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+
 //Usata in tutti gli widget, ma destinata ad essere eliminata: già inglobata in setWidgetLayout
 function setHeaderFontColor(widget, color)
 {

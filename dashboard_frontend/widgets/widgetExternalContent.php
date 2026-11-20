@@ -224,6 +224,11 @@ try {
                     return true;
                 }
 
+                // Exclude strings with @
+                if (value.includes("@")) {
+                    return true;
+                }
+
                 // Apply the following rules only to single words
                 if (!/\s/.test(value)) {
 

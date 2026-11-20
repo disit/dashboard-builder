@@ -442,7 +442,11 @@ td.dt-center:last-child {
     .forEach(([key, value]) => {
 
         let hover = arrayHover[hoverIndex];
-        if (hover) hover = escapeWidgetTranslationHTML(deviceTextTranslator ? deviceTextTranslator.text(hover) : hover);
+        if (hover) {
+            hover = applyTranslationRules(hover);
+            hover = escapeWidgetTranslationHTML(deviceTextTranslator ? deviceTextTranslator.text(hover) : hover);
+        }
+
         if (key === "pin") {
             body += '<button id="pin" class="btn actionButton' + name_w + '" ' +
                 (hover ? ' title="' + hover + '"' : '') +
@@ -672,38 +676,45 @@ window.tables[name_w] = $table.DataTable({
 		
         // DeviceTable display translation adapter
         function isEligibleDeviceTableText(columnKey, value, columnTitles) {
-            if (['device','serviceUri','actions','dateObserved','id','deviceId','iotId'].indexOf(columnKey) !== -1 ||
-                typeof value !== 'string' || !value.trim()) return false;
+            if (['device','serviceUri','actions','dateObserved','id','deviceId','iotId','deviceName','Device'].indexOf(columnKey) !== -1 ||
+                typeof value !== 'string' || columnKey.indexOf('@') !== -1 || !value.trim()) return false;
             if ((columnTitles || []).some(function (column) { return column.value === columnKey && column.format; })) return false;
             var text = value.trim();
             return !/^[+-]?(?:\d+(?:[.,]\d*)?|[.,]\d+)(?:[eE][+-]?\d+)?$/.test(text) &&
                 !/^(?:true|false)$/i.test(text) && !/^[a-z][a-z0-9+.-]*:[^\s]+$/i.test(text) &&
                 !/^\d{4}-\d{2}-\d{2}(?:$|[T\s])/.test(text) &&
                 !/^\d{1,2}[/-]\d{1,2}[/-]\d{2,4}(?:$|\s)/.test(text) &&
+                ! /^[A-Z]+$/.test(text) &&
                 !/^\d{1,2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:$|\s|Z|[+-]\d{2})/.test(text);
         }
 
         function prepareDeviceTableTranslations(columns, dataSet, columnTitles, translator, hovers) {
             var keys = ['No data available in table', 'No matching records found'];
+            //
             columns.forEach(function (column) {
+                column.title = applyTranslationRules(column.title);
                 column._s4cOriginalTitle = column.title;
-                if (column.className === 'none') return;
+                //if (column.className === 'none') return;
                 keys.push(column.title);
                 if (translator) {
                     var title = translator.text(column.title);
                     if (title !== column.title) column.title = escapeWidgetTranslationHTML(title);
                 }
                 if (column.data === 'actions') return;
-                dataSet.forEach(function (row) {
+               /* dataSet.forEach(function (row) {
                     if (isEligibleDeviceTableText(column.data, row[column.data], columnTitles)) keys.push(row[column.data]);
-                });
+                });*/
                 column.render = function (value, type) {
                     if (type !== 'display' || !translator || !isEligibleDeviceTableText(column.data, value, columnTitles)) return value;
                     var translated = translator.text(value);
                     return translated !== value ? escapeWidgetTranslationHTML(translated) : value;
                 };
             });
-            (hovers || []).forEach(function (hover) { if (typeof hover === 'string' && hover.trim()) keys.push(hover); });
+            //hovers =  applyTranslationRules(hovers);
+            (hovers || []).forEach(function (hover) { 
+                hover =  applyTranslationRules(hover);
+                if (typeof hover === 'string' && hover.trim()) keys.push(hover); 
+            });
             return keys;
         }
 
@@ -721,7 +732,7 @@ window.tables[name_w] = $table.DataTable({
         function applyDeviceTableTranslations(table, columns, translator) {
             var settings = table.settings()[0];
             columns.forEach(function (column, index) {
-                if (column.className === 'none') return;
+                //if (column.className === 'none') return;
                 var original = column._s4cOriginalTitle, translated = translator.text(original);
                 var title = translated !== original ? escapeWidgetTranslationHTML(translated) : original;
                 settings.aoColumns[index].sTitle = title;
