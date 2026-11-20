@@ -205,6 +205,7 @@ td.dt-center:last-child {
         var widgetCodeFromDb = <?= json_encode($widgetCodeFromDb, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
         var widgetName = "<?= $_REQUEST['name_w'] ?>";
         var deviceTextTranslator = null;
+        var deviceTranslationsEnabled = typeof dashboardTranslationsEnabled !== 'undefined' && dashboardTranslationsEnabled === true;
         var deviceTextGeneration = 0;
         var widgetContentColor = "<?= escapeForJS($_REQUEST['color_w']) ?>";
         var widgetHeaderColor = "<?= escapeForJS($_REQUEST['frame_color_w']) ?>";
@@ -443,7 +444,7 @@ td.dt-center:last-child {
 
         let hover = arrayHover[hoverIndex];
         if (hover) {
-            hover = applyTranslationRules(hover);
+            if (deviceTranslationsEnabled) hover = applyTranslationRules(hover);
             hover = escapeWidgetTranslationHTML(deviceTextTranslator ? deviceTextTranslator.text(hover) : hover);
         }
 
@@ -692,7 +693,7 @@ window.tables[name_w] = $table.DataTable({
             var keys = ['No data available in table', 'No matching records found'];
             //
             columns.forEach(function (column) {
-                column.title = applyTranslationRules(column.title);
+                if (deviceTranslationsEnabled) column.title = applyTranslationRules(column.title);
                 column._s4cOriginalTitle = column.title;
                 //if (column.className === 'none') return;
                 keys.push(column.title);
@@ -712,7 +713,7 @@ window.tables[name_w] = $table.DataTable({
             });
             //hovers =  applyTranslationRules(hovers);
             (hovers || []).forEach(function (hover) { 
-                hover =  applyTranslationRules(hover);
+                if (deviceTranslationsEnabled) hover = applyTranslationRules(hover);
                 if (typeof hover === 'string' && hover.trim()) keys.push(hover); 
             });
             return keys;

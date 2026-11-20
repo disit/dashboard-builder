@@ -35307,66 +35307,58 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
     });//Fine document ready
 
     // Map popup display translation adapter
-    // Build semantic category labels as text, without interpreting taxonomy values as HTML.
+    // Render taxonomy values safely, without registering or translating device data.
     function mapPopupTranslationLabel(key) {
         var span = document.createElement('span');
         span.textContent = key;
-        if (typeof key === 'string' && key.trim()) span.setAttribute('data-s4c-i18n', key);
         return span.outerHTML;
     }
-    function markMapPopupLabel(node) {
-        if (node.hasAttribute('data-s4c-i18n')) return;
+    function mapPopupMetricDisplayLabel(key) {
+        if (typeof dashboardTranslationsEnabled === 'undefined' || dashboardTranslationsEnabled !== true ||
+            typeof key !== 'string' || typeof applyTranslationRules !== 'function') return key;
+        try { return applyTranslationRules(key); }
+        catch (error) { return key; } // Optional display rules must never block the map.
+    }
+    function markMapPopupLabel(node, normalizeMetricName) {
+        // A nested table or control inside a value cell is still device data.
+        if (node.closest('table.gisPopupGeneralDataTable tbody > tr > td:nth-child(2), table.gisPopupTable tbody > tr > td:nth-child(2)')) return;
+        if (node.hasAttribute('data-s4c-i18n')) {
+            if (normalizeMetricName === true) {
+                var original = node.getAttribute('data-s4c-i18n'), normalized = mapPopupMetricDisplayLabel(original);
+                if (normalized !== original) {
+                    node.setAttribute('data-s4c-i18n', normalized);
+                    if (!node.children.length) node.textContent = normalized;
+                }
+            }
+            return;
+        }
         if (!node.children.length) {
-            var key = node.textContent.trim();
-            if (key) node.setAttribute('data-s4c-i18n', key);
+            var raw = node.textContent, key = raw.trim();
+            if (normalizeMetricName === true) key = mapPopupMetricDisplayLabel(key);
+            if (key) {
+                node.setAttribute('data-s4c-i18n', key);
+                if (normalizeMetricName === true) node.textContent = raw.replace(raw.trim(), function () { return key; });
+            }
             return;
         }
         // Translate text, preserving icons, line breaks, links and their handlers.
         Array.prototype.slice.call(node.childNodes).forEach(function (child) {
             if (child.nodeType === 3 && child.nodeValue.trim()) {
-                var span = document.createElement('span');
-                span.textContent = child.nodeValue;
-                span.setAttribute('data-s4c-i18n', child.nodeValue.trim());
+                var span = document.createElement('span'), key = child.nodeValue.trim();
+                if (normalizeMetricName === true) key = mapPopupMetricDisplayLabel(key);
+                span.textContent = normalizeMetricName === true ? child.nodeValue.replace(child.nodeValue.trim(), function () { return key; }) : child.nodeValue;
+                span.setAttribute('data-s4c-i18n', key);
                 node.replaceChild(span, child);
             } else if (child.nodeType === 1 && !/^(I|SVG|IMG|SCRIPT|STYLE|BR)$/.test(child.tagName) &&
-                !child.classList.contains('material-icons')) markMapPopupLabel(child);
-        });
-    }
-
-    function mapPopupTranslatesValue(field) {
-        var key = String(field || '').replace(/[\s_:\-]/g, '').toLowerCase();
-        return /^(?:(?:short|long)?description(?:[a-z]{2,3}(?:[a-z]{2})?)?|notes?|comments?|category|nature|subnature|servicetype)$/.test(key);
-    }
-
-    // Mark descriptive text only; preserve HTML structure, handlers and technical values.
-    function markMapPopupValue(root) {
-        Array.prototype.slice.call(root.childNodes).forEach(function (node) {
-            if (node.nodeType === 3) {
-                var raw = node.nodeValue, key = raw.replace(/\s+/g, ' ').trim();
-                if (!key || /^[\d\s.,:;+\-/%€$£¥]+$/.test(key) ||
-                    /^(?:[a-z][a-z0-9+.-]*:\/|www\.|urn:|mailto:|tel:|\d{4}-\d{2}-\d{2}(?:\b|T)|\d{1,2}:\d{2}(?:\b|:))/i.test(key)) return;
-                var span = document.createElement('span'), fragment = document.createDocumentFragment();
-                span.setAttribute('data-s4c-i18n', key); span.textContent = raw.trim();
-                fragment.appendChild(document.createTextNode((raw.match(/^\s*/) || [''])[0]));
-                fragment.appendChild(span);
-                fragment.appendChild(document.createTextNode((raw.match(/\s*$/) || [''])[0]));
-                root.replaceChild(fragment, node);
-            } else if (node.nodeType === 1 && !node.hasAttribute('data-s4c-i18n') &&
-                node.getAttribute('translate') !== 'no' && !node.classList.contains('notranslate') &&
-                !/^(SCRIPT|STYLE|CODE|PRE|I|SVG|IMG|BR|INPUT|SELECT|TEXTAREA|BUTTON|IFRAME|VIDEO|AUDIO)$/.test(node.tagName)) {
-                markMapPopupValue(node);
-            }
+                !child.classList.contains('material-icons')) markMapPopupLabel(child, normalizeMetricName);
         });
     }
 
     function markMapPopupLabels(root) {
         root.querySelectorAll('table.gisPopupGeneralDataTable thead th, table.gisPopupTable thead th, ' +
-            'table.gisPopupGeneralDataTable tbody > tr > td:first-child, table.gisPopupTable tbody > tr > td:first-child, ' +
             '.recreativeEventMapBtn, button.timeTrendBtn, button.lastValueBtn').forEach(markMapPopupLabel);
-        root.querySelectorAll('table.gisPopupGeneralDataTable tbody > tr').forEach(function (row) {
-            if (!row.closest('table').classList.contains('gisPopupGeneralDataTable') || row.cells.length < 2) return;
-            var name = row.cells[0], marked = name.hasAttribute('data-s4c-i18n') ? name : name.querySelector('[data-s4c-i18n]');
-            if (mapPopupTranslatesValue(marked ? marked.getAttribute('data-s4c-i18n') : name.textContent)) markMapPopupValue(row.cells[1]);
+        root.querySelectorAll('table.gisPopupGeneralDataTable tbody > tr > td:first-child, table.gisPopupTable tbody > tr > td:first-child').forEach(function (node) {
+            markMapPopupLabel(node, true);
         });
         root.querySelectorAll('.popupLastUpdateContainer > b').forEach(function (label) {
             // Keep the non-breaking space separating the label from the live timestamp.
@@ -35386,6 +35378,11 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
             var paragraph = input.closest('p');
             if (paragraph) paragraph.querySelectorAll('b').forEach(markMapPopupLabel);
         });
+        // Values are never translation targets, even if supplied HTML already marks them.
+        root.querySelectorAll('table.gisPopupGeneralDataTable tbody > tr > td:nth-child(2), table.gisPopupTable tbody > tr > td:nth-child(2)').forEach(function (cell) {
+            cell.removeAttribute('data-s4c-i18n');
+            cell.querySelectorAll('[data-s4c-i18n]').forEach(function (node) { node.removeAttribute('data-s4c-i18n'); });
+        });
     }
 
     // Discover display labels from data already delivered to this map; never fetch services to discover text.
@@ -35394,6 +35391,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
         if (!translator || !data || typeof data !== 'object') return;
         var keys = new Set(), excluded = ['targetWidgets', 'color1', 'color2', 'realtimeAttributes'];
         function label(key) {
+            key = mapPopupMetricDisplayLabel(key);
             if (typeof key === 'string' && key.trim() && !/[<>\x00-\x1f]/.test(key) &&
                 !/^(?:[a-z][a-z0-9+.-]*:\/|www\.)/i.test(key) && !/^[\d\s.,:+-]+$/.test(key)) keys.add(key);
         }
@@ -35405,16 +35403,7 @@ function makeMapPopupDraggable(popup, mapRef, excluding) {
             Object.keys(item.properties).forEach(function (key) {
                 var value = item.properties[key];
                 if (excluded.indexOf(key) < 0 && value !== null && value !== undefined && value !== '' && value !== ' ') label(key);
-                if (mapPopupTranslatesValue(key) && typeof value === 'string') {
-                    var content = document.createElement('template'); content.innerHTML = value;
-                    markMapPopupValue(content.content);
-                    content.content.querySelectorAll('[data-s4c-i18n]').forEach(function (node) { label(node.getAttribute('data-s4c-i18n')); });
-                }
             });
-            // The Description tab also renders the Nature/Subnature taxonomy as separate labels.
-            if (typeof item.properties.serviceType === 'string') {
-                item.properties.serviceType.split(/_(.+)/).slice(0, 2).forEach(label);
-            }
             var attributes = item.properties.realtimeAttributes;
             if (attributes && typeof attributes === 'object') Object.keys(attributes).forEach(metric);
         }
