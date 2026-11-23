@@ -46,7 +46,7 @@ if (isset($_SESSION['loggedRole'])) {
         $translationLockHeld = false;
         try {
             // Cooperate with automatic registration, including edits that rename a dictionary key.
-            if (in_array($action, ['add', 'edit', 'import'], true)) {
+            if (in_array($action, ['add', 'edit', 'import', 'delete'], true)) {
                 acquireTranslationRegistrationLock($link);
                 $translationLockHeld = true;
             }
@@ -271,6 +271,32 @@ if (isset($_SESSION['loggedRole'])) {
 //
         } else if ($action == 'delete_downloadfile') {
 //
+        } else if ($action == 'delete') {
+            $id = (int)$_REQUEST['id_element'];
+            $query = "DELETE FROM multilanguage WHERE id = ?";
+            $stmt = mysqli_prepare($link, $query);
+            if (!$stmt) {
+                error_log('Unable to prepare DELETE query: ' . mysqli_error($link));
+                $message = 'Unable to delete entry';
+                echo ($message);
+            }
+            mysqli_stmt_bind_param($stmt, "i", $id);
+            if (!mysqli_stmt_execute($stmt)) {
+                $error = mysqli_stmt_error($stmt);
+                mysqli_stmt_close($stmt);
+                error_log('Unable to delete entry: ' . $error);
+                $message = 'Unable to delete entry';
+                echo ($message);
+            }
+            $affectedRows = mysqli_stmt_affected_rows($stmt);
+            mysqli_stmt_close($stmt);
+            if ($affectedRows === 0) {
+                error_log('No entry found with ID: ' . $id);
+                $message = 'No entry found with ID: ' . $id;
+                echo ($message);
+            }
+            $message = 'Deleted entry #'.$id;
+            echo ($message);
         } else {
             
         }

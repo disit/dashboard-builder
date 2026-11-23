@@ -445,6 +445,7 @@ $lastUsedColors = null;
                             <th>Translated Text</th>
                             <th>Edit</th> 
                             <th>Null</th> 
+                            <th>Delete</th> 
                         </tr>
                     </thead>
                     <tbody>
@@ -782,7 +783,8 @@ $lastUsedColors = null;
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
                         var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
+                        var button_delete = '<button type="button" class="delDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_delete(this, "' + id_ed + '")\'>DELETE</button> ';
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td><td>' + button_delete + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
@@ -1031,6 +1033,28 @@ $lastUsedColors = null;
             //}
         });
 
+        function function_delete(button, id){
+            $.ajax({
+                async: true,
+                type: 'POST',
+                url: 'translatemenu.php',
+                data: {
+                    action: 'delete',
+                    id_element: id
+                },
+                success: function (data){
+                    //console.log(data);
+                },
+                error: function (e) {
+                    alert(`Error during element deletion, ${e}`);
+                }
+            });
+
+            //refresh the view
+            const table = $('#value_table').DataTable();
+            table.row($(button).closest('tr')).remove().draw(false);
+        }
+
         function function_null(button, id) {
             //write on db the null
             const row = $(button).closest('tr');
@@ -1133,7 +1157,8 @@ $lastUsedColors = null;
                         //
                         var button_edit = '<button type="button" class="editDashBtn edit_file" data-target="#" data-toggle="modal" value="' + results[i]['id'] + '" onclick=\'function_edit("' + id_ed + '")\'>EDIT</button> ';
                         var button_null = '<button type="button" class="viewDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_null(this, "' + id_ed + '")\'>NULL</button> ';
-                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td></tr>');
+                        var button_delete = '<button type="button" class="delDashBtn edit_file" data-target="#" value="' + results[i]['id'] + '" onclick=\'function_delete(this, "' + id_ed + '")\'>DELETE</button> ';
+                        $('#value_table tbody').append('<tr><td id=' + results[i]['id'] + '>' + results[i]['id'] + '</td><td>' + results[i]['menuText'] + '</td><td>' + results[i]['language'] + '</td><td class="' + (results[i]['translatedText'] === null ? 'null-value' : '') + '">' + results[i]['translatedText'] + '</td><td>' + button_edit + '</td><td>' + button_null + '</td><td>' + button_delete + '</td></tr>');
                     }
                     //////////////
                     var table = $('#value_table').DataTable({
