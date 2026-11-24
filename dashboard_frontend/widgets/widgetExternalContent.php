@@ -229,6 +229,11 @@ try {
                     return true;
                 }
 
+                // Exclude strings starting with $, < or >
+                if (/^[\$<>]/.test(value)) {
+                    return true;
+                }
+
                 // Apply the following rules only to single words
                 if (!/\s/.test(value)) {
 
@@ -345,7 +350,8 @@ try {
             )].map(match => match[1]);
         
             // Static string literal
-            const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
+            //const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
+            const stringLiteral = String.raw`(['"])((?:\\.|(?!\1)[\s\S])*?)\1|(\x60)((?:\\.|(?!\3)[\s\S])*?)\3`;
         
             // Recognized DOM targets
             const domTarget = String.raw`(?:
@@ -394,7 +400,7 @@ try {
                 new RegExp(
                     String.raw`\bcreateButton\s*\(\s*${stringLiteral}`,
                     "g"
-                )
+                ),
             ];
         
             // Extract strings
@@ -404,11 +410,18 @@ try {
         
                     for (const match of script.matchAll(pattern)) {
         
-                        const value = match[2]
+                        const value = (match[2] ?? match[4])
                             .replace(/\\([\\'"\x60])/g, "$1")
                             .replace(/\\n/g, "\n")
                             .trim();
-        
+                            
+                        if (
+                            !/\s/.test(value) &&
+                            !/[.,!?;:()\-]/.test(value)
+                        ) {
+                            continue;
+                        }
+                        
                         if (!value || /\$\{|<\/?(?:script|style)\b/i.test(value)) {
                             continue;
                         }
@@ -455,11 +468,176 @@ try {
                     }
                 }
             }
+
+            extractAlertTexts(decoded).forEach(text => found.add(text));
         
             return [...found];
         }
 
+        function isValidAlertMessage(expression) {
 
+            const staticText = expression
+                .replace(/\$\{[\s\S]*?\}/g, "")
+                .replace(/(['"`])|[+]/g, "")
+                .trim();
+
+            return (
+                /[\p{L}\p{N}]/u.test(staticText) &&
+                /[\s.,!?;:()\-]/.test(staticText)
+            );
+        }
+
+        function extractAlertTexts(source) {
+
+            const found = new Set();
+
+            const alertRegex = /\balert\s*\(/g;
+            let alertMatch;
+
+            while ((alertMatch = alertRegex.exec(source)) !== null) {
+
+                const start = alertRegex.lastIndex;
+
+                let depth = 1;
+                let end = start;
+
+                for (; end < source.length; end++) {
+
+                    const char = source[end];
+
+                    if (char === "'" || char === '"' || char === "`") {
+
+                        const quote = char;
+                        end++;
+
+                        while (end < source.length) {
+
+                            if (source[end] === "\\") {
+                                end += 2;
+                                continue;
+                            }
+
+                            if (source[end] === quote) break;
+
+                            end++;
+                        }
+
+                        continue;
+                    }
+
+                    if (char === "(") {
+                        depth++;
+                    } else if (char === ")") {
+                        depth--;
+                        if (depth === 0) break;
+                    }
+                }
+
+                if (depth !== 0) continue;
+
+                const expression = source.slice(start, end);
+
+                if (!isValidAlertMessage(expression)) {
+                    continue;
+                }
+
+                // Split by concatenation +
+                const parts = [];
+                let partStart = 0;
+                let paren = 0;
+                let bracket = 0;
+                let brace = 0;
+
+                for (let i = 0; i < expression.length; i++) {
+
+                    const char = expression[i];
+
+                    if (char === "'" || char === '"' || char === "`") {
+
+                        const quote = char;
+                        i++;
+
+                        while (i < expression.length) {
+
+                            if (expression[i] === "\\") {
+                                i += 2;
+                                continue;
+                            }
+
+                            if (expression[i] === quote) break;
+
+                            i++;
+                        }
+
+                        continue;
+                    }
+
+                    if (char === "(") paren++;
+                    else if (char === ")") paren--;
+                    else if (char === "[") bracket++;
+                    else if (char === "]") bracket--;
+                    else if (char === "{") brace++;
+                    else if (char === "}") brace--;
+
+                    else if (
+                        char === "+" &&
+                        paren === 0 &&
+                        bracket === 0 &&
+                        brace === 0
+                    ) {
+                        parts.push(expression.slice(partStart, i));
+                        partStart = i + 1;
+                    }
+                }
+
+                parts.push(expression.slice(partStart));
+
+                // Extract static fragments
+                for (const part of parts) {
+
+                    const value = part.trim();
+
+                    const stringMatch = value.match(
+                        /^(['"])((?:\\.|(?!\1)[\s\S])*)\1$/
+                    );
+
+                    if (stringMatch) {
+
+                        const text = stringMatch[2]
+                            .replace(/\\(['"\\])/g, "$1")
+                            .replace(/\\n/g, "\n")
+                            .trim()
+
+                        if (/[\p{L}\p{N}]/u.test(text)) {
+                            found.add(text);
+                        }
+
+                        continue;
+                    }
+
+                    // Template literal
+                    if (value.startsWith("`") && value.endsWith("`")) {
+
+                        const content = value.slice(1, -1);
+
+                        const templateParts = content.split(
+                            /\$\{[\s\S]*?\}/
+                        );
+
+                        for (const text of templateParts) {
+
+                            const cleanText = text.trim();
+
+                            if (/[\p{L}\p{N}]/u.test(cleanText)) {
+                                found.add(cleanText);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return [...found];
+        }
 
         function loadCsblTranslations(texts) {
             var translations = Object.create(null);
@@ -511,6 +689,18 @@ try {
                     return leading + translations[cleanText] + trailing;
                 }
 
+                const decoder = document.createElement("textarea");
+                decoder.innerHTML = cleanText;
+
+                const decodedText = decoder.value;
+
+                if (
+                    decodedText !== cleanText &&
+                    Object.prototype.hasOwnProperty.call(translations, decodedText)
+                ) {
+                    return leading + translations[decodedText] + trailing;
+                }
+
                 return text;
             }
 
@@ -520,6 +710,30 @@ try {
                 const index = protectedParts.push(value) - 1;
                 return `__PROTECTED_${index}__`;
             }
+
+            code = code.replace(
+                /\balert\s*\(\s*(`)((?:\\.|[\s\S])*?)\1\s*\)/g,
+                (match, quote, content) => {
+
+                    const translatedContent = content.replace(
+                        /(^|(?:\$\{[\s\S]*?\}))([\s\S]*?)(?=\$\{|$)/g,
+                        (fragment, prefix, text) => {
+
+                            if (!text.trim()) {
+                                return fragment;
+                            }
+
+                            return prefix + translateExact(text);
+                        }
+                    );
+
+                    if (translatedContent === content) {
+                        return match;
+                    }
+
+                    return `alert(${quote}${translatedContent}${quote})`;
+                }
+            );
 
             code = code.replace(
                 /\b(?:id|class)\s*=\s*(?:"[^"]*"|'[^']*'|&quot;[\s\S]*?&quot;)/gi,

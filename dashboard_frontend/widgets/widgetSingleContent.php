@@ -1110,6 +1110,8 @@
                 else
                 {
                     metricName = metricNameFromDriver;
+                    if(widgetTitleFromDriver === undefined)
+                        widgetTitleFromDriver = widgetData.params.title_w;
                     widgetTitleFromDriver.replace(/_/g, " ");
                     widgetTitleFromDriver.replace(/\'/g, "&apos;");
                     widgetTitle = widgetTitleFromDriver;

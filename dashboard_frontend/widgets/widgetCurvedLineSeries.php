@@ -3969,7 +3969,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     computationType: computationType,
                                     field: dataOriginV.smField,
                                     timeRange: localTimeRange,
-                                    typicaltrend: typicaltrend
+                                    typicaltrend: typicaltrend,
+                                    label: dataOriginV.label
                                 },
                             async: true,
                             dataType: 'json',
@@ -4208,7 +4209,8 @@ var <?= $_REQUEST['name_w'] ?>_loaded = false;
                                     trendtype: trendType,
                                     trenddate: trendDate,
                                     tttdate: TTTDate,
-                                    computationType: computationType
+                                    computationType: computationType,
+                                    label: rowParameters[i].label
                                 },
                             async: true,
                             dataType: 'json',
