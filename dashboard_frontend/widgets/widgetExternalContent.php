@@ -151,7 +151,10 @@ try {
         async function getWidgetCode()
         {
             if (widgetCodeFromDb !== null && widgetCodeFromDb !== "null" && widgetCodeFromDb !== "") {
-                return await translateCode(widgetCodeFromDb);
+                if (typeof dashboardTranslationsEnabled !== 'undefined' && dashboardTranslationsEnabled === true) {
+                    return await translateCode(widgetCodeFromDb);
+                } else
+                    return widgetCodeFromDb;
             }
 
             return null;
@@ -159,127 +162,220 @@ try {
 
         //TRANSLATION
 
+        function isTranslationCandidateText(value) {
+            value = value.trim();
+
+            if (!value || /[\\_$<>@]/.test(value) || /^[+-]?\d+(?:[.,]\d+)?$/.test(value)) {
+                return false;
+            }
+
+            if (!/[\p{L}\p{N}]/u.test(value)) {
+                return false;
+            }
+
+            if (!/\s/.test(value)) {
+                if (/^(?:\p{Lu}+|\p{Ll}+)$/u.test(value)) {
+                    return false;
+                }
+
+                // camelCase and PascalCase require an internal case transition.
+                if (/\p{Ll}\p{Lu}|\p{Lu}\p{Ll}+\p{Lu}/u.test(value)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        function removeJsComments(source) {
+            let result = "";
+            let quote = null;
+            let escaped = false;
+
+            for (let i = 0; i < source.length; i++) {
+                const char = source[i];
+                const next = source[i + 1];
+
+                if (quote) {
+                    result += char;
+                    if (escaped) escaped = false;
+                    else if (char === "\\") escaped = true;
+                    else if (char === quote) quote = null;
+                    continue;
+                }
+
+                if (char === "'" || char === '"' || char === "`") {
+                    quote = char;
+                    result += char;
+                } else if (char === "/" && next === "/") {
+                    while (i < source.length && source[i] !== "\n" && source[i] !== "\r") i++;
+                    if (i < source.length) result += source[i];
+                } else if (char === "/" && next === "*") {
+                    i += 2;
+                    while (i < source.length && !(source[i] === "*" && source[i + 1] === "/")) {
+                        if (source[i] === "\n" || source[i] === "\r") result += source[i];
+                        i++;
+                    }
+                    i++;
+                } else {
+                    result += char;
+                }
+            }
+
+            return result;
+        }
+
+        function protectComments(source) {
+            const comments = [];
+            let result = "";
+            let quote = null;
+            let escaped = false;
+
+            for (let i = 0; i < source.length; i++) {
+                const char = source[i];
+                const next = source[i + 1];
+                let end = -1;
+
+                if (!quote && char === "<" && source.startsWith("<!--", i)) {
+                    end = source.indexOf("-->", i + 4);
+                    if (end < 0) end = source.length - 3;
+                    else end += 2;
+                } else if (
+                    quote === null &&
+                    char === "/" &&
+                    next === "/" &&
+                    !/[a-z][a-z\d+.-]*:$/i.test(source.slice(Math.max(0, i - 16), i))
+                ) {
+                    end = i + 2;
+                    while (end < source.length && source[end] !== "\n" && source[end] !== "\r") end++;
+                    end--;
+                } else if (quote === null && char === "/" && next === "*") {
+                    end = source.indexOf("*/", i + 2);
+                    if (end < 0) end = source.length - 1;
+                    else end++;
+                }
+
+                if (end >= i) {
+                    const index = comments.push(source.slice(i, end + 1)) - 1;
+                    result += `__COMMENT_${index}__`;
+                    i = end;
+                    continue;
+                }
+
+                result += char;
+                if (quote) {
+                    if (escaped) escaped = false;
+                    else if (char === "\\") escaped = true;
+                    else if (char === quote) quote = null;
+                } else if (char === "'" || char === '"' || char === "`") {
+                    quote = char;
+                }
+            }
+
+            return { code: result, comments };
+        }
+
         //extract text from HTML
 
         function extractTextFromHTMLCode(code) {
 
-            // Decode HTML entities
             const decoder = document.createElement("textarea");
-            decoder.innerHTML = code;
-            code = decoder.value;
+            const decodeEntities = value => {
+                decoder.innerHTML = value.replace(/<\/textarea/gi, "&lt;/textarea");
+                return decoder.value;
+            };
 
-            // Parse HTML without inserting it into the current document
-            const doc = new DOMParser().parseFromString(code, "text/html");
+            for (let i = 0; i < 4; i++) {
+                const decoded = decodeEntities(code);
+                if (decoded === code) break;
+                code = decoded;
+            }
 
             const texts = new Set();
-
-            // Check whether a string is an HTML tag or incomplete markup
-            const isMarkupFragment = (value) =>
-                /^\s*<\/?[a-z][\w:-]*(?:\s+[^<>]*)?\s*\/?>?\s*$/i.test(value);
-
-            // Check whether a string should be excluded
-            const isNonTranslatableText = (value) => {
-
+            const isNonTranslatableText = value => {
                 value = value.trim();
-
-                if (!value) return true;
-
-                // Exclude standalone HTML attributes
+                if (!isTranslationCandidateText(value)) return true;
                 if (/^(?:id|class|style|name|href|src|rel|type|role|for|onclick|onchange|placeholder|title|alt|value|integrity|crossorigin|aria-[\w-]+|data-[\w-]+)\s*=/i.test(value)) {
                     return true;
                 }
-
-                // Exclude strings containing underscore
-                if (value.includes("_")) {
-                    return true;
-                }
-
-                // Exclude numbers
-                if (/^[+-]?\d+(?:[.,]\d+)?$/.test(value)) {
-                    return true;
-                }
-
-                // Exclude percentages
                 if (/^[+-]?\d+(?:[.,]\d+)?\s*%$/.test(value)) {
                     return true;
                 }
-
-                // Exclude measurements
                 if (/^[+-]?\d+(?:[.,]\d+)?\s*(?:px|em|rem|pt|vh|vw|vmin|vmax|s|ms|sec|min|h|km|m|cm|mm|kg|g|mg|mb|gb|kb|°c|°f)$/i.test(value)) {
                     return true;
                 }
-
-                // Exclude Font Awesome classes
                 if (/^(?:fa|fas|far|fal|fab|fad)-[\w-]+$/i.test(value)) {
                     return true;
                 }
-
-                // Exclude hexadecimal icon codes
                 if (/^\\?f[0-9a-f]{3,4}$/i.test(value)) {
                     return true;
                 }
-
-                // Exclude strings without letters
-                if (!/[A-Za-zÀ-ÖØ-öø-ÿΑ-ωА-я\u3040-\u30ff\u4e00-\u9fff]/.test(value)) {
-                    return true;
-                }
-
-                // Exclude strings with @
-                if (value.includes("@")) {
-                    return true;
-                }
-
-                // Exclude strings starting with $, < or >
-                if (/^[\$<>]/.test(value)) {
-                    return true;
-                }
-
-                // Apply the following rules only to single words
-                if (!/\s/.test(value)) {
-
-                    // Exclude words starting with lowercase
-                    if (/^[a-zà-öø-ÿ]/.test(value)) {
-                        return true;
-                    }
-
-                    // Exclude words containing more than one uppercase letter
-                    const uppercaseCount = (value.match(/\p{Lu}/gu) || []).length;
-
-                    if (uppercaseCount > 1) {
-                        return true;
-                    }
-                }
-
                 return false;
             };
 
-            // Extract visible text nodes
-            const walker = document.createTreeWalker(
-                doc.body,
-                NodeFilter.SHOW_TEXT
-            );
+            const addText = value => {
+                const rawValue = value;
+                value = decodeEntities(value).trim();
+                const accepted = value !== "" && !isNonTranslatableText(value);
+                if (accepted) texts.add(value);
+            };
 
-            let node;
-
-            while ((node = walker.nextNode())) {
-
-                // Ignore script, style, link and noscript contents
-                if (node.parentElement?.closest("script, style, link, noscript")) {
+            // Walk markup in source order. This handles full documents, fragments,
+            // and editor-added paragraph/br wrappers without relying on DOMParser's
+            // repaired document tree for text-node discovery.
+            let i = 0;
+            let textStart = 0;
+            while (i < code.length) {
+                if (code[i] !== "<") {
+                    i++;
                     continue;
                 }
 
-                const text = node.textContent.trim();
-
-                if (
-                    text !== "" &&
-                    !isMarkupFragment(text) &&
-                    !isNonTranslatableText(text)
-                ) {
-                    texts.add(text);
+                if (code.startsWith("<!--", i)) {
+                    if (i > textStart) addText(code.slice(textStart, i));
+                    const commentEnd = code.indexOf("-->", i + 4);
+                    i = commentEnd < 0 ? code.length : commentEnd + 3;
+                    textStart = i;
+                    continue;
                 }
+
+                const tagStart = i;
+                let tagEnd = i + 1;
+                let quote = null;
+                while (tagEnd < code.length) {
+                    const char = code[tagEnd];
+                    if (quote) {
+                        if (char === quote) quote = null;
+                    } else if (char === "'" || char === '"') {
+                        quote = char;
+                    } else if (char === ">") {
+                        break;
+                    }
+                    tagEnd++;
+                }
+
+                if (tagEnd >= code.length) {
+                    i++;
+                    continue;
+                }
+
+                if (i > textStart) addText(code.slice(textStart, i));
+                const tagMatch = code.slice(i + 1, tagEnd).match(/^\s*(\/?)\s*([a-z][\w:-]*)\b/i);
+                i = tagEnd + 1;
+
+                if (tagMatch && !tagMatch[1] && /^(?:script|style|noscript)$/i.test(tagMatch[2])) {
+                    const closingTag = new RegExp(`<\\/\\s*${tagMatch[2]}\\s*>`, "ig");
+                    closingTag.lastIndex = i;
+                    const closingMatch = closingTag.exec(code);
+                    i = closingMatch ? closingTag.lastIndex : code.length;
+                }
+
+                textStart = i;
             }
+            if (textStart < code.length) addText(code.slice(textStart));
 
             // Attributes containing potentially translatable text
+            const doc = new DOMParser().parseFromString(code, "text/html");
             const attributes = [
                 "placeholder",
                 "title",
@@ -291,8 +387,7 @@ try {
 
             doc.body.querySelectorAll("*").forEach((element) => {
 
-                // Ignore elements containing CSS/JS or external resources
-                if (element.closest("script, style, link")) {
+                if (element.closest("script, style, link, noscript")) {
                     return;
                 }
 
@@ -300,10 +395,11 @@ try {
 
                     const value = element.getAttribute(attr);
 
+                    const accepted = Boolean(value && value.trim() !== "" && !isNonTranslatableText(value.trim()));
+
                     if (
                         value &&
                         value.trim() !== "" &&
-                        !isMarkupFragment(value.trim()) &&
                         !isNonTranslatableText(value.trim())
                     ) {
                         texts.add(value.trim());
@@ -313,188 +409,127 @@ try {
 
             return [...texts];
         }
-
-
         
         function extractStaticJsTexts(source) {
-        
             const found = new Set();
             const decoder = document.createElement("textarea");
-        
-            const elementNames = new Set((
-                "a abbr address area article aside audio b base bdi bdo blockquote body br button canvas caption " +
-                "circle cite clipPath code col colgroup data datalist dd defs del details dfn dialog div dl dt " +
-                "ellipse em embed fieldset figcaption figure footer foreignObject form g h1 h2 h3 h4 h5 h6 head " +
-                "header hgroup hr i iframe image img input ins kbd label legend li line linearGradient main map " +
-                "mark marker menu meta meter nav object ol optgroup option output p param path pattern picture " +
-                "polygon polyline portal pre progress q radialGradient rect rp rt ruby s samp script search section " +
-                "select slot small source span stop strong style sub summary sup svg switch symbol table tbody td " +
-                "template text tfoot th thead time title tr track u ul use var video wbr"
-            ).toLowerCase().split(/\s+/));
-        
-            // Decode HTML entities
+
             let decoded = source;
-        
             for (let i = 0; i < 4; i++) {
-                decoder.innerHTML = decoded;
+                decoder.innerHTML = decoded.replace(/<\/textarea/gi, "&lt;/textarea");
                 const next = decoder.value;
-        
                 if (next === decoded) break;
-        
                 decoded = next;
             }
-        
-            // Extract script contents
-            const scripts = [...decoded.matchAll(
-                /<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi
-            )].map(match => match[1]);
-        
-            // Static string literal
-            //const stringLiteral = String.raw`(['"\x60])((?:\\.|(?!\1)[\s\S])*?)\1`;
-            const stringLiteral = String.raw`(['"])((?:\\.|(?!\1)[\s\S])*?)\1|(\x60)((?:\\.|(?!\3)[\s\S])*?)\3`;
-        
-            // Recognized DOM targets
-            const domTarget = String.raw`(?:
-                document(?:\s*\.\s*(?:body|head|documentElement))? |
-                window\s*\.\s*document(?:\s*\.\s*(?:body|head|documentElement))? |
-                (?:\$|jQuery)\s*\([^)]*\) |
-                (?:el|elem|element|node|container|wrapper|target|parent|child|
-                   content|html|div|row|cell|cells|button|form|list|item|panel|
-                   modal|label|span|table|tbody|ul|li)
-            )`;
-        
-            // JavaScript patterns
-            const patterns = [
-        
-                // Direct text/HTML assignments
-                new RegExp(
-                    String.raw`${domTarget}\s*\.\s*(?:textContent|innerText|innerHTML|outerHTML)\s*=\s*${stringLiteral}`,
-                    "gi"
-                ),
-        
-                // jQuery text() / html()
-                new RegExp(
-                    String.raw`(?:\$|jQuery)\s*\([^)]*\)\s*\.\s*(?:text|html)\s*\(\s*${stringLiteral}\s*\)`,
-                    "gi"
-                ),
-        
-                // DOM insertion methods: exactly one string argument
-                new RegExp(
-                    String.raw`${domTarget}\s*\.\s*(?:append|prepend|before|after)\s*\(\s*${stringLiteral}\s*\)`,
-                    "gi"
-                ),
-        
-                // insertAdjacentHTML()
-                new RegExp(
-                    String.raw`${domTarget}\s*\.\s*insertAdjacentHTML\s*\(\s*['"](?:beforebegin|afterbegin|beforeend|afterend)['"]\s*,\s*${stringLiteral}\s*\)`,
-                    "gi"
-                ),
-        
-                // document.write() / document.writeln()
-                new RegExp(
-                    String.raw`\bdocument\s*\.\s*write(?:ln)?\s*\(\s*${stringLiteral}\s*\)`,
-                    "g"
-                ),
-        
-                // createButton()
-                new RegExp(
-                    String.raw`\bcreateButton\s*\(\s*${stringLiteral}`,
-                    "g"
-                ),
-            ];
-        
-            // Extract strings
-            for (const script of scripts) {
-        
-                for (const pattern of patterns) {
-        
-                    for (const match of script.matchAll(pattern)) {
-        
-                        const value = (match[2] ?? match[4])
-                            .replace(/\\([\\'"\x60])/g, "$1")
-                            .replace(/\\n/g, "\n")
-                            .trim();
-                            
-                        if (
-                            !/\s/.test(value) &&
-                            !/[.,!?;:()\-]/.test(value)
-                        ) {
-                            continue;
-                        }
-                        
-                        if (!value || /\$\{|<\/?(?:script|style)\b/i.test(value)) {
-                            continue;
-                        }
-        
-                        // Exclude icons and strings without letters/numbers
-                        if (!/[\p{L}\p{N}]/u.test(value)) {
-                            continue;
-                        }
-        
-                        // Strings starting with "<" may contain HTML
-                        if (/^\s*</.test(value)) {
-        
-                            const fragment = document.createElement("template");
-                            fragment.innerHTML = value;
-        
-                            const hasMarkup =
-                                fragment.content.querySelector("*") !== null;
-        
-                            const hasText =
-                                fragment.content.textContent.trim() !== "";
-        
-                            const hasTranslatableAttribute =
-                                fragment.content.querySelector(
-                                    "[placeholder], [title], [alt], [aria-label], " +
-                                    "[aria-description], [value]"
-                                ) !== null;
-        
-                            if (hasMarkup && (hasText || hasTranslatableAttribute)) {
-        
-                                for (const text of extractTextFromHTMLCode(value)) {
-                                    found.add(text);
-                                }
-                            }
-        
-                            continue;
-                        }
-        
-                        // Exclude HTML tag names used as strings
-                        if (elementNames.has(value.toLowerCase())) {
-                            continue;
-                        }
-        
-                        found.add(value);
+
+            const scripts = [...decoded.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)]
+                .map(match => match[1]);
+            if (scripts.length === 0) scripts.push(decoded);
+
+            const shouldInclude = value => {
+                return isTranslationCandidateText(value);
+            };
+
+            const addText = raw => {
+                const value = raw.replace(/\\([\\'"`])/g, "$1").replace(/\\n/g, "\n").trim();
+                if (!shouldInclude(value)) return;
+
+                if (/^\s*</.test(value)) {
+                    for (const text of extractTextFromHTMLCode(value)) {
+                        if (shouldInclude(text)) found.add(text);
                     }
+                } else {
+                    found.add(value);
+                }
+            };
+
+            for (const script of scripts) {
+                const cleanScript = removeJsComments(script);
+                const sinkPattern = /\.\s*(?:textContent|innerText|innerHTML|outerHTML|text|html|append|prepend|before|after)\s*(?:=|\()|\bdocument\s*\.\s*write(?:ln)?\s*\(\s*|\bcreateButton\s*\(\s*|(?:\$|jQuery)\s*\(\s*/gi;
+                let sink;
+
+                while ((sink = sinkPattern.exec(cleanScript)) !== null) {
+                    let position = sinkPattern.lastIndex;
+                    while (position < cleanScript.length) {
+                        if (/\s/.test(cleanScript[position])) {
+                            position++;
+                        } else {
+                            const breakTag = cleanScript.slice(position).match(/^<br\s*\/?\s*>/i);
+                            if (!breakTag) break;
+                            position += breakTag[0].length;
+                        }
+                    }
+
+                    const quote = cleanScript[position];
+                    if (quote !== "'" && quote !== '"' && quote !== "`") continue;
+
+                    let i = position + 1;
+                    let content = "";
+                    while (i < cleanScript.length && cleanScript[i] !== quote) {
+                        if (cleanScript[i] === "\\" && i + 1 < cleanScript.length) {
+                            content += cleanScript.slice(i, i + 2);
+                            i += 2;
+                        } else {
+                            content += cleanScript[i++];
+                        }
+                    }
+                    sinkPattern.lastIndex = Math.min(cleanScript.length, i + 1);
+
+                    const isJqueryConstructor = /(?:\$|jQuery)\s*\(\s*$/i.test(sink[0]);
+                    if (isJqueryConstructor && !/^\s*</.test(content)) continue;
+                    if (quote === "`") content.split(/\$\{[\s\S]*?\}/).forEach(addText);
+                    else addText(content);
                 }
             }
 
-            extractAlertTexts(decoded).forEach(text => found.add(text));
-        
+            extractAlertTexts(removeJsComments(decoded)).forEach(text => {
+                if (shouldInclude(text)) found.add(text);
+            });
+
             return [...found];
         }
 
         function isValidAlertMessage(expression) {
+
+            expression = removeJsComments(expression);
 
             const staticText = expression
                 .replace(/\$\{[\s\S]*?\}/g, "")
                 .replace(/(['"`])|[+]/g, "")
                 .trim();
 
-            return (
-                /[\p{L}\p{N}]/u.test(staticText) &&
-                /[\s.,!?;:()\-]/.test(staticText)
-            );
+            return isTranslationCandidateText(staticText);
         }
 
         function extractAlertTexts(source) {
+
+            source = removeJsComments(source);
+
+            // Mask literals before searching for alert(), so text such as
+            // "the alert( call" is never mistaken for executable code.
+            const searchableSource = source.split("");
+            let quote = null;
+            let escaped = false;
+            for (let i = 0; i < searchableSource.length; i++) {
+                const char = searchableSource[i];
+                if (quote) {
+                    if (char !== "\n" && char !== "\r") searchableSource[i] = " ";
+                    if (escaped) escaped = false;
+                    else if (char === "\\") escaped = true;
+                    else if (char === quote) quote = null;
+                } else if (char === "'" || char === '"' || char === "`") {
+                    quote = char;
+                    searchableSource[i] = " ";
+                }
+            }
+            const searchableCode = searchableSource.join("");
 
             const found = new Set();
 
             const alertRegex = /\balert\s*\(/g;
             let alertMatch;
 
-            while ((alertMatch = alertRegex.exec(source)) !== null) {
+            while ((alertMatch = alertRegex.exec(searchableCode)) !== null) {
 
                 const start = alertRegex.lastIndex;
 
@@ -608,7 +643,7 @@ try {
                             .replace(/\\n/g, "\n")
                             .trim()
 
-                        if (/[\p{L}\p{N}]/u.test(text)) {
+                        if (isTranslationCandidateText(text)) {
                             found.add(text);
                         }
 
@@ -628,7 +663,7 @@ try {
 
                             const cleanText = text.trim();
 
-                            if (/[\p{L}\p{N}]/u.test(cleanText)) {
+                            if (isTranslationCandidateText(cleanText)) {
                                 found.add(cleanText);
                             }
                         }
@@ -672,11 +707,17 @@ try {
         }
         async function translateCode(code) {
 
-            const htmlKeys = extractTextFromHTMLCode(code);
-            const jsKeys = extractStaticJsTexts(code);
-            const setKeys = [...new Set([...htmlKeys, ...jsKeys])];
+            const commentProtection = protectComments(code);
+            code = commentProtection.code;
 
+            const htmlKeys = extractTextFromHTMLCode(code);
+            //console.log(htmlKeys)
+            const jsKeys = extractStaticJsTexts(code);
+            //console.log(jsKeys)
+            const setKeys = [...new Set([...htmlKeys, ...jsKeys])];
+            //console.log(setKeys)
             const translations = await loadCsblTranslations(setKeys);
+            //console.log(translations)
 
             function translateExact(text) {
                 const leading = text.match(/^\s*/)?.[0] || "";
@@ -690,7 +731,7 @@ try {
                 }
 
                 const decoder = document.createElement("textarea");
-                decoder.innerHTML = cleanText;
+                decoder.innerHTML = cleanText.replace(/<\/textarea/gi, "&lt;/textarea");
 
                 const decodedText = decoder.value;
 
@@ -747,6 +788,12 @@ try {
                 }
             );
 
+            // Also translate visible text nodes when the HTML tags are not entity-encoded.
+            code = code.replace(
+                />([^<>]+)(?=<)/g,
+                (match, text) => ">" + translateExact(text)
+            );
+
             code = code.replace(
                 /(&quot;)([\s\S]*?)(&quot;)|(&#39;)([\s\S]*?)(&#39;)/g,
                 (
@@ -775,6 +822,8 @@ try {
                     return protectedParts[Number(index)];
                 }
             );
+
+            code = code.replace(/__COMMENT_(\d+)__/g, (match, index) => commentProtection.comments[Number(index)]);
 
             return code;
         }

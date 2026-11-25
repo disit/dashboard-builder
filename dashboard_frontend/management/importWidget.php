@@ -314,6 +314,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     if (($key == "parameters" && $row4['type_w'] == "widgetMap") || ($key == "parameters" && $row4['type_w'] == "widget3DMapDeck") || ($key == "styleParameters" && $row4['type_w'] == "widgetTable")) {
                                         //    $newQueryFields = $newQueryFields . ", " . $key;
                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(escapeForSQL($value, $link));
+                                    } else if ($key == "code") {
+                                        //in php one backslash is always eaten. So i duplicate before save it maintaing always one 
+                                        if($value !== null){
+                                            if(strpos($value, '\\') !== false){
+                                                $value = str_replace('\\', '\\\\', $value);
+                                            }
+                                        }
+                                         $newQueryValues = $newQueryValues . ", " . returnManagedStringForDb(addcslashes($value, "'"));
                                     } else {
                                         //    $newQueryFields = $newQueryFields . ", " . $key;
                                         if ($key == "title_w") {
